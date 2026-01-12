@@ -1,8 +1,4 @@
-import { FileText, Clock, Users, Settings, TrendingUp, Calendar, ChevronRight } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import lacerLogo from "@/assets/lacer-logo.png";
+import { FileText, Clock, Users, Settings } from "lucide-react";
 
 interface HomeScreenProps {
   onNavigate: (tab: string) => void;
@@ -17,31 +13,30 @@ const quickActions = [
   {
     id: "nueva-receta",
     title: "Nueva Receta",
-    description: "Crea y envía una receta",
+    subtitle: "Crear y enviar",
     icon: FileText,
-    color: "bg-secondary text-secondary-foreground",
-    highlight: true,
+    gradient: "from-secondary to-secondary/80",
   },
   {
     id: "historial",
     title: "Historial",
-    description: "Ver recetas enviadas",
+    subtitle: "Ver recetas",
     icon: Clock,
-    color: "bg-primary/10 text-primary",
+    gradient: "from-primary to-primary/80",
   },
   {
     id: "pacientes",
     title: "Pacientes",
-    description: "Gestionar pacientes",
+    subtitle: "Gestionar",
     icon: Users,
-    color: "bg-success/10 text-success",
+    gradient: "from-success to-success/80",
   },
   {
     id: "perfil",
     title: "Ajustes",
-    description: "Configuración",
+    subtitle: "Configurar",
     icon: Settings,
-    color: "bg-muted text-muted-foreground",
+    gradient: "from-muted-foreground/60 to-muted-foreground/40",
   },
 ];
 
@@ -50,74 +45,36 @@ export const HomeScreen = ({ onNavigate, stats = { totalRecipes: 0, totalPatient
   const greeting = today.getHours() < 12 ? "Buenos días" : today.getHours() < 20 ? "Buenas tardes" : "Buenas noches";
   
   return (
-    <div className="space-y-6 pb-20 md:pb-0">
-      {/* Logo Lacer */}
-      <div className="flex justify-center pt-2">
-        <img 
-          src={lacerLogo} 
-          alt="Lacer" 
-          className="h-16 md:h-20 object-contain"
-        />
-      </div>
-      
-      {/* Header de bienvenida */}
-      <div className="space-y-1">
-        <p className="text-muted-foreground text-sm">{greeting}</p>
-        <h2 className="text-2xl font-bold text-foreground">¿Qué deseas hacer hoy?</h2>
+    <div className="flex flex-col h-[calc(100vh-140px)] md:h-auto md:min-h-0">
+      {/* Header - iOS style greeting */}
+      <div className="text-center py-4 md:py-6">
+        <p className="text-muted-foreground text-sm font-medium">{greeting}</p>
+        <h2 className="text-xl md:text-2xl font-semibold text-foreground mt-1">
+          ¿Qué deseas hacer?
+        </h2>
       </div>
 
-      {/* Stats Cards - Solo en móvil como horizontal scroll */}
-      <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:grid md:grid-cols-3 scrollbar-hide">
-        <Card className="flex-shrink-0 w-[140px] md:w-auto border-none shadow-sm bg-gradient-to-br from-secondary/10 to-secondary/5">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-secondary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{stats.thisMonth}</p>
-                <p className="text-xs text-muted-foreground">Este mes</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="flex-shrink-0 w-[140px] md:w-auto border-none shadow-sm bg-gradient-to-br from-primary/10 to-primary/5">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                <FileText className="w-4 h-4 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{stats.totalRecipes}</p>
-                <p className="text-xs text-muted-foreground">Total recetas</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="flex-shrink-0 w-[140px] md:w-auto border-none shadow-sm bg-gradient-to-br from-success/10 to-success/5">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-success/20 flex items-center justify-center">
-                <Users className="w-4 h-4 text-success" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">{stats.totalPatients}</p>
-                <p className="text-xs text-muted-foreground">Pacientes</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Stats Row - iOS compact style */}
+      <div className="flex justify-center gap-6 py-3 px-4">
+        <div className="text-center">
+          <p className="text-2xl font-bold text-secondary">{stats.thisMonth}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Este mes</p>
+        </div>
+        <div className="w-px bg-border" />
+        <div className="text-center">
+          <p className="text-2xl font-bold text-primary">{stats.totalRecipes}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Recetas</p>
+        </div>
+        <div className="w-px bg-border" />
+        <div className="text-center">
+          <p className="text-2xl font-bold text-success">{stats.totalPatients}</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Pacientes</p>
+        </div>
       </div>
 
-      {/* Acciones rápidas */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-          Acciones rápidas
-        </h3>
-        
-        <div className="grid grid-cols-2 gap-3">
+      {/* Quick Actions Grid - iOS App-like icons */}
+      <div className="flex-1 flex items-center justify-center px-6 py-4">
+        <div className="grid grid-cols-2 gap-4 w-full max-w-xs">
           {quickActions.map((action) => {
             const Icon = action.icon;
             
@@ -125,63 +82,30 @@ export const HomeScreen = ({ onNavigate, stats = { totalRecipes: 0, totalPatient
               <button
                 key={action.id}
                 onClick={() => onNavigate(action.id)}
-                className={`group relative overflow-hidden rounded-xl p-4 text-left transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] ${
-                  action.highlight 
-                    ? "bg-secondary text-secondary-foreground col-span-2 md:col-span-1" 
-                    : "bg-card border border-border shadow-sm hover:shadow-md"
-                }`}
+                className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border border-border/50 shadow-sm transition-all duration-150 active:scale-95 hover:shadow-md"
               >
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                      action.highlight ? "bg-white/20" : action.color
-                    }`}>
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className={`font-semibold ${action.highlight ? "" : "text-foreground"}`}>
-                        {action.title}
-                      </h4>
-                      <p className={`text-xs mt-0.5 ${action.highlight ? "text-white/80" : "text-muted-foreground"}`}>
-                        {action.description}
-                      </p>
-                    </div>
-                  </div>
-                  <ChevronRight className={`w-5 h-5 transition-transform group-hover:translate-x-1 ${
-                    action.highlight ? "text-white/70" : "text-muted-foreground"
-                  }`} />
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${action.gradient} flex items-center justify-center shadow-sm`}>
+                  <Icon className="w-7 h-7 text-white" />
                 </div>
-                
-                {action.highlight && (
-                  <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full" />
-                )}
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-foreground leading-tight">
+                    {action.title}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                    {action.subtitle}
+                  </p>
+                </div>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Actividad reciente */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-            Actividad reciente
-          </h3>
-          <Button variant="ghost" size="sm" onClick={() => onNavigate("historial")} className="h-auto py-1 px-2 text-xs">
-            Ver todo
-          </Button>
-        </div>
-        
-        <Card className="border-none shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-center h-20 text-muted-foreground">
-              <div className="text-center">
-                <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No hay actividad reciente</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Bottom hint - iOS style */}
+      <div className="text-center pb-4 md:pb-6">
+        <p className="text-xs text-muted-foreground/60">
+          Talonario Digital v2.0
+        </p>
       </div>
     </div>
   );

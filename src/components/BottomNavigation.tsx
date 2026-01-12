@@ -8,54 +8,70 @@ interface BottomNavigationProps {
 
 const navItems = [
   { id: "home", label: "Inicio", icon: Home },
-  { id: "nueva-receta", label: "Crear", icon: Plus },
   { id: "historial", label: "Historial", icon: Clock },
+  { id: "nueva-receta", label: "Crear", icon: Plus, isCenter: true },
+  { id: "pacientes", label: "Pacientes", icon: User },
   { id: "perfil", label: "Perfil", icon: User },
 ];
 
 export const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => {
+  // Reorder for display: Home, Historial, Create (center), Pacientes, Perfil
+  const displayItems = [
+    navItems[0], // home
+    navItems[1], // historial
+    navItems[2], // create (center)
+    navItems[3], // pacientes
+    navItems[4], // perfil
+  ];
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border shadow-lg md:hidden">
-      <div className="flex items-center justify-around h-16 px-2 safe-area-bottom">
-        {navItems.map((item) => {
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-lg border-t border-border/50 md:hidden">
+      <div className="flex items-center justify-around h-[72px] px-2 pb-safe">
+        {displayItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
-          const isCreate = item.id === "nueva-receta";
+          const isCenter = item.isCenter;
+          
+          if (isCenter) {
+            return (
+              <button
+                key={item.id}
+                onClick={() => onTabChange(item.id)}
+                className="flex flex-col items-center justify-center -mt-6"
+              >
+                <div className={cn(
+                  "w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-200",
+                  isActive 
+                    ? "bg-secondary scale-110 shadow-secondary/30" 
+                    : "bg-secondary/90 active:scale-95"
+                )}>
+                  <Icon className="w-6 h-6 text-white" strokeWidth={2.5} />
+                </div>
+              </button>
+            );
+          }
           
           return (
             <button
               key={item.id}
               onClick={() => onTabChange(item.id)}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full transition-all duration-200",
+                "flex flex-col items-center justify-center flex-1 h-full transition-all duration-200 active:scale-95",
                 isActive 
                   ? "text-secondary" 
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground"
               )}
             >
-              {isCreate ? (
-                <div className={cn(
-                  "w-12 h-12 rounded-full flex items-center justify-center -mt-4 shadow-lg transition-all",
-                  isActive 
-                    ? "bg-secondary text-secondary-foreground scale-110" 
-                    : "bg-secondary/80 text-secondary-foreground hover:bg-secondary"
-                )}>
-                  <Icon className="w-6 h-6" />
-                </div>
-              ) : (
-                <>
-                  <Icon className={cn(
-                    "w-5 h-5 transition-transform",
-                    isActive && "scale-110"
-                  )} />
-                  <span className={cn(
-                    "text-[10px] mt-1 font-medium",
-                    isActive && "font-semibold"
-                  )}>
-                    {item.label}
-                  </span>
-                </>
-              )}
+              <Icon className={cn(
+                "w-6 h-6 transition-transform",
+                isActive && "scale-105"
+              )} strokeWidth={isActive ? 2.5 : 2} />
+              <span className={cn(
+                "text-[10px] mt-1 font-medium",
+                isActive && "font-semibold"
+              )}>
+                {item.label}
+              </span>
             </button>
           );
         })}
