@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,8 @@ export const RecipeCreator = () => {
   const [notes, setNotes] = useState("");
   const [showCategorySelector, setShowCategorySelector] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<{ id: string; name: string } | null>(null);
+  const [isClosingCategory, setIsClosingCategory] = useState(false);
+  const [isClosingProduct, setIsClosingProduct] = useState(false);
 
   // Fetch products
   const { data: products = [] } = useQuery({
@@ -93,34 +95,50 @@ export const RecipeCreator = () => {
     toast.success(`Receta enviada por ${method}`);
   };
 
-  const handleOpenCategorySelector = () => {
+  const handleOpenCategorySelector = useCallback(() => {
     setShowCategorySelector(true);
     setSelectedCategory(null);
-  };
+    setIsClosingCategory(false);
+    setIsClosingProduct(false);
+  }, []);
 
-  const handleSelectCategory = (categoryId: string, categoryName: string) => {
+  const handleSelectCategory = useCallback((categoryId: string, categoryName: string) => {
     setSelectedCategory({ id: categoryId, name: categoryName });
-  };
+  }, []);
 
-  const handleBackToCategories = () => {
-    setSelectedCategory(null);
-    setSearchTerm("");
-  };
+  const handleBackToCategories = useCallback(() => {
+    setIsClosingProduct(true);
+    setTimeout(() => {
+      setSelectedCategory(null);
+      setSearchTerm("");
+      setIsClosingProduct(false);
+    }, 250);
+  }, []);
 
-  const handleCloseSelector = () => {
-    setShowCategorySelector(false);
-    setSelectedCategory(null);
-    setSearchTerm("");
-  };
+  const handleCloseSelector = useCallback(() => {
+    if (selectedCategory) {
+      setIsClosingProduct(true);
+    } else {
+      setIsClosingCategory(true);
+    }
+    setTimeout(() => {
+      setShowCategorySelector(false);
+      setSelectedCategory(null);
+      setSearchTerm("");
+      setIsClosingCategory(false);
+      setIsClosingProduct(false);
+    }, 250);
+  }, [selectedCategory]);
 
   return (
     <>
       {/* Category Selector Full Screen */}
-      {showCategorySelector && !selectedCategory && (
+      {showCategorySelector && !selectedCategory && !isClosingProduct && (
         <CategorySelector
           onSelectCategory={handleSelectCategory}
           onClose={handleCloseSelector}
           productCountByCategory={productCountByCategory}
+          isClosing={isClosingCategory}
         />
       )}
 
@@ -136,6 +154,7 @@ export const RecipeCreator = () => {
           onToggleProduct={toggleProduct}
           onBack={handleBackToCategories}
           onClose={handleCloseSelector}
+          isClosing={isClosingProduct}
         />
       )}
 
