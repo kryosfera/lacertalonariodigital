@@ -24,16 +24,20 @@ export const SplashScreen = ({ onFinish, minDuration = 1500 }: SplashScreenProps
         isExiting ? "opacity-0 scale-110" : "opacity-100 scale-100"
       }`}
     >
-      {/* Logo container with pulse animation */}
+      {/* Logo container with glassmorphism card */}
       <div className={`transition-all duration-700 ${isExiting ? "scale-90 opacity-0" : "scale-100 opacity-100"}`}>
-        <img 
-          src={lacerLogo} 
-          alt="Lacer" 
-          className="w-40 h-40 md:w-48 md:h-48 object-contain animate-pulse-subtle drop-shadow-2xl"
-          style={{
-            filter: "brightness(0) invert(1)", // Make logo white
-          }}
-        />
+        <div className="relative p-8 md:p-10 rounded-3xl backdrop-blur-xl bg-white/15 border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.3)]">
+          {/* Inner glow effect */}
+          <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
+          <img 
+            src={lacerLogo} 
+            alt="Lacer" 
+            className="relative w-32 h-32 md:w-40 md:h-40 object-contain animate-pulse-subtle drop-shadow-lg"
+            style={{
+              filter: "brightness(0) invert(1)", // Make logo white
+            }}
+          />
+        </div>
       </div>
       
       {/* App name */}
