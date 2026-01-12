@@ -1,4 +1,5 @@
-import { ExternalLink, FileText, Play, Scissors, Syringe, BookOpen } from "lucide-react";
+import { useState } from "react";
+import { ExternalLink, FileText, Play, Scissors, Syringe, BookOpen, X } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -37,18 +38,17 @@ const videoRecommendation = {
   title: "Video Recomendaciones",
   description: "Vídeo explicativo con las recomendaciones post-cirugía",
   icon: Play,
-  url: "https://www.lacertalonariodigital.com/es/Video-Recomendacion-Post-Cirugia-Oral",
+  vimeoId: "943145092",
+  vimeoHash: "757334f829",
   imageUrl: "https://www.lacertalonariodigital.com/archivos/video_600x600.png",
   gradient: "from-muted-foreground/60 to-muted-foreground/40",
 };
 
 export const SurgeryRecommendations = () => {
+  const [showVideoModal, setShowVideoModal] = useState(false);
+
   const handleOpenPdf = (pdfUrl: string) => {
     window.open(pdfUrl, "_blank", "noopener,noreferrer");
-  };
-
-  const handleOpenVideo = () => {
-    window.open(videoRecommendation.url, "_blank", "noopener,noreferrer");
   };
 
   return (
@@ -145,7 +145,7 @@ export const SurgeryRecommendations = () => {
         
         <Card 
           className="group overflow-hidden border-border/50 hover:border-primary/20 transition-all duration-200 hover:shadow-lg cursor-pointer"
-          onClick={handleOpenVideo}
+          onClick={() => setShowVideoModal(true)}
         >
           <CardContent className="p-0">
             <div className="flex items-center gap-4">
@@ -172,7 +172,7 @@ export const SurgeryRecommendations = () => {
                   {videoRecommendation.description}
                 </p>
                 <div className="flex items-center gap-2 mt-3 text-xs text-primary font-medium">
-                  <ExternalLink className="w-3.5 h-3.5" />
+                  <Play className="w-3.5 h-3.5" />
                   Ver video
                 </div>
               </div>
@@ -180,6 +180,35 @@ export const SurgeryRecommendations = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Video Modal */}
+      {showVideoModal && (
+        <div 
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setShowVideoModal(false)}
+        >
+          <div 
+            className="relative w-full max-w-4xl bg-background rounded-xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setShowVideoModal(false)}
+              className="absolute top-3 right-3 z-10 w-10 h-10 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div style={{ padding: "56.25% 0 0 0", position: "relative" }}>
+              <iframe
+                src={`https://player.vimeo.com/video/${videoRecommendation.vimeoId}?h=${videoRecommendation.vimeoHash}&badge=0&autopause=0&player_id=0&app_id=58479&autoplay=1`}
+                frameBorder="0"
+                allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+                style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
+                title="Lacer - Recomendaciones Post-Cirugía Oral"
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
