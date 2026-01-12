@@ -212,28 +212,28 @@ export const RecipeCreator = () => {
                     <button
                       key={category.id}
                       onClick={() => setSelectedCategoryId(category.id)}
-                      className="group relative bg-white/10 hover:bg-white/20 rounded-lg p-4 text-left transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                      className="group relative bg-white rounded-lg overflow-hidden text-left transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
                     >
-                      <div className="flex flex-col items-center text-center gap-2">
-                        {category.image_url ? (
-                          <div className="w-14 h-14 rounded-full overflow-hidden bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                            <img 
-                              src={category.image_url} 
-                              alt={category.name}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                            <FolderOpen className="w-6 h-6 text-white" />
-                          </div>
-                        )}
-                        <h3 className="text-sm font-semibold text-white line-clamp-2">
+                      {category.image_url ? (
+                        <div className="aspect-square w-full">
+                          <img 
+                            src={category.image_url} 
+                            alt={category.name}
+                            className="w-full h-full object-contain bg-white p-2"
+                          />
+                        </div>
+                      ) : (
+                        <div className="aspect-square w-full bg-gray-100 flex items-center justify-center">
+                          <FolderOpen className="w-10 h-10 text-gray-400" />
+                        </div>
+                      )}
+                      <div className="p-2 bg-white border-t">
+                        <h3 className="text-xs font-semibold text-gray-800 line-clamp-2 text-center">
                           {category.name}
                         </h3>
-                        <Badge variant="secondary" className="bg-white/20 text-white text-xs">
+                        <p className="text-[10px] text-gray-500 text-center mt-1">
                           {count} productos
-                        </Badge>
+                        </p>
                       </div>
                     </button>
                   );
