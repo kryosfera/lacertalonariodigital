@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { FileText, Users, Send, BarChart3, Clock, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
+import { FileText, Users, BarChart3, Clock, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -27,10 +28,17 @@ const Index = () => {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm">
-                <Users className="w-4 h-4 mr-2" />
-                Dr. Usuario
-              </Button>
+              <Link to="/admin">
+                <Button variant="outline" size="sm">
+                  Admin
+                </Button>
+              </Link>
+              <Link to="/auth">
+                <Button variant="ghost" size="sm">
+                  <Users className="w-4 h-4 mr-2" />
+                  Acceder
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
