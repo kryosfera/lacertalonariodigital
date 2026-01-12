@@ -5,13 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Printer, Download, Search, X, ShoppingCart, Package } from "lucide-react";
+import { Send, Printer, Download, Search, X, ShoppingCart, Package, ChevronLeft, FolderOpen } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { CategorySection } from "./CategorySection";
+import { ProductCard } from "./ProductCard";
 
 interface Product {
   id: string;
@@ -32,6 +31,7 @@ export const RecipeCreator = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [patientName, setPatientName] = useState("");
   const [notes, setNotes] = useState("");
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
 
   // Fetch categories
   const { data: categories = [] } = useQuery({
@@ -65,42 +65,50 @@ export const RecipeCreator = () => {
     },
   });
 
-  // Filter products by search term
-  const filteredProducts = useMemo(() => {
-    if (!searchTerm) return products;
-    const term = searchTerm.toLowerCase();
-    return products.filter(
-      (p) =>
-        p.name.toLowerCase().includes(term) ||
-        p.reference?.toLowerCase().includes(term)
-    );
-  }, [products, searchTerm]);
-
-  // Group products by category
-  const productsByCategory = useMemo(() => {
-    const grouped = new Map<string, Product[]>();
-    
-    categories.forEach((cat) => {
-      grouped.set(cat.id, []);
-    });
-    
-    // Add "Sin categoría" for products without category
-    grouped.set("uncategorized", []);
-    
-    filteredProducts.forEach((product) => {
+  // Count products per category
+  const productCountByCategory = useMemo(() => {
+    const counts = new Map<string, number>();
+    products.forEach((product) => {
       const catId = product.category_id || "uncategorized";
-      const existing = grouped.get(catId) || [];
-      existing.push(product);
-      grouped.set(catId, existing);
+      counts.set(catId, (counts.get(catId) || 0) + 1);
     });
+    return counts;
+  }, [products]);
+
+  // Get products for selected category, filtered by search
+  const categoryProducts = useMemo(() => {
+    if (!selectedCategoryId) return [];
     
-    return grouped;
-  }, [filteredProducts, categories]);
+    let filtered = products.filter((p) => {
+      if (selectedCategoryId === "uncategorized") {
+        return !p.category_id;
+      }
+      return p.category_id === selectedCategoryId;
+    });
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (p) =>
+          p.name.toLowerCase().includes(term) ||
+          p.reference?.toLowerCase().includes(term)
+      );
+    }
+
+    return filtered;
+  }, [products, selectedCategoryId, searchTerm]);
 
   // Get selected products data
   const selectedProductsData = useMemo(() => {
     return products.filter((p) => selectedProducts.has(p.id));
   }, [products, selectedProducts]);
+
+  // Get selected category name
+  const selectedCategoryName = useMemo(() => {
+    if (!selectedCategoryId) return "";
+    if (selectedCategoryId === "uncategorized") return "Otros productos";
+    return categories.find((c) => c.id === selectedCategoryId)?.name || "";
+  }, [selectedCategoryId, categories]);
 
   const toggleProduct = (productId: string) => {
     setSelectedProducts((prev) => {
@@ -134,6 +142,11 @@ export const RecipeCreator = () => {
     toast.success(`Receta enviada por ${method}`);
   };
 
+  const handleBackToCategories = () => {
+    setSelectedCategoryId(null);
+    setSearchTerm("");
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Product Catalog - Talonario Style */}
@@ -142,6 +155,16 @@ export const RecipeCreator = () => {
           {/* Header */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-3">
+              {selectedCategoryId && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleBackToCategories}
+                  className="text-white hover:bg-white/10"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+              )}
               <img 
                 src="https://www.lacer.es/themes/custom/flavor/logo.svg" 
                 alt="Lacer" 
@@ -149,54 +172,100 @@ export const RecipeCreator = () => {
               />
               <div>
                 <h2 className="text-lg font-bold text-white">Talonario Digital</h2>
-                <p className="text-xs text-white/70">Selecciona los productos a prescribir</p>
+                <p className="text-xs text-white/70">
+                  {selectedCategoryId 
+                    ? selectedCategoryName 
+                    : "Selecciona una categoría"}
+                </p>
               </div>
             </div>
             
-            {/* Search */}
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar producto o C.N..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 bg-white/90 border-0"
-              />
-            </div>
+            {/* Search - only show when category is selected */}
+            {selectedCategoryId && (
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar producto o C.N..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 bg-white/90 border-0"
+                />
+              </div>
+            )}
           </div>
 
-          {/* Products Grid */}
+          {/* Content */}
           <ScrollArea className="h-[500px] pr-4">
             {isLoading ? (
               <div className="flex items-center justify-center h-40">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
               </div>
-            ) : (
-              <>
+            ) : !selectedCategoryId ? (
+              /* Categories Grid */
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                 {categories.map((category) => {
-                  const categoryProducts = productsByCategory.get(category.id) || [];
+                  const count = productCountByCategory.get(category.id) || 0;
+                  if (count === 0) return null;
+                  
                   return (
-                    <CategorySection
+                    <button
                       key={category.id}
-                      name={category.name}
-                      products={categoryProducts}
-                      selectedProducts={selectedProducts}
-                      onToggleProduct={toggleProduct}
-                    />
+                      onClick={() => setSelectedCategoryId(category.id)}
+                      className="group relative bg-white/10 hover:bg-white/20 rounded-lg p-4 text-left transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                    >
+                      <div className="flex flex-col items-center text-center gap-2">
+                        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                          <FolderOpen className="w-6 h-6 text-white" />
+                        </div>
+                        <h3 className="text-sm font-semibold text-white line-clamp-2">
+                          {category.name}
+                        </h3>
+                        <Badge variant="secondary" className="bg-white/20 text-white text-xs">
+                          {count} productos
+                        </Badge>
+                      </div>
+                    </button>
                   );
                 })}
                 
-                {/* Uncategorized products */}
-                {(productsByCategory.get("uncategorized") || []).length > 0 && (
-                  <CategorySection
-                    name="Otros productos"
-                    products={productsByCategory.get("uncategorized") || []}
-                    selectedProducts={selectedProducts}
-                    onToggleProduct={toggleProduct}
-                  />
+                {/* Uncategorized */}
+                {(productCountByCategory.get("uncategorized") || 0) > 0 && (
+                  <button
+                    onClick={() => setSelectedCategoryId("uncategorized")}
+                    className="group relative bg-white/10 hover:bg-white/20 rounded-lg p-4 text-left transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+                  >
+                    <div className="flex flex-col items-center text-center gap-2">
+                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                        <Package className="w-6 h-6 text-white" />
+                      </div>
+                      <h3 className="text-sm font-semibold text-white line-clamp-2">
+                        Otros productos
+                      </h3>
+                      <Badge variant="secondary" className="bg-white/20 text-white text-xs">
+                        {productCountByCategory.get("uncategorized")} productos
+                      </Badge>
+                    </div>
+                  </button>
                 )}
-
-                {filteredProducts.length === 0 && (
+              </div>
+            ) : (
+              /* Products Grid */
+              <>
+                {categoryProducts.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    {categoryProducts.map((product) => (
+                      <ProductCard
+                        key={product.id}
+                        id={product.id}
+                        name={product.name}
+                        reference={product.reference}
+                        thumbnailUrl={product.thumbnail_url}
+                        isSelected={selectedProducts.has(product.id)}
+                        onToggle={toggleProduct}
+                      />
+                    ))}
+                  </div>
+                ) : (
                   <div className="flex flex-col items-center justify-center h-40 text-white/70">
                     <Package className="w-12 h-12 mb-2 opacity-50" />
                     <p>No se encontraron productos</p>
