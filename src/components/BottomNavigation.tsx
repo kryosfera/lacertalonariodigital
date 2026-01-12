@@ -1,4 +1,4 @@
-import { Home, Plus, Clock, User } from "lucide-react";
+import { Home, Plus, Clock, User, Scissors } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BottomNavigationProps {
@@ -8,10 +8,10 @@ interface BottomNavigationProps {
 
 const navItems = [
   { id: "home", label: "Inicio", icon: Home },
-  { id: "historial", label: "Historial", icon: Clock },
+  { id: "recomendaciones", label: "Cirugía", icon: Scissors },
   { id: "nueva-receta", label: "Crear", icon: Plus, isCenter: true },
+  { id: "historial", label: "Historial", icon: Clock },
   { id: "pacientes", label: "Pacientes", icon: User },
-  { id: "perfil", label: "Perfil", icon: User },
 ];
 
 export const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => {

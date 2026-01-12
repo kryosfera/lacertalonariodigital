@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Users, BarChart3, Clock, Plus, Settings } from "lucide-react";
+import { Users, BarChart3, Clock, Plus, Settings, Scissors } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RecipeCreator } from "@/components/RecipeCreator";
@@ -8,6 +8,7 @@ import { PatientList } from "@/components/PatientList";
 import { RecipeHistory } from "@/components/RecipeHistory";
 import { DashboardStats } from "@/components/DashboardStats";
 import { HomeScreen } from "@/components/HomeScreen";
+import { SurgeryRecommendations } from "@/components/SurgeryRecommendations";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { useIsMobile } from "@/hooks/use-mobile";
 import lacerLogo from "@/assets/lacer-logo.png";
@@ -59,7 +60,7 @@ const Index = () => {
         {/* Desktop: Tabs navigation */}
         {!isMobile && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full max-w-lg mx-auto grid-cols-5 h-auto p-1 bg-muted/50 rounded-xl">
+            <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-6 h-auto p-1 bg-muted/50 rounded-xl">
               <TabsTrigger value="home" className="flex flex-col gap-1 py-2 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
                 <BarChart3 className="w-4 h-4" />
                 <span className="text-xs">Inicio</span>
@@ -71,6 +72,10 @@ const Index = () => {
               <TabsTrigger value="nueva-receta" className="flex flex-col gap-1 py-2 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
                 <Plus className="w-4 h-4" />
                 <span className="text-xs">Nueva</span>
+              </TabsTrigger>
+              <TabsTrigger value="recomendaciones" className="flex flex-col gap-1 py-2 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
+                <Scissors className="w-4 h-4" />
+                <span className="text-xs">Cirugía</span>
               </TabsTrigger>
               <TabsTrigger value="pacientes" className="flex flex-col gap-1 py-2 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
                 <Users className="w-4 h-4" />
@@ -104,6 +109,10 @@ const Index = () => {
                 </p>
               </div>
               <RecipeCreator />
+            </TabsContent>
+
+            <TabsContent value="recomendaciones" className="space-y-6">
+              <SurgeryRecommendations />
             </TabsContent>
 
             <TabsContent value="pacientes" className="space-y-6">
@@ -178,6 +187,12 @@ const Index = () => {
                   </p>
                 </div>
                 <PatientList />
+              </div>
+            )}
+
+            {activeTab === "recomendaciones" && (
+              <div className="pb-20">
+                <SurgeryRecommendations />
               </div>
             )}
 
