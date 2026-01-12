@@ -1,4 +1,4 @@
-import { FileText, Clock, Users, Settings, Sparkles } from "lucide-react";
+import { FileText, Clock, Users, Settings, Sparkles, Scissors } from "lucide-react";
 import lacerLogo from "@/assets/lacer-logo-color.png";
 
 interface HomeScreenProps {
@@ -19,24 +19,24 @@ const quickActions = [
     gradient: "from-secondary to-secondary/80",
   },
   {
+    id: "recomendaciones",
+    title: "Post-Cirugía",
+    subtitle: "Recomendaciones",
+    icon: Scissors,
+    gradient: "from-primary to-primary/80",
+  },
+  {
     id: "historial",
     title: "Historial",
     subtitle: "Ver recetas",
     icon: Clock,
-    gradient: "from-primary to-primary/80",
+    gradient: "from-success to-success/80",
   },
   {
     id: "pacientes",
     title: "Pacientes",
     subtitle: "Gestionar",
     icon: Users,
-    gradient: "from-success to-success/80",
-  },
-  {
-    id: "perfil",
-    title: "Ajustes",
-    subtitle: "Configurar",
-    icon: Settings,
     gradient: "from-muted-foreground/60 to-muted-foreground/40",
   },
 ];
