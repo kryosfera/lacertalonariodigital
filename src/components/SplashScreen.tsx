@@ -1,65 +1,102 @@
 import { useEffect, useState } from "react";
-import lacerLogo from "@/assets/lacer-logo.png";
+import lacerLogo from "@/assets/lacer-logo-color.png";
 
 interface SplashScreenProps {
   onFinish: () => void;
   minDuration?: number;
 }
 
-export const SplashScreen = ({ onFinish, minDuration = 1500 }: SplashScreenProps) => {
+export const SplashScreen = ({ onFinish, minDuration = 2000 }: SplashScreenProps) => {
   const [isExiting, setIsExiting] = useState(false);
+  const [showLogo, setShowLogo] = useState(false);
+  const [showCard, setShowCard] = useState(false);
+  const [showText, setShowText] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    // Staggered entrance animations
+    const cardTimer = setTimeout(() => setShowCard(true), 100);
+    const logoTimer = setTimeout(() => setShowLogo(true), 300);
+    const textTimer = setTimeout(() => setShowText(true), 600);
+    const loaderTimer = setTimeout(() => setShowLoader(true), 900);
+
+    const exitTimer = setTimeout(() => {
       setIsExiting(true);
-      setTimeout(onFinish, 400); // Wait for exit animation
+      setTimeout(onFinish, 500);
     }, minDuration);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(cardTimer);
+      clearTimeout(logoTimer);
+      clearTimeout(textTimer);
+      clearTimeout(loaderTimer);
+      clearTimeout(exitTimer);
+    };
   }, [onFinish, minDuration]);
 
   return (
     <div 
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-secondary transition-all duration-400 ${
-        isExiting ? "opacity-0 scale-110" : "opacity-100 scale-100"
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-center bg-secondary transition-all duration-500 ${
+        isExiting ? "opacity-0 scale-105" : "opacity-100 scale-100"
       }`}
     >
+      {/* Ambient glow effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className={`absolute top-1/4 left-1/4 w-64 h-64 bg-white/10 rounded-full blur-3xl transition-all duration-1000 ${
+          showCard ? "opacity-100 scale-100" : "opacity-0 scale-50"
+        }`} />
+        <div className={`absolute bottom-1/3 right-1/4 w-48 h-48 bg-white/5 rounded-full blur-2xl transition-all duration-1000 delay-200 ${
+          showCard ? "opacity-100 scale-100" : "opacity-0 scale-50"
+        }`} />
+      </div>
+
       {/* Logo container with glassmorphism card */}
-      <div className={`transition-all duration-700 ${isExiting ? "scale-90 opacity-0" : "scale-100 opacity-100"}`}>
-        <div className="relative p-8 md:p-10 rounded-3xl backdrop-blur-xl bg-white/15 border border-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.3)]">
+      <div className={`transition-all duration-700 ease-out ${
+        isExiting ? "scale-90 opacity-0 -translate-y-4" : 
+        showCard ? "scale-100 opacity-100 translate-y-0" : "scale-75 opacity-0 translate-y-8"
+      }`}>
+        <div className="relative p-6 md:p-8 rounded-3xl backdrop-blur-xl bg-white/20 border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.15),0_0_60px_rgba(255,255,255,0.1),inset_0_1px_0_rgba(255,255,255,0.4)]">
           {/* Inner glow effect */}
-          <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/20 via-transparent to-transparent pointer-events-none" />
-          <img 
-            src={lacerLogo} 
-            alt="Lacer" 
-            className="relative w-32 h-32 md:w-40 md:h-40 object-contain animate-pulse-subtle drop-shadow-lg"
-            style={{
-              filter: "brightness(0) invert(1)", // Make logo white
-            }}
-          />
+          <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/25 via-white/5 to-transparent pointer-events-none" />
+          
+          {/* Logo with separate animation */}
+          <div className={`transition-all duration-500 ease-out delay-100 ${
+            isExiting ? "opacity-0 scale-90" :
+            showLogo ? "opacity-100 scale-100" : "opacity-0 scale-90"
+          }`}>
+            <img 
+              src={lacerLogo} 
+              alt="Lacer" 
+              className="relative w-36 h-36 md:w-44 md:h-44 object-contain drop-shadow-lg"
+            />
+          </div>
         </div>
       </div>
       
-      {/* App name */}
-      <div className={`mt-8 text-center transition-all duration-500 delay-200 ${
-        isExiting ? "opacity-0 translate-y-4" : "opacity-100 translate-y-0"
+      {/* App name with staggered animation */}
+      <div className={`mt-8 text-center transition-all duration-500 ease-out ${
+        isExiting ? "opacity-0 translate-y-4" : 
+        showText ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}>
-        <h1 className="text-2xl md:text-3xl font-bold text-white tracking-wide">
+        <h1 className="text-2xl md:text-3xl font-bold text-white tracking-wide drop-shadow-md">
           Talonario Digital
         </h1>
-        <p className="text-white/70 text-sm mt-2">
+        <p className={`text-white/80 text-sm mt-2 transition-all duration-300 delay-150 ${
+          showText ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
+        }`}>
           by Lacer
         </p>
       </div>
 
-      {/* Loading indicator */}
-      <div className={`absolute bottom-16 transition-all duration-300 ${
-        isExiting ? "opacity-0" : "opacity-100"
+      {/* Loading indicator with fade in */}
+      <div className={`absolute bottom-16 transition-all duration-400 ${
+        isExiting ? "opacity-0 translate-y-4" : 
+        showLoader ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
       }`}>
-        <div className="flex gap-1.5">
-          <div className="w-2 h-2 rounded-full bg-white/80 animate-bounce" style={{ animationDelay: "0ms" }} />
-          <div className="w-2 h-2 rounded-full bg-white/80 animate-bounce" style={{ animationDelay: "150ms" }} />
-          <div className="w-2 h-2 rounded-full bg-white/80 animate-bounce" style={{ animationDelay: "300ms" }} />
+        <div className="flex gap-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-white/90 animate-bounce shadow-sm" style={{ animationDelay: "0ms" }} />
+          <div className="w-2.5 h-2.5 rounded-full bg-white/90 animate-bounce shadow-sm" style={{ animationDelay: "150ms" }} />
+          <div className="w-2.5 h-2.5 rounded-full bg-white/90 animate-bounce shadow-sm" style={{ animationDelay: "300ms" }} />
         </div>
       </div>
     </div>
