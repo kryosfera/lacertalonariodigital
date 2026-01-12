@@ -7,10 +7,11 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Printer, Download, Search, X, ShoppingCart, Package, ChevronLeft, FolderOpen } from "lucide-react";
+import { Send, Printer, Download, X, ShoppingCart, Package, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { ProductCard } from "./ProductCard";
+import { CategorySelector } from "./CategorySelector";
+import { ProductSelector } from "./ProductSelector";
 
 interface Product {
   id: string;
@@ -20,37 +21,16 @@ interface Product {
   category_id: string | null;
 }
 
-interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  image_url: string | null;
-}
-
 export const RecipeCreator = () => {
   const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const [patientName, setPatientName] = useState("");
   const [notes, setNotes] = useState("");
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
-
-  // Fetch categories
-  const { data: categories = [] } = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("categories")
-        .select("id, name, slug, image_url")
-        .order("sort_order", { ascending: true })
-        .order("name", { ascending: true });
-      
-      if (error) throw error;
-      return data as Category[];
-    },
-  });
+  const [showCategorySelector, setShowCategorySelector] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<{ id: string; name: string } | null>(null);
 
   // Fetch products
-  const { data: products = [], isLoading } = useQuery({
+  const { data: products = [] } = useQuery({
     queryKey: ["products"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -60,7 +40,7 @@ export const RecipeCreator = () => {
         .eq("is_visible", true)
         .order("sort_order", { ascending: true })
         .order("name", { ascending: true });
-      
+
       if (error) throw error;
       return data as Product[];
     },
@@ -76,40 +56,10 @@ export const RecipeCreator = () => {
     return counts;
   }, [products]);
 
-  // Get products for selected category, filtered by search
-  const categoryProducts = useMemo(() => {
-    if (!selectedCategoryId) return [];
-    
-    let filtered = products.filter((p) => {
-      if (selectedCategoryId === "uncategorized") {
-        return !p.category_id;
-      }
-      return p.category_id === selectedCategoryId;
-    });
-
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (p) =>
-          p.name.toLowerCase().includes(term) ||
-          p.reference?.toLowerCase().includes(term)
-      );
-    }
-
-    return filtered;
-  }, [products, selectedCategoryId, searchTerm]);
-
   // Get selected products data
   const selectedProductsData = useMemo(() => {
     return products.filter((p) => selectedProducts.has(p.id));
   }, [products, selectedProducts]);
-
-  // Get selected category name
-  const selectedCategoryName = useMemo(() => {
-    if (!selectedCategoryId) return "";
-    if (selectedCategoryId === "uncategorized") return "Otros productos";
-    return categories.find((c) => c.id === selectedCategoryId)?.name || "";
-  }, [selectedCategoryId, categories]);
 
   const toggleProduct = (productId: string) => {
     setSelectedProducts((prev) => {
@@ -143,192 +93,104 @@ export const RecipeCreator = () => {
     toast.success(`Receta enviada por ${method}`);
   };
 
+  const handleOpenCategorySelector = () => {
+    setShowCategorySelector(true);
+    setSelectedCategory(null);
+  };
+
+  const handleSelectCategory = (categoryId: string, categoryName: string) => {
+    setSelectedCategory({ id: categoryId, name: categoryName });
+  };
+
   const handleBackToCategories = () => {
-    setSelectedCategoryId(null);
+    setSelectedCategory(null);
+    setSearchTerm("");
+  };
+
+  const handleCloseSelector = () => {
+    setShowCategorySelector(false);
+    setSelectedCategory(null);
     setSearchTerm("");
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* Product Catalog - Talonario Style */}
-      <div className="lg:col-span-2">
-        <div className="bg-secondary rounded-xl p-4 md:p-6 shadow-xl">
-          {/* Header */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              {selectedCategoryId && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleBackToCategories}
-                  className="text-white hover:bg-white/10"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </Button>
-              )}
-              <img 
-                src="https://www.lacer.es/themes/custom/flavor/logo.svg" 
-                alt="Lacer" 
-                className="h-8 brightness-0 invert"
-              />
-              <div>
-                <h2 className="text-lg font-bold text-white">Talonario Digital</h2>
-                <p className="text-xs text-white/70">
-                  {selectedCategoryId 
-                    ? selectedCategoryName 
-                    : "Selecciona una categoría"}
-                </p>
-              </div>
-            </div>
-            
-            {/* Search - only show when category is selected */}
-            {selectedCategoryId && (
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar producto o C.N..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 bg-white/90 border-0"
-                />
-              </div>
-            )}
-          </div>
+    <>
+      {/* Category Selector Full Screen */}
+      {showCategorySelector && !selectedCategory && (
+        <CategorySelector
+          onSelectCategory={handleSelectCategory}
+          onClose={handleCloseSelector}
+          productCountByCategory={productCountByCategory}
+        />
+      )}
 
-          {/* Content */}
-          <ScrollArea className="h-[500px] pr-4">
-            {isLoading ? (
-              <div className="flex items-center justify-center h-40">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-              </div>
-            ) : !selectedCategoryId ? (
-              /* Categories Grid */
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {categories.map((category) => {
-                  const count = productCountByCategory.get(category.id) || 0;
-                  if (count === 0) return null;
-                  
-                  return (
-                    <button
-                      key={category.id}
-                      onClick={() => setSelectedCategoryId(category.id)}
-                      className="group relative bg-white rounded-lg overflow-hidden text-left transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
-                    >
-                      {category.image_url ? (
-                        <div className="aspect-square w-full">
-                          <img 
-                            src={category.image_url} 
-                            alt={category.name}
-                            className="w-full h-full object-contain bg-white p-2"
-                          />
-                        </div>
-                      ) : (
-                        <div className="aspect-square w-full bg-gray-100 flex items-center justify-center">
-                          <FolderOpen className="w-10 h-10 text-gray-400" />
-                        </div>
-                      )}
-                      <div className="p-2 bg-white border-t">
-                        <h3 className="text-xs font-semibold text-gray-800 line-clamp-2 text-center">
-                          {category.name}
-                        </h3>
-                        <p className="text-[10px] text-gray-500 text-center mt-1">
-                          {count} productos
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })}
-                
-                {/* Uncategorized */}
-                {(productCountByCategory.get("uncategorized") || 0) > 0 && (
-                  <button
-                    onClick={() => setSelectedCategoryId("uncategorized")}
-                    className="group relative bg-white/10 hover:bg-white/20 rounded-lg p-4 text-left transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
-                  >
-                    <div className="flex flex-col items-center text-center gap-2">
-                      <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                        <Package className="w-6 h-6 text-white" />
-                      </div>
-                      <h3 className="text-sm font-semibold text-white line-clamp-2">
-                        Otros productos
-                      </h3>
-                      <Badge variant="secondary" className="bg-white/20 text-white text-xs">
-                        {productCountByCategory.get("uncategorized")} productos
-                      </Badge>
-                    </div>
-                  </button>
-                )}
-              </div>
-            ) : (
-              /* Products Grid */
-              <>
-                {categoryProducts.length > 0 ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                    {categoryProducts.map((product) => (
-                      <ProductCard
-                        key={product.id}
-                        id={product.id}
-                        name={product.name}
-                        reference={product.reference}
-                        thumbnailUrl={product.thumbnail_url}
-                        isSelected={selectedProducts.has(product.id)}
-                        onToggle={toggleProduct}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-40 text-white/70">
-                    <Package className="w-12 h-12 mb-2 opacity-50" />
-                    <p>No se encontraron productos</p>
-                  </div>
-                )}
-              </>
-            )}
-          </ScrollArea>
-        </div>
-      </div>
+      {/* Product Selector Full Screen */}
+      {showCategorySelector && selectedCategory && (
+        <ProductSelector
+          categoryId={selectedCategory.id}
+          categoryName={selectedCategory.name}
+          products={products}
+          selectedProducts={selectedProducts}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          onToggleProduct={toggleProduct}
+          onBack={handleBackToCategories}
+          onClose={handleCloseSelector}
+        />
+      )}
 
       {/* Recipe Summary */}
-      <div className="lg:col-span-1">
-        <Card className="shadow-medical sticky top-4">
+      <div className="max-w-2xl mx-auto">
+        <Card className="shadow-medical">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShoppingCart className="w-5 h-5 text-primary" />
-                <CardTitle className="text-lg">Receta</CardTitle>
+                <CardTitle className="text-lg">Receta Digital</CardTitle>
               </div>
               <Badge variant="secondary" className="font-bold">
-                {selectedProducts.size}
+                {selectedProducts.size} productos
               </Badge>
             </div>
-            <CardDescription>Productos seleccionados para la prescripción</CardDescription>
+            <CardDescription>Crea y envía recetas a tus pacientes</CardDescription>
           </CardHeader>
-          
+
           <CardContent className="space-y-4">
             {/* Patient Info */}
-            <div className="space-y-2">
-              <Label htmlFor="patient-name">Paciente</Label>
-              <Input
-                id="patient-name"
-                placeholder="Nombre del paciente"
-                value={patientName}
-                onChange={(e) => setPatientName(e.target.value)}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="patient-name">Paciente</Label>
+                <Input
+                  id="patient-name"
+                  placeholder="Nombre del paciente"
+                  value={patientName}
+                  onChange={(e) => setPatientName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="date">Fecha</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  defaultValue={new Date().toISOString().split("T")[0]}
+                />
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="date">Fecha</Label>
-              <Input 
-                id="date" 
-                type="date" 
-                defaultValue={new Date().toISOString().split("T")[0]} 
-              />
-            </div>
+            {/* Add Products Button */}
+            <Button
+              variant="outline"
+              className="w-full h-14 border-dashed border-2"
+              onClick={handleOpenCategorySelector}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Añadir Productos
+            </Button>
 
             {/* Selected Products List */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>Productos ({selectedProducts.size})</Label>
+                <Label>Productos seleccionados</Label>
                 {selectedProducts.size > 0 && (
                   <Button
                     variant="ghost"
@@ -340,12 +202,12 @@ export const RecipeCreator = () => {
                   </Button>
                 )}
               </div>
-              
-              <ScrollArea className="h-[180px] rounded-md border p-2">
+
+              <ScrollArea className="h-[200px] rounded-md border p-2">
                 {selectedProductsData.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-8">
                     <Package className="w-8 h-8 mb-2 opacity-50" />
-                    <p className="text-sm">Selecciona productos del catálogo</p>
+                    <p className="text-sm">Pulsa "Añadir Productos" para seleccionar</p>
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -358,26 +220,26 @@ export const RecipeCreator = () => {
                           <img
                             src={product.thumbnail_url}
                             alt={product.name}
-                            className="w-8 h-8 object-contain"
+                            className="w-10 h-10 object-contain"
                           />
                         ) : (
-                          <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
-                            <Package className="w-4 h-4 text-muted-foreground/50" />
+                          <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
+                            <Package className="w-5 h-5 text-muted-foreground/50" />
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{product.name}</p>
-                          <p className="text-[10px] text-muted-foreground">
+                          <p className="text-sm font-medium truncate">{product.name}</p>
+                          <p className="text-xs text-muted-foreground">
                             C.N. {product.reference?.replace(".", "")}
                           </p>
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="w-6 h-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity"
                           onClick={() => removeProduct(product.id)}
                         >
-                          <X className="w-3 h-3" />
+                          <X className="w-4 h-4" />
                         </Button>
                       </div>
                     ))}
@@ -400,33 +262,33 @@ export const RecipeCreator = () => {
 
             {/* Actions */}
             <div className="grid grid-cols-2 gap-2 pt-2">
-              <Button 
-                onClick={() => handleSend("WhatsApp")} 
+              <Button
+                onClick={() => handleSend("WhatsApp")}
                 className="w-full"
                 disabled={selectedProducts.size === 0}
               >
                 <Send className="w-4 h-4 mr-2" />
                 WhatsApp
               </Button>
-              <Button 
-                onClick={() => handleSend("Email")} 
-                variant="secondary" 
+              <Button
+                onClick={() => handleSend("Email")}
+                variant="secondary"
                 className="w-full"
                 disabled={selectedProducts.size === 0}
               >
                 <Send className="w-4 h-4 mr-2" />
                 Email
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full"
                 disabled={selectedProducts.size === 0}
               >
                 <Download className="w-4 h-4 mr-2" />
                 PDF
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="w-full"
                 disabled={selectedProducts.size === 0}
               >
@@ -437,6 +299,6 @@ export const RecipeCreator = () => {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </>
   );
 };
