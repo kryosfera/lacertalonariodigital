@@ -2,6 +2,7 @@ import { FileText, Clock, Users, Settings, TrendingUp, Calendar, ChevronRight } 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import lacerLogo from "@/assets/lacer-logo.png";
 
 interface HomeScreenProps {
   onNavigate: (tab: string) => void;
@@ -50,6 +51,15 @@ export const HomeScreen = ({ onNavigate, stats = { totalRecipes: 0, totalPatient
   
   return (
     <div className="space-y-6 pb-20 md:pb-0">
+      {/* Logo Lacer */}
+      <div className="flex justify-center pt-2">
+        <img 
+          src={lacerLogo} 
+          alt="Lacer" 
+          className="h-16 md:h-20 object-contain"
+        />
+      </div>
+      
       {/* Header de bienvenida */}
       <div className="space-y-1">
         <p className="text-muted-foreground text-sm">{greeting}</p>
