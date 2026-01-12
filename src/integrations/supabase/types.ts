@@ -14,7 +14,127 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          parent_id: string | null
+          slug: string
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          parent_id?: string | null
+          slug: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          parent_id?: string | null
+          slug?: string
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          description_html: string | null
+          document_urls: string[] | null
+          ean: string | null
+          gallery_urls: string[] | null
+          id: string
+          is_active: boolean | null
+          is_visible: boolean | null
+          main_image_url: string | null
+          name: string
+          prescription_count: number | null
+          reference: string | null
+          seo_description: string | null
+          seo_title: string | null
+          share_image_url: string | null
+          slug: string
+          sort_order: number | null
+          thumbnail_url: string | null
+          updated_at: string
+          video_urls: string[] | null
+          views_count: number | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          description_html?: string | null
+          document_urls?: string[] | null
+          ean?: string | null
+          gallery_urls?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          is_visible?: boolean | null
+          main_image_url?: string | null
+          name: string
+          prescription_count?: number | null
+          reference?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          share_image_url?: string | null
+          slug: string
+          sort_order?: number | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          video_urls?: string[] | null
+          views_count?: number | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          description_html?: string | null
+          document_urls?: string[] | null
+          ean?: string | null
+          gallery_urls?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          is_visible?: boolean | null
+          main_image_url?: string | null
+          name?: string
+          prescription_count?: number | null
+          reference?: string | null
+          seo_description?: string | null
+          seo_title?: string | null
+          share_image_url?: string | null
+          slug?: string
+          sort_order?: number | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          video_urls?: string[] | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
