@@ -1,6 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Package, FolderTree, ArrowLeft, LogOut, Loader2 } from 'lucide-react';
+import { Package, FolderTree, ArrowLeft, LogOut, Loader2, ImageIcon, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,6 +12,34 @@ import { CategoriesAdmin } from '@/components/admin/CategoriesAdmin';
 const Admin = () => {
   const navigate = useNavigate();
   const { user, isAdmin, isLoading, signOut } = useAuth();
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSyncImages = async () => {
+    setIsSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-product-images');
+      
+      if (error) throw error;
+      
+      if (data.success) {
+        toast.success(
+          `Sincronización completada: ${data.summary.matched} imágenes asignadas, ${data.summary.unmatched} sin coincidencia`,
+          { duration: 5000 }
+        );
+        
+        if (data.details.unmatched.length > 0) {
+          console.log('Archivos sin coincidencia:', data.details.unmatched);
+        }
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error: any) {
+      console.error('Sync error:', error);
+      toast.error(`Error al sincronizar: ${error.message}`);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -58,10 +88,25 @@ const Admin = () => {
                 <p className="text-xs text-muted-foreground">Gestión de productos y categorías</p>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
-              <LogOut className="w-4 h-4 mr-2" />
-              Cerrar Sesión
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleSyncImages}
+                disabled={isSyncing}
+              >
+                {isSyncing ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <ImageIcon className="w-4 h-4 mr-2" />
+                )}
+                Sincronizar Imágenes
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleSignOut}>
+                <LogOut className="w-4 h-4 mr-2" />
+                Cerrar Sesión
+              </Button>
+            </div>
           </div>
         </div>
       </header>
