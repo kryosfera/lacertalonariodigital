@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { X, FolderOpen, Package } from "lucide-react";
+import { X, FolderOpen, Package, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface Category {
   id: string;
@@ -15,13 +16,17 @@ interface CategorySelectorProps {
   onSelectCategory: (categoryId: string, categoryName: string) => void;
   onClose: () => void;
   productCountByCategory: Map<string, number>;
+  isClosing?: boolean;
 }
 
 export const CategorySelector = ({
   onSelectCategory,
   onClose,
   productCountByCategory,
+  isClosing = false,
 }: CategorySelectorProps) => {
+  const isMobile = useIsMobile();
+
   const { data: categories = [], isLoading } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
@@ -42,8 +47,107 @@ export const CategorySelector = ({
 
   const uncategorizedCount = productCountByCategory.get("uncategorized") || 0;
 
+  // Mobile: Lista minimalista
+  if (isMobile) {
+    return (
+      <div 
+        className={`fixed inset-0 z-50 bg-background ${
+          isClosing ? 'screen-slide-out' : 'screen-slide-in'
+        }`}
+      >
+        {/* Header minimalista */}
+        <div className="sticky top-0 z-10 bg-background border-b px-4 py-3">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-foreground">Categorías</h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="text-muted-foreground"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Lista de categorías */}
+        <ScrollArea className="h-[calc(100vh-56px)]">
+          <div className="py-2">
+            {isLoading ? (
+              <div className="flex items-center justify-center h-40">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-secondary"></div>
+              </div>
+            ) : (
+              <div className="divide-y divide-border">
+                {categoriesWithProducts.map((category, index) => {
+                  const count = productCountByCategory.get(category.id) || 0;
+
+                  return (
+                    <button
+                      key={category.id}
+                      onClick={() => onSelectCategory(category.id, category.name)}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 active:bg-muted transition-colors card-scale-in"
+                      style={{ animationDelay: `${index * 30}ms` }}
+                    >
+                      <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
+                        {category.image_url ? (
+                          <img
+                            src={category.image_url}
+                            alt={category.name}
+                            className="w-full h-full object-contain p-1"
+                          />
+                        ) : (
+                          <FolderOpen className="w-5 h-5 text-muted-foreground" />
+                        )}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <h3 className="text-sm font-medium text-foreground line-clamp-1">
+                          {category.name}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          {count} productos
+                        </p>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  );
+                })}
+
+                {/* Sin categoría */}
+                {uncategorizedCount > 0 && (
+                  <button
+                    onClick={() => onSelectCategory("uncategorized", "Otros productos")}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 active:bg-muted transition-colors"
+                  >
+                    <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+                      <Package className="w-5 h-5 text-muted-foreground" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <h3 className="text-sm font-medium text-foreground">
+                        Otros productos
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        {uncategorizedCount} productos
+                      </p>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+      </div>
+    );
+  }
+
+  // Desktop: Grid de tarjetas
   return (
-    <div className="fixed inset-0 z-50 bg-secondary">
+    <div 
+      className={`fixed inset-0 z-50 bg-secondary ${
+        isClosing ? 'screen-fade-out' : 'screen-fade-in'
+      }`}
+    >
       {/* Header */}
       <div className="sticky top-0 z-10 bg-secondary border-b border-white/10 px-4 py-4">
         <div className="container mx-auto flex items-center justify-between">
@@ -79,15 +183,16 @@ export const CategorySelector = ({
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
             </div>
           ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-              {categoriesWithProducts.map((category) => {
+            <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+              {categoriesWithProducts.map((category, index) => {
                 const count = productCountByCategory.get(category.id) || 0;
 
                 return (
                   <button
                     key={category.id}
                     onClick={() => onSelectCategory(category.id, category.name)}
-                    className="group bg-white rounded-lg overflow-hidden transition-all duration-200 hover:scale-105 hover:shadow-xl"
+                    className="group bg-white rounded-lg overflow-hidden transition-all duration-200 hover:scale-105 hover:shadow-xl card-scale-in"
+                    style={{ animationDelay: `${index * 20}ms` }}
                   >
                     {category.image_url ? (
                       <div className="aspect-square w-full">
