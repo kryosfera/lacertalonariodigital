@@ -1,13 +1,29 @@
 import { useState } from "react";
-import { FileText, Play, Scissors, Syringe, BookOpen, X, Share2, Mail, MessageCircle, ExternalLink } from "lucide-react";
+import { FileText, Play, Scissors, Syringe, BookOpen, X, Share2, Mail, MessageCircle, ExternalLink, Phone } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
+interface WhatsAppShareData {
+  type: 'pdf' | 'video';
+  title: string;
+  message: string;
+}
 
 const recommendations = [
   {
@@ -53,6 +69,10 @@ const videoRecommendation = {
 
 export const SurgeryRecommendations = () => {
   const [showVideoModal, setShowVideoModal] = useState(false);
+  const [showWhatsAppDialog, setShowWhatsAppDialog] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [whatsAppData, setWhatsAppData] = useState<WhatsAppShareData | null>(null);
 
   const handleOpenPdf = (pdfUrl: string) => {
     window.open(pdfUrl, "_blank", "noopener,noreferrer");
@@ -62,10 +82,61 @@ export const SurgeryRecommendations = () => {
     return `${window.location.origin}${path}`;
   };
 
+  const formatPhoneNumber = (phone: string): string => {
+    // Remove all non-numeric characters except +
+    return phone.replace(/[^\d+]/g, '');
+  };
+
+  const validatePhoneNumber = (phone: string): boolean => {
+    const formatted = formatPhoneNumber(phone);
+    // Allow formats: +34612345678, 612345678, etc. (minimum 9 digits)
+    const phoneRegex = /^\+?\d{9,15}$/;
+    return phoneRegex.test(formatted);
+  };
+
+  const openWhatsAppDialog = (data: WhatsAppShareData) => {
+    setWhatsAppData(data);
+    setPhoneNumber("");
+    setPhoneError("");
+    setShowWhatsAppDialog(true);
+  };
+
   const handleShareWhatsApp = (rec: typeof recommendations[0]) => {
     const message = `📋 *${rec.title}*\n\n${rec.description}\n\n📎 Documento: ${getFullUrl(rec.pdfUrl)}\n\n_Enviado desde Lacer Talonario Digital_`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    openWhatsAppDialog({
+      type: 'pdf',
+      title: rec.title,
+      message,
+    });
+  };
+
+  const handleShareVideoWhatsApp = () => {
+    const message = `🎬 *Recomendaciones Post-Cirugía Oral*\n\nVídeo explicativo con los cuidados necesarios tras una cirugía oral.\n\n▶️ Ver video: ${videoRecommendation.vimeoUrl}\n\n_Enviado desde Lacer Talonario Digital_`;
+    openWhatsAppDialog({
+      type: 'video',
+      title: 'Video Recomendaciones',
+      message,
+    });
+  };
+
+  const confirmWhatsAppShare = () => {
+    if (!whatsAppData) return;
+
+    const formattedPhone = formatPhoneNumber(phoneNumber);
+    
+    if (!validatePhoneNumber(formattedPhone)) {
+      setPhoneError("Introduce un número de teléfono válido (mín. 9 dígitos)");
+      return;
+    }
+
+    // Remove leading + if present for wa.me format
+    const cleanPhone = formattedPhone.startsWith('+') ? formattedPhone.slice(1) : formattedPhone;
+    const whatsappUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(whatsAppData.message)}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    
+    setShowWhatsAppDialog(false);
+    setPhoneNumber("");
+    setPhoneError("");
   };
 
   const handleShareEmail = (rec: typeof recommendations[0]) => {
@@ -73,12 +144,6 @@ export const SurgeryRecommendations = () => {
     const body = `Estimado/a paciente,\n\nAdjunto le comparto las recomendaciones de ${rec.title}.\n\n${rec.description}\n\nPuede consultar el documento en el siguiente enlace:\n${getFullUrl(rec.pdfUrl)}\n\nAtentamente,\nSu equipo dental`;
     const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = mailtoUrl;
-  };
-
-  const handleShareVideoWhatsApp = () => {
-    const message = `🎬 *Recomendaciones Post-Cirugía Oral*\n\nVídeo explicativo con los cuidados necesarios tras una cirugía oral.\n\n▶️ Ver video: ${videoRecommendation.vimeoUrl}\n\n_Enviado desde Lacer Talonario Digital_`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
   const handleShareVideoEmail = () => {
@@ -285,6 +350,71 @@ export const SurgeryRecommendations = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* WhatsApp Phone Dialog */}
+      <Dialog open={showWhatsAppDialog} onOpenChange={setShowWhatsAppDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-green-600" />
+              Compartir por WhatsApp
+            </DialogTitle>
+            <DialogDescription>
+              Introduce el número de teléfono del paciente para enviar "{whatsAppData?.title}"
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-sm font-medium">
+                Teléfono del paciente
+              </Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+34 612 345 678"
+                  value={phoneNumber}
+                  onChange={(e) => {
+                    setPhoneNumber(e.target.value);
+                    setPhoneError("");
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      confirmWhatsAppShare();
+                    }
+                  }}
+                  className="pl-10"
+                  maxLength={20}
+                />
+              </div>
+              {phoneError && (
+                <p className="text-xs text-destructive">{phoneError}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Incluye el código de país (ej: +34 para España)
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setShowWhatsAppDialog(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={confirmWhatsAppShare}
+              className="gap-2 bg-green-600 hover:bg-green-700"
+            >
+              <MessageCircle className="w-4 h-4" />
+              Enviar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Video Modal with animation */}
       {showVideoModal && (
