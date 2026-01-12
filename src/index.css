@@ -231,6 +231,22 @@ All colors MUST be HSL.
     animation: scaleIn 0.2s ease-out forwards;
   }
   
+  /* Subtle pulse for splash */
+  .animate-pulse-subtle {
+    animation: pulseSoft 2s ease-in-out infinite;
+  }
+  
+  @keyframes pulseSoft {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 0.9;
+    }
+  }
+  
   /* Safe area for mobile bottom nav */
   .safe-area-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0);
