@@ -14,6 +14,8 @@ const Admin = () => {
   const { user, isAdmin, isLoading, signOut } = useAuth();
   const [isSyncing, setIsSyncing] = useState(false);
 
+  const [isSyncingCategories, setIsSyncingCategories] = useState(false);
+
   const handleSyncImages = async () => {
     setIsSyncing(true);
     try {
@@ -38,6 +40,33 @@ const Admin = () => {
       toast.error(`Error al sincronizar: ${error.message}`);
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  const handleSyncCategoryImages = async () => {
+    setIsSyncingCategories(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-category-images');
+      
+      if (error) throw error;
+      
+      if (data.success) {
+        toast.success(
+          `Categorías sincronizadas: ${data.summary.matched} imágenes asignadas, ${data.summary.unmatched} sin coincidencia`,
+          { duration: 5000 }
+        );
+        
+        if (data.details.unmatched.length > 0) {
+          console.log('Archivos sin coincidencia:', data.details.unmatched);
+        }
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error: any) {
+      console.error('Sync error:', error);
+      toast.error(`Error al sincronizar categorías: ${error.message}`);
+    } finally {
+      setIsSyncingCategories(false);
     }
   };
 
@@ -92,6 +121,19 @@ const Admin = () => {
               <Button 
                 variant="outline" 
                 size="sm" 
+                onClick={handleSyncCategoryImages}
+                disabled={isSyncingCategories}
+              >
+                {isSyncingCategories ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <FolderTree className="w-4 h-4 mr-2" />
+                )}
+                Sync Categorías
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
                 onClick={handleSyncImages}
                 disabled={isSyncing}
               >
@@ -100,7 +142,7 @@ const Admin = () => {
                 ) : (
                   <ImageIcon className="w-4 h-4 mr-2" />
                 )}
-                Sincronizar Imágenes
+                Sync Productos
               </Button>
               <Button variant="outline" size="sm" onClick={handleSignOut}>
                 <LogOut className="w-4 h-4 mr-2" />

@@ -24,6 +24,7 @@ interface Category {
   id: string;
   name: string;
   slug: string;
+  image_url: string | null;
 }
 
 export const RecipeCreator = () => {
@@ -39,7 +40,7 @@ export const RecipeCreator = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("categories")
-        .select("id, name, slug")
+        .select("id, name, slug, image_url")
         .order("sort_order", { ascending: true })
         .order("name", { ascending: true });
       
@@ -214,9 +215,19 @@ export const RecipeCreator = () => {
                       className="group relative bg-white/10 hover:bg-white/20 rounded-lg p-4 text-left transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
                     >
                       <div className="flex flex-col items-center text-center gap-2">
-                        <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                          <FolderOpen className="w-6 h-6 text-white" />
-                        </div>
+                        {category.image_url ? (
+                          <div className="w-14 h-14 rounded-full overflow-hidden bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                            <img 
+                              src={category.image_url} 
+                              alt={category.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-white/30 transition-colors">
+                            <FolderOpen className="w-6 h-6 text-white" />
+                          </div>
+                        )}
                         <h3 className="text-sm font-semibold text-white line-clamp-2">
                           {category.name}
                         </h3>
