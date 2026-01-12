@@ -6,12 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Send, Printer, Download, X, ShoppingCart, Package, Plus } from "lucide-react";
+import { Send, Printer, Download, ShoppingCart, Plus, MessageCircle, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CategorySelector } from "./CategorySelector";
 import { ProductSelector } from "./ProductSelector";
+import { SelectedProductsBadge } from "./SelectedProductsBadge";
+import { sendViaWhatsApp, sendViaEmail, downloadPDF } from "@/lib/recipeUtils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 interface Product {
   id: string;
@@ -21,15 +23,24 @@ interface Product {
   category_id: string | null;
 }
 
+interface ProductWithQuantity extends Product {
+  quantity: number;
+}
+
 export const RecipeCreator = () => {
-  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
+  const [selectedProducts, setSelectedProducts] = useState<Map<string, number>>(new Map());
   const [searchTerm, setSearchTerm] = useState("");
   const [patientName, setPatientName] = useState("");
+  const [patientPhone, setPatientPhone] = useState("");
+  const [patientEmail, setPatientEmail] = useState("");
   const [notes, setNotes] = useState("");
   const [showCategorySelector, setShowCategorySelector] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<{ id: string; name: string } | null>(null);
   const [isClosingCategory, setIsClosingCategory] = useState(false);
   const [isClosingProduct, setIsClosingProduct] = useState(false);
+  const [showSendDialog, setShowSendDialog] = useState(false);
+  const [sendMethod, setSendMethod] = useState<"whatsapp" | "email" | null>(null);
+  const [isSending, setIsSending] = useState(false);
 
   // Fetch products
   const { data: products = [] } = useQuery({
@@ -58,18 +69,28 @@ export const RecipeCreator = () => {
     return counts;
   }, [products]);
 
-  // Get selected products data
-  const selectedProductsData = useMemo(() => {
-    return products.filter((p) => selectedProducts.has(p.id));
+  // Get selected products with quantity
+  const selectedProductsData = useMemo((): ProductWithQuantity[] => {
+    return products
+      .filter((p) => selectedProducts.has(p.id))
+      .map((p) => ({
+        ...p,
+        quantity: selectedProducts.get(p.id) || 1,
+      }));
   }, [products, selectedProducts]);
+
+  // Create Set for ProductSelector compatibility
+  const selectedProductsSet = useMemo(() => {
+    return new Set(selectedProducts.keys());
+  }, [selectedProducts]);
 
   const toggleProduct = (productId: string) => {
     setSelectedProducts((prev) => {
-      const next = new Set(prev);
+      const next = new Map(prev);
       if (next.has(productId)) {
         next.delete(productId);
       } else {
-        next.add(productId);
+        next.set(productId, 1);
       }
       return next;
     });
@@ -77,22 +98,92 @@ export const RecipeCreator = () => {
 
   const removeProduct = (productId: string) => {
     setSelectedProducts((prev) => {
-      const next = new Set(prev);
+      const next = new Map(prev);
       next.delete(productId);
       return next;
     });
   };
 
-  const clearSelection = () => {
-    setSelectedProducts(new Set());
+  const updateQuantity = (productId: string, quantity: number) => {
+    if (quantity <= 0) {
+      removeProduct(productId);
+      return;
+    }
+    setSelectedProducts((prev) => {
+      const next = new Map(prev);
+      next.set(productId, Math.min(quantity, 99));
+      return next;
+    });
   };
 
-  const handleSend = (method: string) => {
+  const clearSelection = () => {
+    setSelectedProducts(new Map());
+  };
+
+  const getRecipeData = () => ({
+    patientName,
+    date: new Date().toLocaleDateString("es-ES"),
+    products: selectedProductsData,
+    notes,
+  });
+
+  const handleSendWhatsApp = () => {
     if (selectedProducts.size === 0) {
       toast.error("Selecciona al menos un producto");
       return;
     }
-    toast.success(`Receta enviada por ${method}`);
+    sendViaWhatsApp(getRecipeData(), patientPhone);
+    toast.success("Abriendo WhatsApp...");
+    setShowSendDialog(false);
+  };
+
+  const handleSendEmail = () => {
+    if (selectedProducts.size === 0) {
+      toast.error("Selecciona al menos un producto");
+      return;
+    }
+    sendViaEmail(getRecipeData(), patientEmail);
+    toast.success("Abriendo cliente de correo...");
+    setShowSendDialog(false);
+  };
+
+  const handleDownloadPDF = async () => {
+    if (selectedProducts.size === 0) {
+      toast.error("Selecciona al menos un producto");
+      return;
+    }
+    setIsSending(true);
+    try {
+      await downloadPDF(getRecipeData());
+      toast.success("PDF descargado correctamente");
+    } catch (error) {
+      toast.error("Error al generar el PDF");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  const handlePrint = async () => {
+    if (selectedProducts.size === 0) {
+      toast.error("Selecciona al menos un producto");
+      return;
+    }
+    setIsSending(true);
+    try {
+      const { generateRecipePDF } = await import("@/lib/recipeUtils");
+      const blob = await generateRecipePDF(getRecipeData());
+      const url = URL.createObjectURL(blob);
+      const printWindow = window.open(url, "_blank");
+      if (printWindow) {
+        printWindow.onload = () => {
+          printWindow.print();
+        };
+      }
+    } catch (error) {
+      toast.error("Error al preparar la impresión");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const handleOpenCategorySelector = useCallback(() => {
@@ -148,7 +239,7 @@ export const RecipeCreator = () => {
           categoryId={selectedCategory.id}
           categoryName={selectedCategory.name}
           products={products}
-          selectedProducts={selectedProducts}
+          selectedProducts={selectedProductsSet}
           searchTerm={searchTerm}
           onSearchChange={setSearchTerm}
           onToggleProduct={toggleProduct}
@@ -159,24 +250,30 @@ export const RecipeCreator = () => {
       )}
 
       {/* Recipe Summary */}
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-2xl mx-auto pb-20 md:pb-0">
         <Card className="shadow-medical">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5 text-primary" />
-                <CardTitle className="text-lg">Receta Digital</CardTitle>
+                <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
+                  <ShoppingCart className="w-5 h-5 text-secondary" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Receta Digital</CardTitle>
+                  <CardDescription>Crea y envía recetas a tus pacientes</CardDescription>
+                </div>
               </div>
-              <Badge variant="secondary" className="font-bold">
-                {selectedProducts.size} productos
-              </Badge>
+              {selectedProducts.size > 0 && (
+                <Badge className="bg-secondary text-secondary-foreground font-bold text-lg px-3 py-1">
+                  {selectedProducts.size}
+                </Badge>
+              )}
             </div>
-            <CardDescription>Crea y envía recetas a tus pacientes</CardDescription>
           </CardHeader>
 
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-5">
             {/* Patient Info */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="patient-name">Paciente</Label>
                 <Input
@@ -199,72 +296,21 @@ export const RecipeCreator = () => {
             {/* Add Products Button */}
             <Button
               variant="outline"
-              className="w-full h-14 border-dashed border-2"
+              className="w-full h-14 border-dashed border-2 hover:border-secondary hover:bg-secondary/5 transition-colors"
               onClick={handleOpenCategorySelector}
             >
               <Plus className="w-5 h-5 mr-2" />
               Añadir Productos
             </Button>
 
-            {/* Selected Products List */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label>Productos seleccionados</Label>
-                {selectedProducts.size > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearSelection}
-                    className="h-auto py-1 px-2 text-xs text-muted-foreground hover:text-destructive"
-                  >
-                    Limpiar todo
-                  </Button>
-                )}
-              </div>
-
-              <ScrollArea className="h-[200px] rounded-md border p-2">
-                {selectedProductsData.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-8">
-                    <Package className="w-8 h-8 mb-2 opacity-50" />
-                    <p className="text-sm">Pulsa "Añadir Productos" para seleccionar</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {selectedProductsData.map((product) => (
-                      <div
-                        key={product.id}
-                        className="flex items-center gap-2 p-2 bg-muted/50 rounded-md group"
-                      >
-                        {product.thumbnail_url ? (
-                          <img
-                            src={product.thumbnail_url}
-                            alt={product.name}
-                            className="w-10 h-10 object-contain"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 bg-muted rounded flex items-center justify-center">
-                            <Package className="w-5 h-5 text-muted-foreground/50" />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            C.N. {product.reference?.replace(".", "")}
-                          </p>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="w-8 h-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={() => removeProduct(product.id)}
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
+            {/* Selected Products List with improved badges */}
+            <div className="rounded-lg border bg-muted/20 p-3">
+              <SelectedProductsBadge
+                products={selectedProductsData}
+                onRemove={removeProduct}
+                onUpdateQuantity={updateQuantity}
+                onClear={clearSelection}
+              />
             </div>
 
             {/* Notes */}
@@ -282,26 +328,33 @@ export const RecipeCreator = () => {
             {/* Actions */}
             <div className="grid grid-cols-2 gap-2 pt-2">
               <Button
-                onClick={() => handleSend("WhatsApp")}
-                className="w-full"
+                onClick={() => {
+                  setSendMethod("whatsapp");
+                  setShowSendDialog(true);
+                }}
+                className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white"
                 disabled={selectedProducts.size === 0}
               >
-                <Send className="w-4 h-4 mr-2" />
+                <MessageCircle className="w-4 h-4 mr-2" />
                 WhatsApp
               </Button>
               <Button
-                onClick={() => handleSend("Email")}
+                onClick={() => {
+                  setSendMethod("email");
+                  setShowSendDialog(true);
+                }}
                 variant="secondary"
                 className="w-full"
                 disabled={selectedProducts.size === 0}
               >
-                <Send className="w-4 h-4 mr-2" />
+                <Mail className="w-4 h-4 mr-2" />
                 Email
               </Button>
               <Button
                 variant="outline"
                 className="w-full"
-                disabled={selectedProducts.size === 0}
+                disabled={selectedProducts.size === 0 || isSending}
+                onClick={handleDownloadPDF}
               >
                 <Download className="w-4 h-4 mr-2" />
                 PDF
@@ -309,7 +362,8 @@ export const RecipeCreator = () => {
               <Button
                 variant="outline"
                 className="w-full"
-                disabled={selectedProducts.size === 0}
+                disabled={selectedProducts.size === 0 || isSending}
+                onClick={handlePrint}
               >
                 <Printer className="w-4 h-4 mr-2" />
                 Imprimir
@@ -318,6 +372,57 @@ export const RecipeCreator = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Send Dialog */}
+      <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {sendMethod === "whatsapp" ? "Enviar por WhatsApp" : "Enviar por Email"}
+            </DialogTitle>
+            <DialogDescription>
+              Introduce los datos del paciente para enviar la receta
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            {sendMethod === "whatsapp" ? (
+              <div className="space-y-2">
+                <Label htmlFor="phone">Teléfono (opcional)</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+34 600 000 000"
+                  value={patientPhone}
+                  onChange={(e) => setPatientPhone(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Si no introduces un número, se abrirá WhatsApp para que lo selecciones
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Label htmlFor="email">Email (opcional)</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="paciente@email.com"
+                  value={patientEmail}
+                  onChange={(e) => setPatientEmail(e.target.value)}
+                />
+              </div>
+            )}
+            
+            <Button
+              className="w-full"
+              onClick={sendMethod === "whatsapp" ? handleSendWhatsApp : handleSendEmail}
+            >
+              <Send className="w-4 h-4 mr-2" />
+              Enviar receta
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
