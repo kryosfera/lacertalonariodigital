@@ -47,7 +47,7 @@ export const CategorySelector = ({
 
   const uncategorizedCount = productCountByCategory.get("uncategorized") || 0;
 
-  // Mobile: Lista minimalista
+  // Mobile: Cuadrícula visual con imágenes de categorías
   if (isMobile) {
     return (
       <div 
@@ -70,67 +70,48 @@ export const CategorySelector = ({
           </div>
         </div>
 
-        {/* Lista de categorías */}
+        {/* Cuadrícula de categorías */}
         <ScrollArea className="h-[calc(100vh-56px)]">
-          <div className="py-2">
+          <div className="p-4">
             {isLoading ? (
               <div className="flex items-center justify-center h-40">
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-secondary"></div>
               </div>
             ) : (
-              <div className="divide-y divide-border">
-                {categoriesWithProducts.map((category, index) => {
-                  const count = productCountByCategory.get(category.id) || 0;
-
-                  return (
-                    <button
-                      key={category.id}
-                      onClick={() => onSelectCategory(category.id, category.name)}
-                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 active:bg-muted transition-colors card-scale-in"
-                      style={{ animationDelay: `${index * 30}ms` }}
-                    >
-                      <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center overflow-hidden flex-shrink-0">
-                        {category.image_url ? (
-                          <img
-                            src={category.image_url}
-                            alt={category.name}
-                            className="w-full h-full object-contain p-1"
-                          />
-                        ) : (
-                          <FolderOpen className="w-5 h-5 text-muted-foreground" />
-                        )}
-                      </div>
-                      <div className="flex-1 text-left">
-                        <h3 className="text-sm font-medium text-foreground line-clamp-1">
-                          {category.name}
-                        </h3>
-                        <p className="text-xs text-muted-foreground">
-                          {count} productos
-                        </p>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                    </button>
-                  );
-                })}
+              <div className="grid grid-cols-2 gap-4">
+                {categoriesWithProducts.map((category, index) => (
+                  <button
+                    key={category.id}
+                    onClick={() => onSelectCategory(category.id, category.name)}
+                    className="flex items-center justify-center p-4 bg-background rounded-xl border border-border/50 hover:bg-muted/30 active:scale-95 transition-all duration-200 min-h-[80px] card-scale-in"
+                    style={{ animationDelay: `${index * 40}ms` }}
+                  >
+                    {category.image_url ? (
+                      <img
+                        src={category.image_url}
+                        alt={category.name}
+                        className="max-w-full max-h-12 object-contain"
+                      />
+                    ) : (
+                      <span className="text-sm font-semibold text-foreground text-center leading-tight">
+                        {category.name}
+                      </span>
+                    )}
+                  </button>
+                ))}
 
                 {/* Sin categoría */}
                 {uncategorizedCount > 0 && (
                   <button
                     onClick={() => onSelectCategory("uncategorized", "Otros productos")}
-                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-muted/50 active:bg-muted transition-colors"
+                    className="flex items-center justify-center p-4 bg-background rounded-xl border border-border/50 hover:bg-muted/30 active:scale-95 transition-all duration-200 min-h-[80px]"
                   >
-                    <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
-                      <Package className="w-5 h-5 text-muted-foreground" />
+                    <div className="flex flex-col items-center gap-1">
+                      <Package className="w-6 h-6 text-muted-foreground" />
+                      <span className="text-xs text-muted-foreground">
+                        Otros ({uncategorizedCount})
+                      </span>
                     </div>
-                    <div className="flex-1 text-left">
-                      <h3 className="text-sm font-medium text-foreground">
-                        Otros productos
-                      </h3>
-                      <p className="text-xs text-muted-foreground">
-                        {uncategorizedCount} productos
-                      </p>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </button>
                 )}
               </div>
