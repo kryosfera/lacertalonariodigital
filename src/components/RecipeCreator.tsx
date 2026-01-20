@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CategorySelector } from "./CategorySelector";
 import { ProductSelector } from "./ProductSelector";
 import { SelectedProductsBadge } from "./SelectedProductsBadge";
-import { sendViaWhatsApp, sendViaEmail, downloadPDF, generateRecipeUrl } from "@/lib/recipeUtils";
+import { sendViaWhatsApp, sendViaEmail, downloadPDF, generateRecipeUrl, generateTemporaryRecipeUrl } from "@/lib/recipeUtils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -198,22 +198,23 @@ export const RecipeCreator = () => {
       return;
     }
     
-    // For professional users, save first to get the recipe code for the URL
     let recipeUrl: string | undefined;
+    
     if (isProfessional) {
+      // Professional users: save to DB and get permanent URL
       const recipeCode = await saveRecipeToDb('whatsapp');
       if (recipeCode) {
         recipeUrl = generateRecipeUrl(recipeCode);
       }
       toast.success("Receta guardada en historial");
+      resetForm();
+    } else {
+      // Basic users: generate temporary encoded URL (no DB storage)
+      recipeUrl = generateTemporaryRecipeUrl(getRecipeData());
     }
     
     sendViaWhatsApp(getRecipeData(), patientPhone, recipeUrl);
     toast.success("Abriendo WhatsApp...");
-    
-    if (isProfessional) {
-      resetForm();
-    }
     setShowSendDialog(false);
   };
 
@@ -222,14 +223,22 @@ export const RecipeCreator = () => {
       toast.error("Selecciona al menos un producto");
       return;
     }
-    sendViaEmail(getRecipeData(), patientEmail);
-    toast.success("Abriendo cliente de correo...");
     
-    await saveRecipeToDb('email');
+    let recipeUrl: string | undefined;
+    
     if (isProfessional) {
+      const recipeCode = await saveRecipeToDb('email');
+      if (recipeCode) {
+        recipeUrl = generateRecipeUrl(recipeCode);
+      }
       toast.success("Receta guardada en historial");
       resetForm();
+    } else {
+      recipeUrl = generateTemporaryRecipeUrl(getRecipeData());
     }
+    
+    sendViaEmail(getRecipeData(), patientEmail, recipeUrl);
+    toast.success("Abriendo cliente de correo...");
     setShowSendDialog(false);
   };
 
@@ -240,14 +249,21 @@ export const RecipeCreator = () => {
     }
     setIsSending(true);
     try {
-      await downloadPDF(getRecipeData());
-      toast.success("PDF descargado correctamente");
+      let recipeUrl: string | undefined;
       
-      await saveRecipeToDb('pdf');
       if (isProfessional) {
+        const recipeCode = await saveRecipeToDb('pdf');
+        if (recipeCode) {
+          recipeUrl = generateRecipeUrl(recipeCode);
+        }
         toast.success("Receta guardada en historial");
         resetForm();
+      } else {
+        recipeUrl = generateTemporaryRecipeUrl(getRecipeData());
       }
+      
+      await downloadPDF(getRecipeData(), recipeUrl);
+      toast.success("PDF descargado con código QR");
     } catch (error) {
       toast.error("Error al generar el PDF");
     } finally {
@@ -262,20 +278,27 @@ export const RecipeCreator = () => {
     }
     setIsSending(true);
     try {
+      let recipeUrl: string | undefined;
+      
+      if (isProfessional) {
+        const recipeCode = await saveRecipeToDb('print');
+        if (recipeCode) {
+          recipeUrl = generateRecipeUrl(recipeCode);
+        }
+        toast.success("Receta guardada en historial");
+        resetForm();
+      } else {
+        recipeUrl = generateTemporaryRecipeUrl(getRecipeData());
+      }
+      
       const { generateRecipePDF } = await import("@/lib/recipeUtils");
-      const blob = await generateRecipePDF(getRecipeData());
+      const blob = await generateRecipePDF(getRecipeData(), recipeUrl);
       const url = URL.createObjectURL(blob);
       const printWindow = window.open(url, "_blank");
       if (printWindow) {
         printWindow.onload = () => {
           printWindow.print();
         };
-      }
-      
-      await saveRecipeToDb('print');
-      if (isProfessional) {
-        toast.success("Receta guardada en historial");
-        resetForm();
       }
     } catch (error) {
       toast.error("Error al preparar la impresión");
