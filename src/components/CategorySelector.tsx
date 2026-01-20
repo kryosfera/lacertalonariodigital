@@ -47,77 +47,89 @@ export const CategorySelector = ({
 
   const uncategorizedCount = productCountByCategory.get("uncategorized") || 0;
 
-  // Mobile: Cuadrícula visual con imágenes de categorías
+  // Calculate grid layout based on category count
+  const totalItems = categoriesWithProducts.length + (uncategorizedCount > 0 ? 1 : 0);
+  const getGridConfig = () => {
+    if (totalItems <= 4) return { cols: 2, rows: 2 };
+    if (totalItems <= 6) return { cols: 2, rows: 3 };
+    if (totalItems <= 9) return { cols: 3, rows: 3 };
+    return { cols: 3, rows: Math.ceil(totalItems / 3) };
+  };
+  const gridConfig = getGridConfig();
+
+  // Mobile: Fullscreen grid with large images - NO SCROLL
   if (isMobile) {
     return (
       <div 
-        className={`fixed inset-0 z-50 bg-background ${
+        className={`fixed inset-0 z-50 bg-background flex flex-col ${
           isClosing ? 'screen-slide-out' : 'screen-slide-in'
         }`}
       >
-        {/* Header minimalista */}
-        <div className="sticky top-0 z-10 bg-background border-b px-4 py-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-foreground">Categorías</h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="text-muted-foreground"
-            >
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
+        {/* Compact header */}
+        <div className="flex items-center justify-between px-4 py-2 border-b border-border/30">
+          <h2 className="text-base font-semibold text-foreground">Selecciona categoría</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="text-muted-foreground w-8 h-8"
+          >
+            <X className="w-5 h-5" />
+          </Button>
         </div>
 
-        {/* Cuadrícula de categorías */}
-        <ScrollArea className="h-[calc(100vh-56px)]">
-          <div className="p-4">
-            {isLoading ? (
-              <div className="flex items-center justify-center h-40">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-secondary"></div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 gap-4">
-                {categoriesWithProducts.map((category, index) => (
-                  <button
-                    key={category.id}
-                    onClick={() => onSelectCategory(category.id, category.name)}
-                    className="flex items-center justify-center p-4 bg-background rounded-xl border border-border/50 hover:bg-muted/30 active:scale-95 transition-all duration-200 min-h-[80px] card-scale-in"
-                    style={{ animationDelay: `${index * 40}ms` }}
-                  >
-                    {category.image_url ? (
-                      <img
-                        src={category.image_url}
-                        alt={category.name}
-                        className="max-w-full max-h-12 object-contain"
-                      />
-                    ) : (
-                      <span className="text-sm font-semibold text-foreground text-center leading-tight">
-                        {category.name}
-                      </span>
-                    )}
-                  </button>
-                ))}
+        {/* Fullscreen grid - fills remaining space */}
+        <div className="flex-1 p-2">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
+            </div>
+          ) : (
+            <div 
+              className="grid gap-2 h-full"
+              style={{ 
+                gridTemplateColumns: `repeat(${gridConfig.cols}, 1fr)`,
+                gridTemplateRows: `repeat(${Math.min(gridConfig.rows, Math.ceil(totalItems / gridConfig.cols))}, 1fr)`
+              }}
+            >
+              {categoriesWithProducts.map((category, index) => (
+                <button
+                  key={category.id}
+                  onClick={() => onSelectCategory(category.id, category.name)}
+                  className="flex items-center justify-center bg-white rounded-xl border border-border/20 hover:bg-muted/20 active:scale-95 transition-all duration-200 overflow-hidden card-scale-in shadow-sm"
+                  style={{ animationDelay: `${index * 30}ms` }}
+                >
+                  {category.image_url ? (
+                    <img
+                      src={category.image_url}
+                      alt={category.name}
+                      className="w-full h-full object-contain p-3"
+                    />
+                  ) : (
+                    <span className="text-sm font-semibold text-foreground text-center leading-tight px-2">
+                      {category.name}
+                    </span>
+                  )}
+                </button>
+              ))}
 
-                {/* Sin categoría */}
-                {uncategorizedCount > 0 && (
-                  <button
-                    onClick={() => onSelectCategory("uncategorized", "Otros productos")}
-                    className="flex items-center justify-center p-4 bg-background rounded-xl border border-border/50 hover:bg-muted/30 active:scale-95 transition-all duration-200 min-h-[80px]"
-                  >
-                    <div className="flex flex-col items-center gap-1">
-                      <Package className="w-6 h-6 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">
-                        Otros ({uncategorizedCount})
-                      </span>
-                    </div>
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-        </ScrollArea>
+              {/* Sin categoría */}
+              {uncategorizedCount > 0 && (
+                <button
+                  onClick={() => onSelectCategory("uncategorized", "Otros productos")}
+                  className="flex items-center justify-center bg-muted/30 rounded-xl border border-border/20 hover:bg-muted/50 active:scale-95 transition-all duration-200"
+                >
+                  <div className="flex flex-col items-center gap-1">
+                    <Package className="w-8 h-8 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground">
+                      Otros ({uncategorizedCount})
+                    </span>
+                  </div>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     );
   }

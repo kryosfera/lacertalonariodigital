@@ -19,12 +19,20 @@ import lacerLogo from "@/assets/lacer-logo.png";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
+  const [startWithCategories, setStartWithCategories] = useState(false);
   const isMobile = useIsMobile();
   const { userMode, isLoading, showProfileSelector, setUserMode } = useUserMode();
   const { user } = useAuth();
 
   const handleNavigate = (tab: string) => {
-    setActiveTab(tab);
+    // For basic users, "seleccionar-categoria" opens RecipeCreator directly in category mode
+    if (tab === "seleccionar-categoria") {
+      setStartWithCategories(true);
+      setActiveTab("nueva-receta");
+    } else {
+      setStartWithCategories(false);
+      setActiveTab(tab);
+    }
   };
 
   // Show loading state
@@ -150,7 +158,7 @@ const Index = () => {
                   Crea y envía recetas a tus pacientes de forma rápida
                 </p>
               </div>
-              <RecipeCreator />
+              <RecipeCreator startWithCategories={startWithCategories} onCategoriesShown={() => setStartWithCategories(false)} />
             </TabsContent>
 
             <TabsContent value="recomendaciones" className="space-y-6">
@@ -217,7 +225,7 @@ const Index = () => {
                 <div className="text-center py-2">
                   <h2 className="text-lg font-semibold text-foreground">Nueva Receta</h2>
                 </div>
-                <RecipeCreator />
+                <RecipeCreator startWithCategories={startWithCategories} onCategoriesShown={() => setStartWithCategories(false)} />
               </div>
             )}
 

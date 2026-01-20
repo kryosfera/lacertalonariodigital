@@ -18,7 +18,7 @@ interface HomeScreenProps {
 
 const basicQuickActions = [
   {
-    id: "nueva-receta",
+    id: "seleccionar-categoria",
     title: "Nueva Receta",
     subtitle: "Crear y enviar",
     icon: FileText
