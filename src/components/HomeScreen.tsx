@@ -71,33 +71,35 @@ export const HomeScreen = ({
 
   return (
     <div className="flex flex-col h-[calc(100vh-140px)] md:h-auto md:min-h-0 overflow-hidden">
-      {/* Hero Image */}
-      <div className="relative mx-4 mt-4 rounded-2xl overflow-hidden group cursor-pointer">
+      {/* Hero Image - Compact for basic mode */}
+      <div className={`relative mx-4 mt-3 rounded-2xl overflow-hidden group cursor-pointer ${!isProfessional ? 'h-24' : ''}`}>
         <img 
           src={homeBanner} 
           alt="Talonario Digital" 
-          className="w-full h-32 object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110" 
+          className={`w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110 ${isProfessional ? 'h-32' : 'h-24'}`}
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/60 to-transparent" />
-        <div className="absolute bottom-3 left-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
-            <img src={lacerLogo} alt="Lacer" className="w-7 h-7 object-contain" />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/70 to-primary/20" />
+        <div className="absolute bottom-2 left-3 flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
+            <img src={lacerLogo} alt="Lacer" className="w-5 h-5 object-contain" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-white drop-shadow-md">
+            <h2 className="text-base font-bold text-white drop-shadow-md">
               Talonario Digital
             </h2>
-            <p className="text-xs text-white/90 drop-shadow-sm">
+            <p className="text-[10px] text-white/90 drop-shadow-sm">
               ¿Qué deseas hacer hoy?
             </p>
           </div>
         </div>
       </div>
 
-      {/* Description */}
-      <p className="text-xs text-muted-foreground text-center mx-4 mt-3 leading-relaxed">
-        Un talonario de recetas en formato digital que permite gestionar electrónicamente las recetas para sus pacientes, de forma simplificada, mediante envío directo por WhatsApp o eMail.
-      </p>
+      {/* Description - Hidden on basic mode mobile for space */}
+      {isProfessional && (
+        <p className="text-xs text-muted-foreground text-center mx-4 mt-3 leading-relaxed hidden md:block">
+          Un talonario de recetas en formato digital que permite gestionar electrónicamente las recetas para sus pacientes.
+        </p>
+      )}
 
       {/* Stats Row - Only for Professional */}
       {isProfessional && (
@@ -119,26 +121,26 @@ export const HomeScreen = ({
         </div>
       )}
 
-      {/* Quick Actions Grid */}
-      <div className="flex-1 flex items-center justify-center px-4 py-4">
-        <div className={`grid gap-3 w-full max-w-sm ${isProfessional ? 'grid-cols-2' : 'grid-cols-2'}`}>
+      {/* Quick Actions - Larger and more prominent for basic mode */}
+      <div className={`flex-1 flex items-center justify-center px-4 ${isProfessional ? 'py-4' : 'py-6'}`}>
+        <div className={`grid gap-4 w-full ${isProfessional ? 'grid-cols-2 max-w-sm' : 'grid-cols-2 max-w-md'}`}>
           {quickActions.map((action, index) => {
             const Icon = action.icon;
             return (
               <button 
                 key={action.id} 
                 onClick={() => onNavigate(action.id)} 
-                className="group flex flex-col items-center gap-3 p-5 rounded-2xl bg-primary text-white border border-primary shadow-sm transition-all duration-200 active:scale-95 hover:shadow-lg hover:bg-primary/90 hover:-translate-y-0.5 opacity-0 animate-fade-in" 
+                className={`group flex flex-col items-center gap-3 rounded-2xl bg-secondary text-white shadow-lg transition-all duration-200 active:scale-95 hover:shadow-xl hover:bg-secondary/90 hover:-translate-y-0.5 opacity-0 animate-fade-in ${isProfessional ? 'p-5' : 'p-6'}`}
                 style={{
                   animationDelay: `${index * 100}ms`,
                   animationFillMode: 'forwards'
                 }}
               >
-                <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center shadow-md group-hover:bg-white/30 transition-colors">
-                  <Icon className="w-7 h-7 text-white" />
+                <div className={`rounded-2xl bg-white/20 flex items-center justify-center shadow-md group-hover:bg-white/30 transition-colors ${isProfessional ? 'w-14 h-14' : 'w-16 h-16'}`}>
+                  <Icon className={`text-white ${isProfessional ? 'w-7 h-7' : 'w-8 h-8'}`} />
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-semibold text-white leading-tight">
+                  <p className={`font-semibold text-white leading-tight ${isProfessional ? 'text-sm' : 'text-base'}`}>
                     {action.title}
                   </p>
                   <p className="text-[10px] text-white/70 mt-0.5">
@@ -151,22 +153,23 @@ export const HomeScreen = ({
         </div>
       </div>
 
-      {/* Upgrade CTA for Basic Users */}
+      {/* Discrete upgrade link for Basic Users - Just a text link */}
       {!isProfessional && (
-        <div className="mx-4 mb-4">
-          <Link to="/auth">
-            <Button variant="outline" className="w-full gap-2 border-primary/30 text-primary hover:bg-primary/5">
-              <Sparkles className="w-4 h-4" />
-              Activa el modo profesional
-            </Button>
+        <div className="text-center pb-2">
+          <Link 
+            to="/auth"
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-secondary transition-colors"
+          >
+            <Sparkles className="w-3 h-3" />
+            <span>¿Eres profesional? Activa todas las funciones</span>
           </Link>
         </div>
       )}
 
       {/* Bottom hint */}
       <div className="text-center pb-3">
-        <p className="text-[10px] text-muted-foreground/50 font-medium tracking-wide">
-          TALONARIO DIGITAL v2.0 • {isProfessional ? 'PROFESIONAL' : 'MODO RÁPIDO'}
+        <p className="text-[10px] text-muted-foreground/40 font-medium tracking-wide">
+          v2.0 • {isProfessional ? 'PROFESIONAL' : 'MODO RÁPIDO'}
         </p>
       </div>
     </div>
