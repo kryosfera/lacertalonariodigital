@@ -1,6 +1,7 @@
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
 import { generateBarcodeDataURL } from "@/components/BarcodeDisplay";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Product {
   id: string;
@@ -19,7 +20,86 @@ interface RecipeData {
   doctorName?: string;
 }
 
-// Encode recipe data for temporary URL (basic users)
+// Create a short URL and return the code
+export const createShortUrl = async (data: RecipeData): Promise<string | null> => {
+  try {
+    // Direct fetch to avoid type issues with new table
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/short_urls`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({ data })
+      }
+    );
+    
+    if (!response.ok) {
+      console.error('Error creating short URL:', await response.text());
+      return null;
+    }
+    
+    const result = await response.json();
+    return result[0]?.code || null;
+  } catch (err) {
+    console.error('Error creating short URL:', err);
+    return null;
+  }
+};
+
+// Get recipe data from short URL code
+export const getShortUrlData = async (code: string): Promise<RecipeData | null> => {
+  try {
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/short_urls?code=eq.${code}&select=data`,
+      {
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+        }
+      }
+    );
+    
+    if (!response.ok) return null;
+    
+    const result = await response.json();
+    if (!result[0]?.data) return null;
+    
+    const recipeData = result[0].data as {
+      patientName?: string;
+      date?: string;
+      products?: Product[];
+      notes?: string;
+    };
+    
+    return {
+      patientName: recipeData.patientName || '',
+      date: recipeData.date || new Date().toLocaleDateString('es-ES'),
+      products: recipeData.products || [],
+      notes: recipeData.notes || ''
+    };
+  } catch {
+    return null;
+  }
+};
+
+// Generate shareable recipe URL (for DB-stored recipes)
+export const generateRecipeUrl = (recipeCode: string): string => {
+  const baseUrl = window.location.origin;
+  return `${baseUrl}/receta?n=${recipeCode}`;
+};
+
+// Generate short URL for temporary recipes
+export const generateShortRecipeUrl = (shortCode: string): string => {
+  const baseUrl = window.location.origin;
+  return `${baseUrl}/r/${shortCode}`;
+};
+
+// Legacy: Encode recipe data for temporary URL (fallback)
 export const encodeRecipeData = (data: RecipeData): string => {
   const minimalData = {
     p: data.patientName,
@@ -37,7 +117,7 @@ export const encodeRecipeData = (data: RecipeData): string => {
   return btoa(encodeURIComponent(JSON.stringify(minimalData)));
 };
 
-// Decode recipe data from temporary URL
+// Legacy: Decode recipe data from temporary URL
 export const decodeRecipeData = (encoded: string): RecipeData | null => {
   try {
     const decoded = JSON.parse(decodeURIComponent(atob(encoded)));
@@ -59,13 +139,7 @@ export const decodeRecipeData = (encoded: string): RecipeData | null => {
   }
 };
 
-// Generate shareable recipe URL (for DB-stored recipes)
-export const generateRecipeUrl = (recipeCode: string): string => {
-  const baseUrl = window.location.origin;
-  return `${baseUrl}/receta?n=${recipeCode}`;
-};
-
-// Generate temporary shareable URL (for basic users - no DB storage)
+// Legacy: Generate temporary shareable URL (fallback if short URL fails)
 export const generateTemporaryRecipeUrl = (data: RecipeData): string => {
   const baseUrl = window.location.origin;
   const encoded = encodeRecipeData(data);
@@ -255,31 +329,21 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
 
 // Genera texto para WhatsApp con URL
 export const generateWhatsAppMessage = (data: RecipeData, recipeUrl?: string): string => {
-  let message = `🏥 *RECETA LACER*\n`;
-  message += `━━━━━━━━━━━━━━━\n\n`;
+  // Simple, clean message with Lacer branding
+  let message = `╔═══════════════╗\n`;
+  message += `║   𝗟𝗔𝗖𝗘𝗥   ║\n`;
+  message += `║  Talonario Digital  ║\n`;
+  message += `╚═══════════════╝\n\n`;
   
   if (data.patientName) {
     message += `👤 ${data.patientName}\n`;
   }
-  message += `📅 ${data.date}\n\n`;
-  
-  message += `📋 *Productos:*\n`;
-  
-  data.products.forEach((product, index) => {
-    const qty = product.quantity && product.quantity > 1 ? ` ×${product.quantity}` : "";
-    message += `• ${product.name}${qty}\n`;
-    if (product.ean) {
-      message += `  _EAN: ${product.ean}_\n`;
-    }
-  });
-  
-  if (data.notes) {
-    message += `\n📝 _${data.notes}_\n`;
-  }
+  message += `📅 ${data.date}\n`;
+  message += `📦 ${data.products.length} producto${data.products.length > 1 ? 's' : ''}\n`;
   
   if (recipeUrl) {
-    message += `\n━━━━━━━━━━━━━━━\n`;
-    message += `🔗 *Ver en farmacia:*\n${recipeUrl}\n`;
+    message += `\n🔗 *Ver receta completa:*\n${recipeUrl}\n`;
+    message += `\n_Muestra este enlace en la farmacia_`;
   }
   
   return message;

@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CategorySelector } from "./CategorySelector";
 import { ProductSelector } from "./ProductSelector";
 import { SelectedProductsBadge } from "./SelectedProductsBadge";
-import { sendViaWhatsApp, sendViaEmail, downloadPDF, generateRecipeUrl, generateTemporaryRecipeUrl } from "@/lib/recipeUtils";
+import { sendViaWhatsApp, sendViaEmail, downloadPDF, generateRecipeUrl, generateShortRecipeUrl, createShortUrl } from "@/lib/recipeUtils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -291,27 +291,38 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       return;
     }
     
+    setIsSending(true);
+    
     // Capture data BEFORE any reset
     const recipeData = getRecipeData();
     const phone = patientPhone;
     let recipeUrl: string | undefined;
     
-    if (isProfessional) {
-      // Professional users: save to DB and get permanent URL
-      const recipeCode = await saveRecipeToDb('whatsapp');
-      if (recipeCode) {
-        recipeUrl = generateRecipeUrl(recipeCode);
+    try {
+      if (isProfessional) {
+        // Professional users: save to DB and get permanent URL
+        const recipeCode = await saveRecipeToDb('whatsapp');
+        if (recipeCode) {
+          recipeUrl = generateRecipeUrl(recipeCode);
+        }
+        toast.success("Receta guardada en historial");
+        resetForm();
+      } else {
+        // Basic users: create short URL
+        const shortCode = await createShortUrl(recipeData);
+        if (shortCode) {
+          recipeUrl = generateShortRecipeUrl(shortCode);
+        }
       }
-      toast.success("Receta guardada en historial");
-      resetForm();
-    } else {
-      // Basic users: generate temporary encoded URL (no DB storage)
-      recipeUrl = generateTemporaryRecipeUrl(recipeData);
+      
+      sendViaWhatsApp(recipeData, phone, recipeUrl);
+      toast.success("Abriendo WhatsApp...");
+    } catch (error) {
+      toast.error("Error al generar el enlace");
+    } finally {
+      setIsSending(false);
+      setShowSendDialog(false);
     }
-    
-    sendViaWhatsApp(recipeData, phone, recipeUrl);
-    toast.success("Abriendo WhatsApp...");
-    setShowSendDialog(false);
   };
 
   const handleSendEmail = async () => {
@@ -320,25 +331,37 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       return;
     }
     
+    setIsSending(true);
+    
     // Capture data BEFORE any reset
     const recipeData = getRecipeData();
     const email = patientEmail;
     let recipeUrl: string | undefined;
     
-    if (isProfessional) {
-      const recipeCode = await saveRecipeToDb('email');
-      if (recipeCode) {
-        recipeUrl = generateRecipeUrl(recipeCode);
+    try {
+      if (isProfessional) {
+        const recipeCode = await saveRecipeToDb('email');
+        if (recipeCode) {
+          recipeUrl = generateRecipeUrl(recipeCode);
+        }
+        toast.success("Receta guardada en historial");
+        resetForm();
+      } else {
+        // Basic users: create short URL
+        const shortCode = await createShortUrl(recipeData);
+        if (shortCode) {
+          recipeUrl = generateShortRecipeUrl(shortCode);
+        }
       }
-      toast.success("Receta guardada en historial");
-      resetForm();
-    } else {
-      recipeUrl = generateTemporaryRecipeUrl(recipeData);
+      
+      sendViaEmail(recipeData, email, recipeUrl);
+      toast.success("Abriendo cliente de correo...");
+    } catch (error) {
+      toast.error("Error al generar el enlace");
+    } finally {
+      setIsSending(false);
+      setShowSendDialog(false);
     }
-    
-    sendViaEmail(recipeData, email, recipeUrl);
-    toast.success("Abriendo cliente de correo...");
-    setShowSendDialog(false);
   };
 
   const handleDownloadPDF = async () => {
@@ -362,7 +385,10 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
         toast.success("Receta guardada en historial");
         resetForm();
       } else {
-        recipeUrl = generateTemporaryRecipeUrl(recipeData);
+        const shortCode = await createShortUrl(recipeData);
+        if (shortCode) {
+          recipeUrl = generateShortRecipeUrl(shortCode);
+        }
       }
       
       await downloadPDF(recipeData, recipeUrl);
@@ -395,7 +421,10 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
         toast.success("Receta guardada en historial");
         resetForm();
       } else {
-        recipeUrl = generateTemporaryRecipeUrl(recipeData);
+        const shortCode = await createShortUrl(recipeData);
+        if (shortCode) {
+          recipeUrl = generateShortRecipeUrl(shortCode);
+        }
       }
       
       const { generateRecipePDF } = await import("@/lib/recipeUtils");
