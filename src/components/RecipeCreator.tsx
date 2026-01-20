@@ -12,7 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CategorySelector } from "./CategorySelector";
 import { ProductSelector } from "./ProductSelector";
 import { SelectedProductsBadge } from "./SelectedProductsBadge";
-import { sendViaWhatsApp, sendViaEmail, downloadPDF } from "@/lib/recipeUtils";
+import { sendViaWhatsApp, sendViaEmail, downloadPDF, generateRecipeUrl } from "@/lib/recipeUtils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -161,8 +161,8 @@ export const RecipeCreator = () => {
     notes,
   });
 
-  const saveRecipeToDb = async (sentVia: 'whatsapp' | 'email' | 'both' | 'pdf' | 'print') => {
-    if (!isProfessional) return;
+  const saveRecipeToDb = async (sentVia: 'whatsapp' | 'email' | 'both' | 'pdf' | 'print'): Promise<string | null> => {
+    if (!isProfessional) return null;
     
     const recipeProducts: RecipeProduct[] = selectedProductsData.map(p => ({
       id: p.id,
@@ -172,13 +172,15 @@ export const RecipeCreator = () => {
       thumbnail_url: p.thumbnail_url
     }));
 
-    await createRecipe.mutateAsync({
+    const result = await createRecipe.mutateAsync({
       patient_id: selectedPatient?.id || null,
       patient_name: patientName || "Sin nombre",
       products: recipeProducts,
       notes,
       sent_via: sentVia
     });
+
+    return result?.recipe_code || null;
   };
 
   const resetForm = () => {
@@ -195,12 +197,21 @@ export const RecipeCreator = () => {
       toast.error("Selecciona al menos un producto");
       return;
     }
-    sendViaWhatsApp(getRecipeData(), patientPhone);
+    
+    // For professional users, save first to get the recipe code for the URL
+    let recipeUrl: string | undefined;
+    if (isProfessional) {
+      const recipeCode = await saveRecipeToDb('whatsapp');
+      if (recipeCode) {
+        recipeUrl = generateRecipeUrl(recipeCode);
+      }
+      toast.success("Receta guardada en historial");
+    }
+    
+    sendViaWhatsApp(getRecipeData(), patientPhone, recipeUrl);
     toast.success("Abriendo WhatsApp...");
     
-    await saveRecipeToDb('whatsapp');
     if (isProfessional) {
-      toast.success("Receta guardada en historial");
       resetForm();
     }
     setShowSendDialog(false);
