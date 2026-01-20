@@ -5,14 +5,16 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Home, AlertCircle, Clock } from "lucide-react";
+import { Home, AlertCircle, Clock, Barcode } from "lucide-react";
 import lacerLogo from "@/assets/lacer-logo-color.png";
 import { decodeRecipeData } from "@/lib/recipeUtils";
+import { BarcodeDisplay } from "@/components/BarcodeDisplay";
 
 interface RecipeProduct {
   id: string;
   name: string;
   reference: string;
+  ean?: string | null;
   quantity: number;
   thumbnail_url?: string | null;
 }
@@ -47,6 +49,7 @@ export default function Recipe() {
               id: p.id,
               name: p.name,
               reference: p.reference,
+              ean: (p as { ean?: string | null }).ean || null,
               quantity: (p as { quantity?: number }).quantity || 1,
               thumbnail_url: p.thumbnail_url
             })),
@@ -92,6 +95,7 @@ export default function Recipe() {
                 id: String(prod.id || ''),
                 name: String(prod.name || ''),
                 reference: String(prod.reference || ''),
+                ean: prod.ean ? String(prod.ean) : null,
                 quantity: Number(prod.quantity || 1),
                 thumbnail_url: prod.thumbnail_url ? String(prod.thumbnail_url) : null
               };
@@ -212,30 +216,50 @@ export default function Recipe() {
             {recipe.products.map((product, index) => (
               <div 
                 key={product.id || index}
-                className="flex gap-4 p-4 bg-muted/30 rounded-xl border"
+                className="p-4 bg-muted/30 rounded-xl border space-y-3"
               >
-                {product.thumbnail_url && (
-                  <div className="w-24 h-24 flex-shrink-0 bg-white rounded-lg overflow-hidden border">
-                    <img 
-                      src={product.thumbnail_url} 
-                      alt={product.name}
-                      className="w-full h-full object-contain"
+                <div className="flex gap-4">
+                  {product.thumbnail_url && (
+                    <div className="w-20 h-20 flex-shrink-0 bg-white rounded-lg overflow-hidden border">
+                      <img 
+                        src={product.thumbnail_url} 
+                        alt={product.name}
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <h3 className="font-bold text-base text-foreground">
+                      {product.name}
+                    </h3>
+                    <p className="text-muted-foreground text-sm mt-1">
+                      CN: {product.reference?.replace(".", "") || "N/A"}
+                    </p>
+                    {product.ean && (
+                      <p className="text-muted-foreground text-xs mt-0.5 flex items-center gap-1">
+                        <Barcode className="w-3 h-3" />
+                        EAN: {product.ean}
+                      </p>
+                    )}
+                    {product.quantity > 1 && (
+                      <Badge variant="secondary" className="mt-2">
+                        Cantidad: {product.quantity}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Barcode for pharmacy scanning */}
+                {product.ean && (
+                  <div className="bg-white rounded-lg p-3 flex flex-col items-center border">
+                    <BarcodeDisplay 
+                      ean={product.ean} 
+                      height={45}
+                      width={1.8}
+                      fontSize={11}
                     />
                   </div>
                 )}
-                <div className="flex-1">
-                  <h3 className="font-bold text-lg text-foreground">
-                    {product.name}
-                  </h3>
-                  <p className="text-muted-foreground text-sm mt-1">
-                    CN: {product.reference?.replace(".", "") || "N/A"}
-                  </p>
-                  {product.quantity > 1 && (
-                    <Badge variant="secondary" className="mt-2">
-                      Cantidad: {product.quantity}
-                    </Badge>
-                  )}
-                </div>
               </div>
             ))}
 
