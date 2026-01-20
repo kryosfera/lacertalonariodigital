@@ -191,24 +191,23 @@ export const ProductSelector = ({
               <FolderOpen className="w-4 h-4" />
               Otra categoría
             </Button>
-            {onGoHome && (
-              <Button
-                variant={selectedProducts.size > 0 ? "default" : "outline"}
-                onClick={onGoHome}
-                className={`flex-1 gap-2 ${selectedProducts.size > 0 ? 'bg-secondary hover:bg-secondary/90' : ''}`}
-              >
-                <Home className="w-4 h-4" />
-                {selectedProducts.size > 0 ? `Listo (${selectedProducts.size})` : 'Terminar'}
-              </Button>
-            )}
-            {!onGoHome && selectedProducts.size > 0 && (
-              <Button
-                onClick={onClose}
-                className="flex-1 bg-secondary hover:bg-secondary/90"
-              >
-                Listo ({selectedProducts.size})
-              </Button>
-            )}
+            <Button
+              variant={selectedProducts.size > 0 ? "default" : "outline"}
+              onClick={onClose}
+              className={`flex-1 gap-2 ${selectedProducts.size > 0 ? 'bg-secondary hover:bg-secondary/90' : ''}`}
+            >
+              {selectedProducts.size > 0 ? (
+                <>
+                  <Check className="w-4 h-4" />
+                  Continuar ({selectedProducts.size})
+                </>
+              ) : (
+                <>
+                  <X className="w-4 h-4" />
+                  Cerrar
+                </>
+              )}
+            </Button>
           </div>
         </div>
       </div>
@@ -315,25 +314,23 @@ export const ProductSelector = ({
           <FolderOpen className="w-4 h-4" />
           Otra categoría
         </Button>
-        {onGoHome && (
-          <Button
-            size="lg"
-            onClick={onGoHome}
-            className={`shadow-xl px-6 gap-2 ${selectedProducts.size > 0 ? 'bg-primary hover:bg-primary/90' : 'bg-white text-foreground hover:bg-white/90'}`}
-          >
-            <Home className="w-4 h-4" />
-            {selectedProducts.size > 0 ? `Listo (${selectedProducts.size})` : 'Terminar'}
-          </Button>
-        )}
-        {!onGoHome && selectedProducts.size > 0 && (
-          <Button
-            size="lg"
-            onClick={onClose}
-            className="shadow-xl px-8"
-          >
-            Listo ({selectedProducts.size} productos)
-          </Button>
-        )}
+        <Button
+          size="lg"
+          onClick={onClose}
+          className={`shadow-xl px-6 gap-2 ${selectedProducts.size > 0 ? 'bg-primary hover:bg-primary/90' : 'bg-white text-foreground hover:bg-white/90'}`}
+        >
+          {selectedProducts.size > 0 ? (
+            <>
+              <Check className="w-4 h-4" />
+              Continuar ({selectedProducts.size})
+            </>
+          ) : (
+            <>
+              <X className="w-4 h-4" />
+              Cerrar
+            </>
+          )}
+        </Button>
       </div>
     </div>
   );

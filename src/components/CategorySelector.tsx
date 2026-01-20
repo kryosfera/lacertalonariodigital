@@ -144,14 +144,14 @@ export const CategorySelector = ({
         </div>
 
         {/* Floating action bar when products are selected */}
-        {selectedProductsCount > 0 && onGoHome && (
+        {selectedProductsCount > 0 && (
           <div className="p-3 border-t border-border/30 bg-background">
             <Button
-              onClick={onGoHome}
+              onClick={onClose}
               className="w-full bg-secondary hover:bg-secondary/90 gap-2"
             >
               <ShoppingCart className="w-4 h-4" />
-              Ver receta ({selectedProductsCount} productos)
+              Continuar con la receta ({selectedProductsCount})
             </Button>
           </div>
         )}
