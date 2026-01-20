@@ -73,49 +73,51 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header - iOS style with Lacer logo */}
-      <header className="bg-card/80 backdrop-blur-lg border-b border-border/50 sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-2.5 md:py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <img 
-                src={lacerLogo} 
-                alt="Lacer" 
-                className="h-8 md:h-9 object-contain"
-              />
-              <div className="hidden sm:block">
-                <h1 className="text-base md:text-lg font-semibold text-foreground leading-tight">
-                  Talonario Digital
-                </h1>
+      {/* Header - Only show for professional users or on desktop */}
+      {(isProfessional || !isMobile) && (
+        <header className="bg-card/80 backdrop-blur-lg border-b border-border/50 sticky top-0 z-50">
+          <div className="container mx-auto px-4 py-2.5 md:py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <img 
+                  src={lacerLogo} 
+                  alt="Lacer" 
+                  className="h-8 md:h-9 object-contain"
+                />
+                <div className="hidden sm:block">
+                  <h1 className="text-base md:text-lg font-semibold text-foreground leading-tight">
+                    Talonario Digital
+                  </h1>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <Link to="/admin" className="hidden md:inline-flex">
-                <Button variant="ghost" size="sm" className="text-muted-foreground">
-                  Admin
-                </Button>
-              </Link>
-              {!user && (
-                <Link to="/auth">
-                  <Button variant="ghost" size="icon" className="w-9 h-9 rounded-full">
-                    <Users className="w-5 h-5 text-muted-foreground" />
+              <div className="flex items-center gap-1">
+                <Link to="/admin" className="hidden md:inline-flex">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground">
+                    Admin
                   </Button>
                 </Link>
-              )}
-              {user && !isMobile && (
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="w-9 h-9 rounded-full"
-                  onClick={() => setActiveTab("perfil")}
-                >
-                  <User className="w-5 h-5 text-muted-foreground" />
-                </Button>
-              )}
+                {!user && (
+                  <Link to="/auth">
+                    <Button variant="ghost" size="icon" className="w-9 h-9 rounded-full">
+                      <Users className="w-5 h-5 text-muted-foreground" />
+                    </Button>
+                  </Link>
+                )}
+                {user && !isMobile && (
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="w-9 h-9 rounded-full"
+                    onClick={() => setActiveTab("perfil")}
+                  >
+                    <User className="w-5 h-5 text-muted-foreground" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-2 md:py-6">
