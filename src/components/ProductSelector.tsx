@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { ChevronLeft, Search, Package, X, Check } from "lucide-react";
+import { ChevronLeft, Search, Package, X, Check, Home, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -25,6 +25,7 @@ interface ProductSelectorProps {
   onToggleProduct: (productId: string) => void;
   onBack: () => void;
   onClose: () => void;
+  onGoHome?: () => void;
   isClosing?: boolean;
 }
 
@@ -38,6 +39,7 @@ export const ProductSelector = ({
   onToggleProduct,
   onBack,
   onClose,
+  onGoHome,
   isClosing = false,
 }: ProductSelectorProps) => {
   const isMobile = useIsMobile();
@@ -118,8 +120,8 @@ export const ProductSelector = ({
           </div>
         </div>
 
-        {/* Lista de productos */}
-        <ScrollArea className="h-[calc(100vh-130px)]">
+        {/* Lista de productos - with bottom padding for action bar */}
+        <ScrollArea className="h-[calc(100vh-200px)]">
           <div className="py-1">
             {filteredProducts.length > 0 ? (
               <div className="divide-y divide-border">
@@ -178,18 +180,37 @@ export const ProductSelector = ({
           </div>
         </ScrollArea>
 
-        {/* Botón flotante */}
-        {selectedProducts.size > 0 && (
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background to-transparent">
+        {/* Bottom action bar */}
+        <div className="fixed bottom-0 left-0 right-0 p-3 bg-background border-t border-border/50 safe-area-pb">
+          <div className="flex gap-2">
             <Button
-              size="lg"
-              onClick={onClose}
-              className="w-full shadow-xl bg-secondary hover:bg-secondary/90"
+              variant="outline"
+              onClick={onBack}
+              className="flex-1 gap-2"
             >
-              Listo ({selectedProducts.size} productos)
+              <FolderOpen className="w-4 h-4" />
+              Otra categoría
             </Button>
+            {onGoHome && (
+              <Button
+                variant={selectedProducts.size > 0 ? "default" : "outline"}
+                onClick={onGoHome}
+                className={`flex-1 gap-2 ${selectedProducts.size > 0 ? 'bg-secondary hover:bg-secondary/90' : ''}`}
+              >
+                <Home className="w-4 h-4" />
+                {selectedProducts.size > 0 ? `Listo (${selectedProducts.size})` : 'Terminar'}
+              </Button>
+            )}
+            {!onGoHome && selectedProducts.size > 0 && (
+              <Button
+                onClick={onClose}
+                className="flex-1 bg-secondary hover:bg-secondary/90"
+              >
+                Listo ({selectedProducts.size})
+              </Button>
+            )}
           </div>
-        )}
+        </div>
       </div>
     );
   }
@@ -283,9 +304,28 @@ export const ProductSelector = ({
         </div>
       </ScrollArea>
 
-      {/* Done Button */}
-      {selectedProducts.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2">
+      {/* Bottom action bar */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 flex gap-3">
+        <Button
+          size="lg"
+          variant="outline"
+          onClick={onBack}
+          className="shadow-xl px-6 bg-white hover:bg-white/90 gap-2"
+        >
+          <FolderOpen className="w-4 h-4" />
+          Otra categoría
+        </Button>
+        {onGoHome && (
+          <Button
+            size="lg"
+            onClick={onGoHome}
+            className={`shadow-xl px-6 gap-2 ${selectedProducts.size > 0 ? 'bg-primary hover:bg-primary/90' : 'bg-white text-foreground hover:bg-white/90'}`}
+          >
+            <Home className="w-4 h-4" />
+            {selectedProducts.size > 0 ? `Listo (${selectedProducts.size})` : 'Terminar'}
+          </Button>
+        )}
+        {!onGoHome && selectedProducts.size > 0 && (
           <Button
             size="lg"
             onClick={onClose}
@@ -293,8 +333,8 @@ export const ProductSelector = ({
           >
             Listo ({selectedProducts.size} productos)
           </Button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
