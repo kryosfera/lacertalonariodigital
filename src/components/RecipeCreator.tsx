@@ -198,6 +198,9 @@ export const RecipeCreator = () => {
       return;
     }
     
+    // Capture data BEFORE any reset
+    const recipeData = getRecipeData();
+    const phone = patientPhone;
     let recipeUrl: string | undefined;
     
     if (isProfessional) {
@@ -210,10 +213,10 @@ export const RecipeCreator = () => {
       resetForm();
     } else {
       // Basic users: generate temporary encoded URL (no DB storage)
-      recipeUrl = generateTemporaryRecipeUrl(getRecipeData());
+      recipeUrl = generateTemporaryRecipeUrl(recipeData);
     }
     
-    sendViaWhatsApp(getRecipeData(), patientPhone, recipeUrl);
+    sendViaWhatsApp(recipeData, phone, recipeUrl);
     toast.success("Abriendo WhatsApp...");
     setShowSendDialog(false);
   };
@@ -224,6 +227,9 @@ export const RecipeCreator = () => {
       return;
     }
     
+    // Capture data BEFORE any reset
+    const recipeData = getRecipeData();
+    const email = patientEmail;
     let recipeUrl: string | undefined;
     
     if (isProfessional) {
@@ -234,10 +240,10 @@ export const RecipeCreator = () => {
       toast.success("Receta guardada en historial");
       resetForm();
     } else {
-      recipeUrl = generateTemporaryRecipeUrl(getRecipeData());
+      recipeUrl = generateTemporaryRecipeUrl(recipeData);
     }
     
-    sendViaEmail(getRecipeData(), patientEmail, recipeUrl);
+    sendViaEmail(recipeData, email, recipeUrl);
     toast.success("Abriendo cliente de correo...");
     setShowSendDialog(false);
   };
@@ -248,6 +254,10 @@ export const RecipeCreator = () => {
       return;
     }
     setIsSending(true);
+    
+    // Capture data BEFORE any reset
+    const recipeData = getRecipeData();
+    
     try {
       let recipeUrl: string | undefined;
       
@@ -259,10 +269,10 @@ export const RecipeCreator = () => {
         toast.success("Receta guardada en historial");
         resetForm();
       } else {
-        recipeUrl = generateTemporaryRecipeUrl(getRecipeData());
+        recipeUrl = generateTemporaryRecipeUrl(recipeData);
       }
       
-      await downloadPDF(getRecipeData(), recipeUrl);
+      await downloadPDF(recipeData, recipeUrl);
       toast.success("PDF descargado con código QR");
     } catch (error) {
       toast.error("Error al generar el PDF");
@@ -277,6 +287,10 @@ export const RecipeCreator = () => {
       return;
     }
     setIsSending(true);
+    
+    // Capture data BEFORE any reset
+    const recipeData = getRecipeData();
+    
     try {
       let recipeUrl: string | undefined;
       
@@ -288,11 +302,11 @@ export const RecipeCreator = () => {
         toast.success("Receta guardada en historial");
         resetForm();
       } else {
-        recipeUrl = generateTemporaryRecipeUrl(getRecipeData());
+        recipeUrl = generateTemporaryRecipeUrl(recipeData);
       }
       
       const { generateRecipePDF } = await import("@/lib/recipeUtils");
-      const blob = await generateRecipePDF(getRecipeData(), recipeUrl);
+      const blob = await generateRecipePDF(recipeData, recipeUrl);
       const url = URL.createObjectURL(blob);
       const printWindow = window.open(url, "_blank");
       if (printWindow) {
