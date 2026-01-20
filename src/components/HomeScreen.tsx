@@ -1,47 +1,83 @@
-import { FileText, Clock, Users, Scissors } from "lucide-react";
+import { FileText, Clock, Users, Scissors, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import lacerLogo from "@/assets/lacer-logo-color.png";
 import homeBanner from "@/assets/home-banner.jpg";
+import { UserMode } from "@/hooks/useUserMode";
+
 interface HomeScreenProps {
   onNavigate: (tab: string) => void;
+  userMode?: UserMode;
   stats?: {
     totalRecipes: number;
     totalPatients: number;
     thisMonth: number;
   };
 }
-const quickActions = [{
-  id: "nueva-receta",
-  title: "Nueva Receta",
-  subtitle: "Crear y enviar",
-  icon: FileText
-}, {
-  id: "recomendaciones",
-  title: "Post-Cirugía",
-  subtitle: "Recomendaciones",
-  icon: Scissors
-}, {
-  id: "historial",
-  title: "Historial",
-  subtitle: "Ver recetas",
-  icon: Clock
-}, {
-  id: "pacientes",
-  title: "Pacientes",
-  subtitle: "Gestionar",
-  icon: Users
-}];
+
+const basicQuickActions = [
+  {
+    id: "nueva-receta",
+    title: "Nueva Receta",
+    subtitle: "Crear y enviar",
+    icon: FileText
+  },
+  {
+    id: "recomendaciones",
+    title: "Post-Cirugía",
+    subtitle: "Recomendaciones",
+    icon: Scissors
+  }
+];
+
+const professionalQuickActions = [
+  {
+    id: "nueva-receta",
+    title: "Nueva Receta",
+    subtitle: "Crear y enviar",
+    icon: FileText
+  },
+  {
+    id: "recomendaciones",
+    title: "Post-Cirugía",
+    subtitle: "Recomendaciones",
+    icon: Scissors
+  },
+  {
+    id: "historial",
+    title: "Historial",
+    subtitle: "Ver recetas",
+    icon: Clock
+  },
+  {
+    id: "pacientes",
+    title: "Pacientes",
+    subtitle: "Gestionar",
+    icon: Users
+  }
+];
+
 export const HomeScreen = ({
   onNavigate,
+  userMode = 'basic',
   stats = {
     totalRecipes: 0,
     totalPatients: 0,
     thisMonth: 0
   }
 }: HomeScreenProps) => {
-  return <div className="flex flex-col h-[calc(100vh-140px)] md:h-auto md:min-h-0 overflow-hidden">
+  const isProfessional = userMode === 'professional';
+  const quickActions = isProfessional ? professionalQuickActions : basicQuickActions;
+
+  return (
+    <div className="flex flex-col h-[calc(100vh-140px)] md:h-auto md:min-h-0 overflow-hidden">
       {/* Hero Image */}
       <div className="relative mx-4 mt-4 rounded-2xl overflow-hidden group cursor-pointer">
-        <img src={homeBanner} alt="Talonario Digital" className="w-full h-32 object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110" />
+        <img 
+          src={homeBanner} 
+          alt="Talonario Digital" 
+          className="w-full h-32 object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110" 
+        />
         <div className="absolute inset-0 bg-gradient-to-r from-primary/60 to-transparent" />
         <div className="absolute bottom-3 left-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
@@ -63,33 +99,41 @@ export const HomeScreen = ({
         Un talonario de recetas en formato digital que permite gestionar electrónicamente las recetas para sus pacientes, de forma simplificada, mediante envío directo por WhatsApp o eMail.
       </p>
 
-      {/* Stats Row */}
-      <div className="flex justify-between rounded-2xl mx-4 mt-3 px-4 py-3 bg-secondary">
-        <div className="text-center flex-1">
-          <p className="text-2xl font-bold text-white">{stats.thisMonth}</p>
-          <p className="text-[10px] text-white/70 uppercase tracking-wide">Este mes</p>
+      {/* Stats Row - Only for Professional */}
+      {isProfessional && (
+        <div className="flex justify-between rounded-2xl mx-4 mt-3 px-4 py-3 bg-secondary">
+          <div className="text-center flex-1">
+            <p className="text-2xl font-bold text-white">{stats.thisMonth}</p>
+            <p className="text-[10px] text-white/70 uppercase tracking-wide">Este mes</p>
+          </div>
+          <div className="w-px bg-white/30" />
+          <div className="text-center flex-1">
+            <p className="text-2xl font-bold text-white">{stats.totalRecipes}</p>
+            <p className="text-[10px] text-white/70 uppercase tracking-wide">Recetas</p>
+          </div>
+          <div className="w-px bg-white/30" />
+          <div className="text-center flex-1">
+            <p className="text-2xl font-bold text-white">{stats.totalPatients}</p>
+            <p className="text-[10px] text-white/70 uppercase tracking-wide">Pacientes</p>
+          </div>
         </div>
-        <div className="w-px bg-white/30" />
-        <div className="text-center flex-1">
-          <p className="text-2xl font-bold text-white">{stats.totalRecipes}</p>
-          <p className="text-[10px] text-white/70 uppercase tracking-wide">Recetas</p>
-        </div>
-        <div className="w-px bg-white/30" />
-        <div className="text-center flex-1">
-          <p className="text-2xl font-bold text-white">{stats.totalPatients}</p>
-          <p className="text-[10px] text-white/70 uppercase tracking-wide">Pacientes</p>
-        </div>
-      </div>
+      )}
 
       {/* Quick Actions Grid */}
       <div className="flex-1 flex items-center justify-center px-4 py-4">
-        <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+        <div className={`grid gap-3 w-full max-w-sm ${isProfessional ? 'grid-cols-2' : 'grid-cols-2'}`}>
           {quickActions.map((action, index) => {
-          const Icon = action.icon;
-          return <button key={action.id} onClick={() => onNavigate(action.id)} className="group flex flex-col items-center gap-3 p-5 rounded-2xl bg-primary text-white border border-primary shadow-sm transition-all duration-200 active:scale-95 hover:shadow-lg hover:bg-primary/90 hover:-translate-y-0.5 opacity-0 animate-fade-in" style={{
-            animationDelay: `${index * 100}ms`,
-            animationFillMode: 'forwards'
-          }}>
+            const Icon = action.icon;
+            return (
+              <button 
+                key={action.id} 
+                onClick={() => onNavigate(action.id)} 
+                className="group flex flex-col items-center gap-3 p-5 rounded-2xl bg-primary text-white border border-primary shadow-sm transition-all duration-200 active:scale-95 hover:shadow-lg hover:bg-primary/90 hover:-translate-y-0.5 opacity-0 animate-fade-in" 
+                style={{
+                  animationDelay: `${index * 100}ms`,
+                  animationFillMode: 'forwards'
+                }}
+              >
                 <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center shadow-md group-hover:bg-white/30 transition-colors">
                   <Icon className="w-7 h-7 text-white" />
                 </div>
@@ -101,16 +145,30 @@ export const HomeScreen = ({
                     {action.subtitle}
                   </p>
                 </div>
-              </button>;
-        })}
+              </button>
+            );
+          })}
         </div>
       </div>
+
+      {/* Upgrade CTA for Basic Users */}
+      {!isProfessional && (
+        <div className="mx-4 mb-4">
+          <Link to="/auth">
+            <Button variant="outline" className="w-full gap-2 border-primary/30 text-primary hover:bg-primary/5">
+              <Sparkles className="w-4 h-4" />
+              Activa el modo profesional
+            </Button>
+          </Link>
+        </div>
+      )}
 
       {/* Bottom hint */}
       <div className="text-center pb-3">
         <p className="text-[10px] text-muted-foreground/50 font-medium tracking-wide">
-          TALONARIO DIGITAL v2.0
+          TALONARIO DIGITAL v2.0 • {isProfessional ? 'PROFESIONAL' : 'MODO RÁPIDO'}
         </p>
       </div>
-    </div>;
+    </div>
+  );
 };

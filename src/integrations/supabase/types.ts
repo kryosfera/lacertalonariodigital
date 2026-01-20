@@ -55,6 +55,39 @@ export type Database = {
           },
         ]
       }
+      patients: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category_id: string | null
@@ -134,6 +167,113 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          clinic_address: string | null
+          clinic_name: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          professional_name: string | null
+          registration_number: string | null
+          signature_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          clinic_address?: string | null
+          clinic_name?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          professional_name?: string | null
+          registration_number?: string | null
+          signature_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          clinic_address?: string | null
+          clinic_name?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          professional_name?: string | null
+          registration_number?: string | null
+          signature_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      recipe_templates: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          products: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          products?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          products?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      recipes: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          patient_id: string | null
+          patient_name: string
+          products: Json
+          sent_via: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string | null
+          patient_name: string
+          products?: Json
+          sent_via?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string | null
+          patient_name?: string
+          products?: Json
+          sent_via?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recipes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
             referencedColumns: ["id"]
           },
         ]

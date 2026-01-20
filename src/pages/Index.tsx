@@ -10,16 +10,54 @@ import { DashboardStats } from "@/components/DashboardStats";
 import { HomeScreen } from "@/components/HomeScreen";
 import { SurgeryRecommendations } from "@/components/SurgeryRecommendations";
 import { BottomNavigation } from "@/components/BottomNavigation";
+import { ProfileSelector } from "@/components/ProfileSelector";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useUserMode } from "@/hooks/useUserMode";
 import lacerLogo from "@/assets/lacer-logo.png";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
   const isMobile = useIsMobile();
+  const { userMode, isLoading, showProfileSelector, setUserMode } = useUserMode();
 
   const handleNavigate = (tab: string) => {
     setActiveTab(tab);
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Cargando...</div>
+      </div>
+    );
+  }
+
+  // Show profile selector if needed
+  if (showProfileSelector) {
+    return <ProfileSelector onSelectMode={setUserMode} />;
+  }
+
+  const isProfessional = userMode === 'professional';
+
+  // Desktop tabs for basic mode
+  const basicDesktopTabs = [
+    { value: "home", icon: BarChart3, label: "Inicio" },
+    { value: "nueva-receta", icon: Plus, label: "Nueva" },
+    { value: "recomendaciones", icon: Scissors, label: "Cirugía" },
+  ];
+
+  // Desktop tabs for professional mode
+  const professionalDesktopTabs = [
+    { value: "home", icon: BarChart3, label: "Inicio" },
+    { value: "dashboard", icon: BarChart3, label: "Dashboard" },
+    { value: "nueva-receta", icon: Plus, label: "Nueva" },
+    { value: "recomendaciones", icon: Scissors, label: "Cirugía" },
+    { value: "pacientes", icon: Users, label: "Pacientes" },
+    { value: "historial", icon: Clock, label: "Historial" },
+  ];
+
+  const desktopTabs = isProfessional ? professionalDesktopTabs : basicDesktopTabs;
 
   return (
     <div className="min-h-screen bg-background">
@@ -60,46 +98,34 @@ const Index = () => {
         {/* Desktop: Tabs navigation */}
         {!isMobile && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-6 h-auto p-1 bg-muted/50 rounded-xl">
-              <TabsTrigger value="home" className="flex flex-col gap-1 py-2 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
-                <BarChart3 className="w-4 h-4" />
-                <span className="text-xs">Inicio</span>
-              </TabsTrigger>
-              <TabsTrigger value="dashboard" className="flex flex-col gap-1 py-2 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
-                <BarChart3 className="w-4 h-4" />
-                <span className="text-xs">Dashboard</span>
-              </TabsTrigger>
-              <TabsTrigger value="nueva-receta" className="flex flex-col gap-1 py-2 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
-                <Plus className="w-4 h-4" />
-                <span className="text-xs">Nueva</span>
-              </TabsTrigger>
-              <TabsTrigger value="recomendaciones" className="flex flex-col gap-1 py-2 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
-                <Scissors className="w-4 h-4" />
-                <span className="text-xs">Cirugía</span>
-              </TabsTrigger>
-              <TabsTrigger value="pacientes" className="flex flex-col gap-1 py-2 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
-                <Users className="w-4 h-4" />
-                <span className="text-xs">Pacientes</span>
-              </TabsTrigger>
-              <TabsTrigger value="historial" className="flex flex-col gap-1 py-2 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm">
-                <Clock className="w-4 h-4" />
-                <span className="text-xs">Historial</span>
-              </TabsTrigger>
+            <TabsList className={`grid w-full max-w-2xl mx-auto h-auto p-1 bg-muted/50 rounded-xl ${isProfessional ? 'grid-cols-6' : 'grid-cols-3'}`}>
+              {desktopTabs.map((tab) => (
+                <TabsTrigger 
+                  key={tab.value}
+                  value={tab.value} 
+                  className="flex flex-col gap-1 py-2 rounded-lg data-[state=active]:bg-card data-[state=active]:shadow-sm"
+                >
+                  <tab.icon className="w-4 h-4" />
+                  <span className="text-xs">{tab.label}</span>
+                </TabsTrigger>
+              ))}
             </TabsList>
 
             <TabsContent value="home" className="space-y-6">
-              <HomeScreen onNavigate={handleNavigate} />
+              <HomeScreen onNavigate={handleNavigate} userMode={userMode} />
             </TabsContent>
 
-            <TabsContent value="dashboard" className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold text-foreground">Dashboard</h2>
-                <p className="text-muted-foreground">
-                  Vista general de tu actividad y estadísticas
-                </p>
-              </div>
-              <DashboardStats />
-            </TabsContent>
+            {isProfessional && (
+              <TabsContent value="dashboard" className="space-y-6">
+                <div className="space-y-2">
+                  <h2 className="text-3xl font-bold text-foreground">Dashboard</h2>
+                  <p className="text-muted-foreground">
+                    Vista general de tu actividad y estadísticas
+                  </p>
+                </div>
+                <DashboardStats />
+              </TabsContent>
+            )}
 
             <TabsContent value="nueva-receta" className="space-y-6">
               <div className="space-y-2">
@@ -115,25 +141,29 @@ const Index = () => {
               <SurgeryRecommendations />
             </TabsContent>
 
-            <TabsContent value="pacientes" className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold text-foreground">Pacientes</h2>
-                <p className="text-muted-foreground">
-                  Gestiona tu base de datos de pacientes
-                </p>
-              </div>
-              <PatientList />
-            </TabsContent>
+            {isProfessional && (
+              <>
+                <TabsContent value="pacientes" className="space-y-6">
+                  <div className="space-y-2">
+                    <h2 className="text-3xl font-bold text-foreground">Pacientes</h2>
+                    <p className="text-muted-foreground">
+                      Gestiona tu base de datos de pacientes
+                    </p>
+                  </div>
+                  <PatientList />
+                </TabsContent>
 
-            <TabsContent value="historial" className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold text-foreground">Historial</h2>
-                <p className="text-muted-foreground">
-                  Consulta todas las recetas enviadas
-                </p>
-              </div>
-              <RecipeHistory />
-            </TabsContent>
+                <TabsContent value="historial" className="space-y-6">
+                  <div className="space-y-2">
+                    <h2 className="text-3xl font-bold text-foreground">Historial</h2>
+                    <p className="text-muted-foreground">
+                      Consulta todas las recetas enviadas
+                    </p>
+                  </div>
+                  <RecipeHistory />
+                </TabsContent>
+              </>
+            )}
 
             <TabsContent value="perfil" className="space-y-6">
               <div className="space-y-2">
@@ -154,10 +184,10 @@ const Index = () => {
         {isMobile && (
           <div>
             {activeTab === "home" && (
-              <HomeScreen onNavigate={handleNavigate} />
+              <HomeScreen onNavigate={handleNavigate} userMode={userMode} />
             )}
 
-            {activeTab === "dashboard" && (
+            {activeTab === "dashboard" && isProfessional && (
               <div className="space-y-4 pb-20">
                 <div className="space-y-1">
                   <h2 className="text-xl font-semibold text-foreground">Dashboard</h2>
@@ -178,7 +208,7 @@ const Index = () => {
               </div>
             )}
 
-            {activeTab === "pacientes" && (
+            {activeTab === "pacientes" && isProfessional && (
               <div className="space-y-4 pb-20">
                 <div className="space-y-1">
                   <h2 className="text-xl font-semibold text-foreground">Pacientes</h2>
@@ -196,7 +226,7 @@ const Index = () => {
               </div>
             )}
 
-            {activeTab === "historial" && (
+            {activeTab === "historial" && isProfessional && (
               <div className="space-y-4 pb-20">
                 <div className="space-y-1">
                   <h2 className="text-xl font-semibold text-foreground">Historial</h2>
@@ -228,7 +258,7 @@ const Index = () => {
 
       {/* Bottom Navigation - Mobile only */}
       {isMobile && (
-        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
+        <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} userMode={userMode} />
       )}
     </div>
   );
