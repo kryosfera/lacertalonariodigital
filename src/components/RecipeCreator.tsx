@@ -33,7 +33,12 @@ interface ProductWithQuantity extends Product {
   quantity: number;
 }
 
-export const RecipeCreator = () => {
+interface RecipeCreatorProps {
+  startWithCategories?: boolean;
+  onCategoriesShown?: () => void;
+}
+
+export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown }: RecipeCreatorProps) => {
   const { userMode } = useUserMode();
   const isProfessional = userMode === 'professional';
   
@@ -50,6 +55,14 @@ export const RecipeCreator = () => {
   const [showSendDialog, setShowSendDialog] = useState(false);
   const [sendMethod, setSendMethod] = useState<"whatsapp" | "email" | null>(null);
   const [isSending, setIsSending] = useState(false);
+  
+  // Auto-open categories when startWithCategories prop is true
+  useEffect(() => {
+    if (startWithCategories && !showCategorySelector) {
+      setShowCategorySelector(true);
+      onCategoriesShown?.();
+    }
+  }, [startWithCategories, onCategoriesShown, showCategorySelector]);
   
   // Patient autocomplete state
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
