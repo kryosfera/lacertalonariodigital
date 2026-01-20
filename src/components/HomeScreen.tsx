@@ -42,11 +42,11 @@ export const HomeScreen = ({ onNavigate, stats = { totalRecipes: 0, totalPatient
   return (
     <div className="flex flex-col h-[calc(100vh-140px)] md:h-auto md:min-h-0 overflow-hidden">
       {/* Hero Image */}
-      <div className="relative mx-4 mt-4 rounded-2xl overflow-hidden">
+      <div className="relative mx-4 mt-4 rounded-2xl overflow-hidden group cursor-pointer">
         <img 
           src={homeBanner} 
           alt="Talonario Digital" 
-          className="w-full h-32 object-cover object-center"
+          className="w-full h-32 object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-primary/60 to-transparent" />
         <div className="absolute bottom-3 left-4 flex items-center gap-3">
@@ -63,6 +63,11 @@ export const HomeScreen = ({ onNavigate, stats = { totalRecipes: 0, totalPatient
           </div>
         </div>
       </div>
+
+      {/* Description */}
+      <p className="text-xs text-muted-foreground text-center mx-4 mt-3 leading-relaxed">
+        Un talonario de recetas en formato digital que permite gestionar electrónicamente las recetas para sus pacientes, de forma simplificada, mediante envío directo por WhatsApp o eMail.
+      </p>
 
       {/* Stats Row */}
       <div className="flex justify-between bg-primary rounded-2xl mx-4 mt-3 px-4 py-3">
