@@ -7,6 +7,7 @@ export interface RecipeProduct {
   id: string;
   name: string;
   reference: string;
+  ean?: string | null;
   quantity: number;
   thumbnail_url?: string | null;
 }

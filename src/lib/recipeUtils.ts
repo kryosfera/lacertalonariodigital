@@ -1,10 +1,12 @@
 import jsPDF from "jspdf";
 import QRCode from "qrcode";
+import { generateBarcodeDataURL } from "@/components/BarcodeDisplay";
 
 interface Product {
   id: string;
   name: string;
   reference: string;
+  ean?: string | null;
   thumbnail_url: string | null;
   quantity?: number;
 }
@@ -27,6 +29,7 @@ export const encodeRecipeData = (data: RecipeData): string => {
       i: p.id,
       n: p.name,
       r: p.reference,
+      e: p.ean || null,
       q: p.quantity || 1,
       t: p.thumbnail_url
     }))
@@ -46,6 +49,7 @@ export const decodeRecipeData = (encoded: string): RecipeData | null => {
         id: String(p.i || ""),
         name: String(p.n || ""),
         reference: String(p.r || ""),
+        ean: p.e ? String(p.e) : null,
         quantity: Number(p.q || 1),
         thumbnail_url: p.t ? String(p.t) : null
       }))
@@ -149,14 +153,18 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
   yPos += 10;
   doc.setTextColor(0, 0, 0);
   
-  data.products.forEach((product, index) => {
-    if (yPos > 240) {
+  for (let index = 0; index < data.products.length; index++) {
+    const product = data.products[index];
+    const hasBarcode = product.ean && product.ean.length >= 8;
+    const productHeight = hasBarcode ? 55 : 25;
+    
+    if (yPos + productHeight > 260) {
       doc.addPage();
       yPos = 20;
     }
     
     doc.setFillColor(248, 248, 248);
-    doc.roundedRect(20, yPos - 5, pageWidth - 40, 20, 3, 3, "F");
+    doc.roundedRect(20, yPos - 5, pageWidth - 40, productHeight, 3, 3, "F");
     
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
@@ -167,10 +175,29 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
     doc.setFontSize(9);
     doc.setTextColor(100, 100, 100);
     doc.text(`C.N. ${product.reference?.replace(".", "") || "N/A"}`, pageWidth - 25, yPos + 5, { align: "right" });
-    doc.setTextColor(0, 0, 0);
     
-    yPos += 24;
-  });
+    // Add EAN barcode if available
+    if (hasBarcode && product.ean) {
+      doc.setFontSize(8);
+      doc.text(`EAN: ${product.ean}`, 25, yPos + 14);
+      
+      // Generate barcode image
+      const barcodeDataUrl = generateBarcodeDataURL(product.ean, {
+        width: 1.5,
+        height: 25,
+        displayValue: true,
+        fontSize: 10
+      });
+      
+      if (barcodeDataUrl) {
+        // Add barcode image centered
+        doc.addImage(barcodeDataUrl, 'PNG', 25, yPos + 18, 80, 30);
+      }
+    }
+    
+    doc.setTextColor(0, 0, 0);
+    yPos += productHeight + 5;
+  }
   
   // Notas
   if (data.notes) {
