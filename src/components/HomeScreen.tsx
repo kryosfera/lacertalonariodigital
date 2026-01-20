@@ -97,19 +97,20 @@ export const HomeScreen = ({ onNavigate, stats = { totalRecipes: 0, totalPatient
               <button
                 key={action.id}
                 onClick={() => onNavigate(action.id)}
-                className="group flex flex-col items-center gap-3 p-5 rounded-2xl bg-card border border-border/50 shadow-sm transition-all duration-200 active:scale-95 hover:shadow-lg hover:border-primary/20 hover:-translate-y-0.5"
+                className="group flex flex-col items-center gap-3 p-5 rounded-2xl bg-primary text-white border border-primary shadow-sm transition-all duration-200 active:scale-95 hover:shadow-lg hover:bg-primary/90 hover:-translate-y-0.5 opacity-0 animate-fade-in"
                 style={{ 
-                  animationDelay: `${index * 50}ms`,
+                  animationDelay: `${index * 100}ms`,
+                  animationFillMode: 'forwards',
                 }}
               >
-                <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+                <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center shadow-md group-hover:bg-white/30 transition-colors">
                   <Icon className="w-7 h-7 text-white" />
                 </div>
                 <div className="text-center">
-                  <p className="text-sm font-semibold text-foreground leading-tight">
+                  <p className="text-sm font-semibold text-white leading-tight">
                     {action.title}
                   </p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
+                  <p className="text-[10px] text-white/70 mt-0.5">
                     {action.subtitle}
                   </p>
                 </div>
