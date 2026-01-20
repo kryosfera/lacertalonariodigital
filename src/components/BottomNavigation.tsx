@@ -1,12 +1,20 @@
 import { Home, Plus, Clock, User, Scissors } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UserMode } from "@/hooks/useUserMode";
 
 interface BottomNavigationProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  userMode?: UserMode;
 }
 
-const navItems = [
+const basicNavItems = [
+  { id: "home", label: "Inicio", icon: Home },
+  { id: "nueva-receta", label: "Crear", icon: Plus, isCenter: true },
+  { id: "recomendaciones", label: "Cirugía", icon: Scissors },
+];
+
+const professionalNavItems = [
   { id: "home", label: "Inicio", icon: Home },
   { id: "recomendaciones", label: "Cirugía", icon: Scissors },
   { id: "nueva-receta", label: "Crear", icon: Plus, isCenter: true },
@@ -14,20 +22,14 @@ const navItems = [
   { id: "pacientes", label: "Pacientes", icon: User },
 ];
 
-export const BottomNavigation = ({ activeTab, onTabChange }: BottomNavigationProps) => {
-  // Reorder for display: Home, Historial, Create (center), Pacientes, Perfil
-  const displayItems = [
-    navItems[0], // home
-    navItems[1], // historial
-    navItems[2], // create (center)
-    navItems[3], // pacientes
-    navItems[4], // perfil
-  ];
+export const BottomNavigation = ({ activeTab, onTabChange, userMode = 'basic' }: BottomNavigationProps) => {
+  const isProfessional = userMode === 'professional';
+  const navItems = isProfessional ? professionalNavItems : basicNavItems;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-lg border-t border-border/50 md:hidden">
       <div className="flex items-center justify-around h-[72px] px-2 pb-safe">
-        {displayItems.map((item) => {
+        {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           const isCenter = item.isCenter;
