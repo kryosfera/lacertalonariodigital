@@ -119,11 +119,23 @@ export const generateRecipePDF = async (data: RecipeData): Promise<Blob> => {
   return doc.output("blob");
 };
 
-// Genera texto para WhatsApp
-export const generateWhatsAppMessage = (data: RecipeData): string => {
+// Generate shareable recipe URL
+export const generateRecipeUrl = (recipeCode: string): string => {
+  const baseUrl = window.location.origin;
+  return `${baseUrl}/receta?n=${recipeCode}`;
+};
+
+// Genera texto para WhatsApp con URL
+export const generateWhatsAppMessage = (data: RecipeData, recipeUrl?: string): string => {
   let message = `🏥 *RECETA DIGITAL LACER*\n\n`;
   message += `👤 *Paciente:* ${data.patientName || "No especificado"}\n`;
   message += `📅 *Fecha:* ${data.date}\n\n`;
+  
+  if (recipeUrl) {
+    message += `🔗 *Ver receta completa:*\n${recipeUrl}\n\n`;
+    message += `_Muestra este enlace en tu farmacia para que puedan ver los productos recomendados._\n\n`;
+  }
+  
   message += `📋 *Productos recomendados:*\n`;
   
   data.products.forEach((product, index) => {
@@ -162,9 +174,9 @@ export const generateEmailContent = (data: RecipeData): { subject: string; body:
   return { subject, body };
 };
 
-// Abre WhatsApp con el mensaje
-export const sendViaWhatsApp = (data: RecipeData, phoneNumber?: string): void => {
-  const message = generateWhatsAppMessage(data);
+// Abre WhatsApp con el mensaje y URL de receta
+export const sendViaWhatsApp = (data: RecipeData, phoneNumber?: string, recipeUrl?: string): void => {
+  const message = generateWhatsAppMessage(data, recipeUrl);
   const encodedMessage = encodeURIComponent(message);
   
   let url = `https://wa.me/`;

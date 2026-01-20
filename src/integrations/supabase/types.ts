@@ -245,6 +245,7 @@ export type Database = {
           patient_id: string | null
           patient_name: string
           products: Json
+          recipe_code: string | null
           sent_via: string | null
           user_id: string
         }
@@ -255,6 +256,7 @@ export type Database = {
           patient_id?: string | null
           patient_name: string
           products?: Json
+          recipe_code?: string | null
           sent_via?: string | null
           user_id: string
         }
@@ -265,6 +267,7 @@ export type Database = {
           patient_id?: string | null
           patient_name?: string
           products?: Json
+          recipe_code?: string | null
           sent_via?: string | null
           user_id?: string
         }
@@ -304,6 +307,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_recipe_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

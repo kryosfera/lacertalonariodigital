@@ -6,10 +6,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import { UserModeProvider } from "@/hooks/useUserMode";
+import { ThemeProvider } from "@/hooks/useTheme";
 import { SplashScreen } from "@/components/SplashScreen";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import Recipe from "./pages/Recipe";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,22 +23,25 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <UserModeProvider>
-          <TooltipProvider>
-            {showSplash && (
-              <SplashScreen onFinish={() => setShowSplash(false)} />
-            )}
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/admin" element={<Admin />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
+          <ThemeProvider>
+            <TooltipProvider>
+              {showSplash && (
+                <SplashScreen onFinish={() => setShowSplash(false)} />
+              )}
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="/receta" element={<Recipe />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </TooltipProvider>
+          </ThemeProvider>
         </UserModeProvider>
       </AuthProvider>
     </QueryClientProvider>
