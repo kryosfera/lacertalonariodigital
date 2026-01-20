@@ -1,5 +1,6 @@
-import { FileText, Clock, Users, Settings, Sparkles, Scissors } from "lucide-react";
+import { FileText, Clock, Users, Scissors } from "lucide-react";
 import lacerLogo from "@/assets/lacer-logo-color.png";
+import homeBanner from "@/assets/home-banner.jpg";
 
 interface HomeScreenProps {
   onNavigate: (tab: string) => void;
@@ -16,80 +17,68 @@ const quickActions = [
     title: "Nueva Receta",
     subtitle: "Crear y enviar",
     icon: FileText,
-    gradient: "from-secondary to-secondary/80",
   },
   {
     id: "recomendaciones",
     title: "Post-Cirugía",
     subtitle: "Recomendaciones",
     icon: Scissors,
-    gradient: "from-primary to-primary/80",
   },
   {
     id: "historial",
     title: "Historial",
     subtitle: "Ver recetas",
     icon: Clock,
-    gradient: "from-success to-success/80",
   },
   {
     id: "pacientes",
     title: "Pacientes",
     subtitle: "Gestionar",
     icon: Users,
-    gradient: "from-muted-foreground/60 to-muted-foreground/40",
   },
 ];
 
 export const HomeScreen = ({ onNavigate, stats = { totalRecipes: 0, totalPatients: 0, thisMonth: 0 } }: HomeScreenProps) => {
-  const today = new Date();
-  const greeting = today.getHours() < 12 ? "Buenos días" : today.getHours() < 20 ? "Buenas tardes" : "Buenas noches";
-  
   return (
     <div className="flex flex-col h-[calc(100vh-140px)] md:h-auto md:min-h-0 overflow-hidden">
-      {/* Hero Section with Glassmorphism */}
-      <div className="relative mx-4 mt-4 rounded-3xl overflow-hidden">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-secondary" />
-        
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-10 -translate-y-10" />
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-secondary/30 rounded-full blur-xl transform -translate-x-6 translate-y-6" />
-        
-        {/* Content */}
-        <div className="relative px-5 py-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <Sparkles className="w-4 h-4 text-white/80" />
-                <p className="text-white/80 text-sm font-medium">{greeting}</p>
-              </div>
-              <h2 className="text-xl font-bold text-white">
-                ¿Qué deseas hacer hoy?
-              </h2>
-            </div>
-            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center border border-white/30 shadow-lg">
-              <img src={lacerLogo} alt="Lacer" className="w-10 h-10 object-contain" />
-            </div>
+      {/* Hero Image */}
+      <div className="relative mx-4 mt-4 rounded-2xl overflow-hidden">
+        <img 
+          src={homeBanner} 
+          alt="Talonario Digital" 
+          className="w-full h-32 object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-primary/60 to-transparent" />
+        <div className="absolute bottom-3 left-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
+            <img src={lacerLogo} alt="Lacer" className="w-7 h-7 object-contain" />
           </div>
+          <div>
+            <h2 className="text-lg font-bold text-white drop-shadow-md">
+              Talonario Digital
+            </h2>
+            <p className="text-xs text-white/90 drop-shadow-sm">
+              ¿Qué deseas hacer hoy?
+            </p>
+          </div>
+        </div>
+      </div>
 
-          {/* Stats Row - Inside Hero */}
-          <div className="flex justify-between bg-white/15 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/20">
-            <div className="text-center flex-1">
-              <p className="text-2xl font-bold text-white">{stats.thisMonth}</p>
-              <p className="text-[10px] text-white/70 uppercase tracking-wide">Este mes</p>
-            </div>
-            <div className="w-px bg-white/30" />
-            <div className="text-center flex-1">
-              <p className="text-2xl font-bold text-white">{stats.totalRecipes}</p>
-              <p className="text-[10px] text-white/70 uppercase tracking-wide">Recetas</p>
-            </div>
-            <div className="w-px bg-white/30" />
-            <div className="text-center flex-1">
-              <p className="text-2xl font-bold text-white">{stats.totalPatients}</p>
-              <p className="text-[10px] text-white/70 uppercase tracking-wide">Pacientes</p>
-            </div>
-          </div>
+      {/* Stats Row */}
+      <div className="flex justify-between bg-primary rounded-2xl mx-4 mt-3 px-4 py-3">
+        <div className="text-center flex-1">
+          <p className="text-2xl font-bold text-white">{stats.thisMonth}</p>
+          <p className="text-[10px] text-white/70 uppercase tracking-wide">Este mes</p>
+        </div>
+        <div className="w-px bg-white/30" />
+        <div className="text-center flex-1">
+          <p className="text-2xl font-bold text-white">{stats.totalRecipes}</p>
+          <p className="text-[10px] text-white/70 uppercase tracking-wide">Recetas</p>
+        </div>
+        <div className="w-px bg-white/30" />
+        <div className="text-center flex-1">
+          <p className="text-2xl font-bold text-white">{stats.totalPatients}</p>
+          <p className="text-[10px] text-white/70 uppercase tracking-wide">Pacientes</p>
         </div>
       </div>
 
@@ -108,7 +97,7 @@ export const HomeScreen = ({ onNavigate, stats = { totalRecipes: 0, totalPatient
                   animationDelay: `${index * 50}ms`,
                 }}
               >
-                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${action.gradient} flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow`}>
+                <div className="w-14 h-14 rounded-2xl bg-primary flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
                   <Icon className="w-7 h-7 text-white" />
                 </div>
                 <div className="text-center">
