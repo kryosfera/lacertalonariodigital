@@ -36,9 +36,10 @@ interface ProductWithQuantity extends Product {
 interface RecipeCreatorProps {
   startWithCategories?: boolean;
   onCategoriesShown?: () => void;
+  onGoHome?: () => void;
 }
 
-export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown }: RecipeCreatorProps) => {
+export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, onGoHome }: RecipeCreatorProps) => {
   const { userMode } = useUserMode();
   const isProfessional = userMode === 'professional';
   
@@ -393,6 +394,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown }
           onToggleProduct={toggleProduct}
           onBack={handleBackToCategories}
           onClose={handleCloseSelector}
+          onGoHome={onGoHome}
           isClosing={isClosingProduct}
         />
       )}

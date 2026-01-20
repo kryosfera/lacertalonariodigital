@@ -158,7 +158,11 @@ const Index = () => {
                   Crea y envía recetas a tus pacientes de forma rápida
                 </p>
               </div>
-              <RecipeCreator startWithCategories={startWithCategories} onCategoriesShown={() => setStartWithCategories(false)} />
+              <RecipeCreator 
+                startWithCategories={startWithCategories} 
+                onCategoriesShown={() => setStartWithCategories(false)} 
+                onGoHome={() => setActiveTab("home")}
+              />
             </TabsContent>
 
             <TabsContent value="recomendaciones" className="space-y-6">
@@ -225,7 +229,11 @@ const Index = () => {
                 <div className="text-center py-2">
                   <h2 className="text-lg font-semibold text-foreground">Nueva Receta</h2>
                 </div>
-                <RecipeCreator startWithCategories={startWithCategories} onCategoriesShown={() => setStartWithCategories(false)} />
+                <RecipeCreator 
+                  startWithCategories={startWithCategories} 
+                  onCategoriesShown={() => setStartWithCategories(false)}
+                  onGoHome={() => setActiveTab("home")}
+                />
               </div>
             )}
 
