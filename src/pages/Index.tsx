@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Users, BarChart3, Clock, Plus, Settings, Scissors } from "lucide-react";
+import { Users, BarChart3, Clock, Plus, Settings, Scissors, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RecipeCreator } from "@/components/RecipeCreator";
@@ -11,14 +11,17 @@ import { HomeScreen } from "@/components/HomeScreen";
 import { SurgeryRecommendations } from "@/components/SurgeryRecommendations";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { ProfileSelector } from "@/components/ProfileSelector";
+import { ProfilePage } from "@/components/ProfilePage";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUserMode } from "@/hooks/useUserMode";
+import { useAuth } from "@/hooks/useAuth";
 import lacerLogo from "@/assets/lacer-logo.png";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
   const isMobile = useIsMobile();
   const { userMode, isLoading, showProfileSelector, setUserMode } = useUserMode();
+  const { user } = useAuth();
 
   const handleNavigate = (tab: string) => {
     setActiveTab(tab);
@@ -55,6 +58,7 @@ const Index = () => {
     { value: "recomendaciones", icon: Scissors, label: "Cirugía" },
     { value: "pacientes", icon: Users, label: "Pacientes" },
     { value: "historial", icon: Clock, label: "Historial" },
+    { value: "perfil", icon: User, label: "Perfil" },
   ];
 
   const desktopTabs = isProfessional ? professionalDesktopTabs : basicDesktopTabs;
@@ -83,11 +87,23 @@ const Index = () => {
                   Admin
                 </Button>
               </Link>
-              <Link to="/auth">
-                <Button variant="ghost" size="icon" className="w-9 h-9 rounded-full">
-                  <Users className="w-5 h-5 text-muted-foreground" />
+              {!user && (
+                <Link to="/auth">
+                  <Button variant="ghost" size="icon" className="w-9 h-9 rounded-full">
+                    <Users className="w-5 h-5 text-muted-foreground" />
+                  </Button>
+                </Link>
+              )}
+              {user && !isMobile && (
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="w-9 h-9 rounded-full"
+                  onClick={() => setActiveTab("perfil")}
+                >
+                  <User className="w-5 h-5 text-muted-foreground" />
                 </Button>
-              </Link>
+              )}
             </div>
           </div>
         </div>
@@ -98,7 +114,7 @@ const Index = () => {
         {/* Desktop: Tabs navigation */}
         {!isMobile && (
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className={`grid w-full max-w-2xl mx-auto h-auto p-1 bg-muted/50 rounded-xl ${isProfessional ? 'grid-cols-6' : 'grid-cols-3'}`}>
+            <TabsList className={`grid w-full max-w-3xl mx-auto h-auto p-1 bg-muted/50 rounded-xl ${isProfessional ? 'grid-cols-7' : 'grid-cols-3'}`}>
               {desktopTabs.map((tab) => (
                 <TabsTrigger 
                   key={tab.value}
@@ -162,21 +178,18 @@ const Index = () => {
                   </div>
                   <RecipeHistory />
                 </TabsContent>
+
+                <TabsContent value="perfil" className="space-y-6">
+                  <div className="space-y-2">
+                    <h2 className="text-3xl font-bold text-foreground">Perfil Profesional</h2>
+                    <p className="text-muted-foreground">
+                      Configura los datos de tu clínica y firma
+                    </p>
+                  </div>
+                  <ProfilePage />
+                </TabsContent>
               </>
             )}
-
-            <TabsContent value="perfil" className="space-y-6">
-              <div className="space-y-2">
-                <h2 className="text-3xl font-bold text-foreground">Perfil</h2>
-                <p className="text-muted-foreground">
-                  Configuración y ajustes de tu cuenta
-                </p>
-              </div>
-              <div className="text-center py-12 text-muted-foreground">
-                <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Próximamente disponible</p>
-              </div>
-            </TabsContent>
           </Tabs>
         )}
 
@@ -238,18 +251,15 @@ const Index = () => {
               </div>
             )}
 
-            {activeTab === "perfil" && (
+            {activeTab === "perfil" && isProfessional && (
               <div className="space-y-4 pb-20">
                 <div className="space-y-1">
                   <h2 className="text-xl font-semibold text-foreground">Perfil</h2>
                   <p className="text-sm text-muted-foreground">
-                    Configuración y ajustes
+                    Configuración de tu cuenta
                   </p>
                 </div>
-                <div className="text-center py-12 text-muted-foreground">
-                  <Settings className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Próximamente disponible</p>
-                </div>
+                <ProfilePage />
               </div>
             )}
           </div>

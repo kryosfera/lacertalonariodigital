@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Send, Printer, Download, ShoppingCart, Plus, MessageCircle, Mail } from "lucide-react";
+import { Send, Printer, Download, ShoppingCart, Plus, MessageCircle, Mail, User, Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CategorySelector } from "./CategorySelector";
@@ -14,6 +14,12 @@ import { ProductSelector } from "./ProductSelector";
 import { SelectedProductsBadge } from "./SelectedProductsBadge";
 import { sendViaWhatsApp, sendViaEmail, downloadPDF } from "@/lib/recipeUtils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useUserMode } from "@/hooks/useUserMode";
+import { usePatients, Patient } from "@/hooks/usePatients";
+import { useCreateRecipe, RecipeProduct } from "@/hooks/useRecipes";
+import { cn } from "@/lib/utils";
 
 interface Product {
   id: string;
@@ -28,6 +34,9 @@ interface ProductWithQuantity extends Product {
 }
 
 export const RecipeCreator = () => {
+  const { userMode } = useUserMode();
+  const isProfessional = userMode === 'professional';
+  
   const [selectedProducts, setSelectedProducts] = useState<Map<string, number>>(new Map());
   const [searchTerm, setSearchTerm] = useState("");
   const [patientName, setPatientName] = useState("");
@@ -41,6 +50,14 @@ export const RecipeCreator = () => {
   const [showSendDialog, setShowSendDialog] = useState(false);
   const [sendMethod, setSendMethod] = useState<"whatsapp" | "email" | null>(null);
   const [isSending, setIsSending] = useState(false);
+  
+  // Patient autocomplete state
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [patientSearchOpen, setPatientSearchOpen] = useState(false);
+
+  // Professional mode hooks
+  const { data: patients = [] } = usePatients();
+  const createRecipe = useCreateRecipe();
 
   // Fetch products
   const { data: products = [] } = useQuery({
@@ -83,6 +100,23 @@ export const RecipeCreator = () => {
   const selectedProductsSet = useMemo(() => {
     return new Set(selectedProducts.keys());
   }, [selectedProducts]);
+
+  // Filter patients for autocomplete
+  const filteredPatients = useMemo(() => {
+    if (!patientName.trim()) return patients.slice(0, 5);
+    return patients.filter(p => 
+      p.name.toLowerCase().includes(patientName.toLowerCase())
+    ).slice(0, 5);
+  }, [patients, patientName]);
+
+  // Handle patient selection
+  const handleSelectPatient = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setPatientName(patient.name);
+    setPatientPhone(patient.phone || "");
+    setPatientEmail(patient.email || "");
+    setPatientSearchOpen(false);
+  };
 
   const toggleProduct = (productId: string) => {
     setSelectedProducts((prev) => {
@@ -127,23 +161,64 @@ export const RecipeCreator = () => {
     notes,
   });
 
-  const handleSendWhatsApp = () => {
+  const saveRecipeToDb = async (sentVia: 'whatsapp' | 'email' | 'both' | 'pdf' | 'print') => {
+    if (!isProfessional) return;
+    
+    const recipeProducts: RecipeProduct[] = selectedProductsData.map(p => ({
+      id: p.id,
+      name: p.name,
+      reference: p.reference,
+      quantity: p.quantity,
+      thumbnail_url: p.thumbnail_url
+    }));
+
+    await createRecipe.mutateAsync({
+      patient_id: selectedPatient?.id || null,
+      patient_name: patientName || "Sin nombre",
+      products: recipeProducts,
+      notes,
+      sent_via: sentVia
+    });
+  };
+
+  const resetForm = () => {
+    setSelectedProducts(new Map());
+    setPatientName("");
+    setPatientPhone("");
+    setPatientEmail("");
+    setNotes("");
+    setSelectedPatient(null);
+  };
+
+  const handleSendWhatsApp = async () => {
     if (selectedProducts.size === 0) {
       toast.error("Selecciona al menos un producto");
       return;
     }
     sendViaWhatsApp(getRecipeData(), patientPhone);
     toast.success("Abriendo WhatsApp...");
+    
+    await saveRecipeToDb('whatsapp');
+    if (isProfessional) {
+      toast.success("Receta guardada en historial");
+      resetForm();
+    }
     setShowSendDialog(false);
   };
 
-  const handleSendEmail = () => {
+  const handleSendEmail = async () => {
     if (selectedProducts.size === 0) {
       toast.error("Selecciona al menos un producto");
       return;
     }
     sendViaEmail(getRecipeData(), patientEmail);
     toast.success("Abriendo cliente de correo...");
+    
+    await saveRecipeToDb('email');
+    if (isProfessional) {
+      toast.success("Receta guardada en historial");
+      resetForm();
+    }
     setShowSendDialog(false);
   };
 
@@ -156,6 +231,12 @@ export const RecipeCreator = () => {
     try {
       await downloadPDF(getRecipeData());
       toast.success("PDF descargado correctamente");
+      
+      await saveRecipeToDb('pdf');
+      if (isProfessional) {
+        toast.success("Receta guardada en historial");
+        resetForm();
+      }
     } catch (error) {
       toast.error("Error al generar el PDF");
     } finally {
@@ -178,6 +259,12 @@ export const RecipeCreator = () => {
         printWindow.onload = () => {
           printWindow.print();
         };
+      }
+      
+      await saveRecipeToDb('print');
+      if (isProfessional) {
+        toast.success("Receta guardada en historial");
+        resetForm();
       }
     } catch (error) {
       toast.error("Error al preparar la impresión");
@@ -276,12 +363,67 @@ export const RecipeCreator = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="patient-name">Paciente</Label>
-                <Input
-                  id="patient-name"
-                  placeholder="Nombre del paciente"
-                  value={patientName}
-                  onChange={(e) => setPatientName(e.target.value)}
-                />
+                {isProfessional ? (
+                  <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
+                    <PopoverTrigger asChild>
+                      <div className="relative">
+                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                        <Input
+                          id="patient-name"
+                          placeholder="Buscar o escribir nombre..."
+                          value={patientName}
+                          onChange={(e) => {
+                            setPatientName(e.target.value);
+                            setSelectedPatient(null);
+                            if (e.target.value.length > 0) {
+                              setPatientSearchOpen(true);
+                            }
+                          }}
+                          onFocus={() => patients.length > 0 && setPatientSearchOpen(true)}
+                          className="pl-10"
+                        />
+                        {selectedPatient && (
+                          <Check className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500 w-4 h-4" />
+                        )}
+                      </div>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0 w-[300px]" align="start">
+                      <Command>
+                        <CommandList>
+                          {filteredPatients.length === 0 ? (
+                            <CommandEmpty>No se encontraron pacientes</CommandEmpty>
+                          ) : (
+                            <CommandGroup heading="Pacientes">
+                              {filteredPatients.map((patient) => (
+                                <CommandItem
+                                  key={patient.id}
+                                  value={patient.name}
+                                  onSelect={() => handleSelectPatient(patient)}
+                                  className="cursor-pointer"
+                                >
+                                  <User className="mr-2 h-4 w-4" />
+                                  <div className="flex flex-col">
+                                    <span>{patient.name}</span>
+                                    {patient.phone && (
+                                      <span className="text-xs text-muted-foreground">{patient.phone}</span>
+                                    )}
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          )}
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <Input
+                    id="patient-name"
+                    placeholder="Nombre del paciente"
+                    value={patientName}
+                    onChange={(e) => setPatientName(e.target.value)}
+                  />
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="date">Fecha</Label>

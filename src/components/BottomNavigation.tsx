@@ -19,7 +19,7 @@ const professionalNavItems = [
   { id: "recomendaciones", label: "Cirugía", icon: Scissors },
   { id: "nueva-receta", label: "Crear", icon: Plus, isCenter: true },
   { id: "historial", label: "Historial", icon: Clock },
-  { id: "pacientes", label: "Pacientes", icon: User },
+  { id: "perfil", label: "Perfil", icon: User },
 ];
 
 export const BottomNavigation = ({ activeTab, onTabChange, userMode = 'basic' }: BottomNavigationProps) => {
