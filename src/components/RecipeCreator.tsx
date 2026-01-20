@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Send, Printer, Download, ShoppingCart, Plus, MessageCircle, Mail, User, Check, Package } from "lucide-react";
+import { Send, Printer, Download, ShoppingCart, Plus, MessageCircle, Mail, User, Check, Package, Minus, Save, FolderOpen, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CategorySelector } from "./CategorySelector";
@@ -56,6 +56,9 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
   const [showSendDialog, setShowSendDialog] = useState(false);
   const [sendMethod, setSendMethod] = useState<"whatsapp" | "email" | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [savingTemplate, setSavingTemplate] = useState(false);
   
   // Auto-open categories when startWithCategories prop is true
   useEffect(() => {
@@ -72,6 +75,20 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
   // Professional mode hooks
   const { data: patients = [] } = usePatients();
   const createRecipe = useCreateRecipe();
+
+  // Fetch templates for professional users
+  const { data: templates = [], refetch: refetchTemplates } = useQuery({
+    queryKey: ["recipe-templates"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("recipe_templates")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+    enabled: isProfessional,
+  });
 
   // Fetch products
   const { data: products = [] } = useQuery({
@@ -174,6 +191,66 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     products: selectedProductsData,
     notes,
   });
+
+  // Template functions
+  const saveAsTemplate = async () => {
+    if (!templateName.trim() || selectedProducts.size === 0) return;
+    
+    setSavingTemplate(true);
+    try {
+      const templateProducts = selectedProductsData.map(p => ({
+        id: p.id,
+        name: p.name,
+        reference: p.reference,
+        quantity: p.quantity,
+        thumbnail_url: p.thumbnail_url
+      }));
+
+      const { error } = await supabase.from("recipe_templates").insert({
+        name: templateName.trim(),
+        products: templateProducts,
+        notes,
+        user_id: (await supabase.auth.getUser()).data.user?.id
+      });
+
+      if (error) throw error;
+      
+      toast.success("Plantilla guardada correctamente");
+      setShowTemplateDialog(false);
+      setTemplateName("");
+      refetchTemplates();
+    } catch (error) {
+      toast.error("Error al guardar la plantilla");
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
+
+  const loadTemplate = (template: typeof templates[0]) => {
+    const productsArray = template.products as Array<{ id: string; quantity: number }>;
+    const newSelection = new Map<string, number>();
+    productsArray.forEach((p) => {
+      newSelection.set(p.id, p.quantity || 1);
+    });
+    setSelectedProducts(newSelection);
+    if (template.notes) setNotes(template.notes);
+    toast.success(`Plantilla "${template.name}" cargada`);
+  };
+
+  const deleteTemplate = async (templateId: string) => {
+    try {
+      const { error } = await supabase
+        .from("recipe_templates")
+        .delete()
+        .eq("id", templateId);
+      
+      if (error) throw error;
+      toast.success("Plantilla eliminada");
+      refetchTemplates();
+    } catch (error) {
+      toast.error("Error al eliminar la plantilla");
+    }
+  };
 
   const saveRecipeToDb = async (sentVia: 'whatsapp' | 'email' | 'both' | 'pdf' | 'print'): Promise<string | null> => {
     if (!isProfessional) return null;
@@ -532,6 +609,60 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
               />
             </div>
 
+            {/* Templates Section - Professional only */}
+            {isProfessional && (
+              <div className="space-y-2 pt-2 border-t border-border/50">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground">Plantillas</Label>
+                  {selectedProducts.size > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 text-xs gap-1"
+                      onClick={() => setShowTemplateDialog(true)}
+                    >
+                      <Save className="w-3 h-3" />
+                      Guardar como plantilla
+                    </Button>
+                  )}
+                </div>
+                {templates.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {templates.slice(0, 4).map((template) => (
+                      <div key={template.id} className="flex items-center gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 text-xs gap-1"
+                          onClick={() => loadTemplate(template)}
+                        >
+                          <FolderOpen className="w-3 h-3" />
+                          {template.name.slice(0, 15)}{template.name.length > 15 ? '...' : ''}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                          onClick={() => deleteTemplate(template.id)}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                    {templates.length > 4 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{templates.length - 4} más
+                      </Badge>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    No tienes plantillas guardadas
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Actions */}
             <div className="grid grid-cols-2 gap-2 pt-2">
               <Button
@@ -593,12 +724,12 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
           </DialogHeader>
           
           <div className="space-y-4 py-4">
-            {/* Visual Recipe Summary */}
+            {/* Visual Recipe Summary with quantity controls */}
             <div className="bg-muted/50 rounded-lg p-3 space-y-2">
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Resumen de la receta
               </p>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
+              <div className="space-y-2 max-h-48 overflow-y-auto">
                 {selectedProductsData.map((product) => (
                   <div 
                     key={product.id} 
@@ -620,8 +751,30 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                         {product.name}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        C.N. {product.reference} • x{product.quantity}
+                        C.N. {product.reference}
                       </p>
+                    </div>
+                    {/* Quantity controls */}
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => updateQuantity(product.id, product.quantity - 1)}
+                      >
+                        <Minus className="w-3 h-3" />
+                      </Button>
+                      <span className="w-6 text-center text-sm font-medium">
+                        {product.quantity}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => updateQuantity(product.id, product.quantity + 1)}
+                      >
+                        <Plus className="w-3 h-3" />
+                      </Button>
                     </div>
                   </div>
                 ))}
@@ -669,6 +822,57 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
             >
               <Send className="w-4 h-4 mr-2" />
               Enviar receta ({selectedProducts.size} productos)
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Template Save Dialog */}
+      <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Guardar como plantilla</DialogTitle>
+            <DialogDescription>
+              Guarda esta selección de productos para usarla en futuras recetas
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="template-name">Nombre de la plantilla</Label>
+              <Input
+                id="template-name"
+                placeholder="Ej: Tratamiento periodoncia básico"
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+              />
+            </div>
+            
+            <div className="bg-muted/50 rounded-lg p-3">
+              <p className="text-xs font-medium text-muted-foreground mb-2">
+                {selectedProducts.size} productos seleccionados
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {selectedProductsData.slice(0, 5).map((p) => (
+                  <Badge key={p.id} variant="secondary" className="text-xs">
+                    {p.name.slice(0, 20)}...
+                  </Badge>
+                ))}
+                {selectedProducts.size > 5 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{selectedProducts.size - 5} más
+                  </Badge>
+                )}
+              </div>
+            </div>
+            
+            <Button
+              className="w-full"
+              onClick={saveAsTemplate}
+              disabled={!templateName.trim() || savingTemplate}
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {savingTemplate ? "Guardando..." : "Guardar plantilla"}
             </Button>
           </div>
         </DialogContent>
