@@ -290,7 +290,7 @@ export type Database = {
           id: string
         }
         Insert: {
-          code: string
+          code?: string
           created_at?: string
           data: Json
           expires_at?: string | null
