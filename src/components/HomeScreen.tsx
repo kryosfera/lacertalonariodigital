@@ -96,7 +96,7 @@ export const HomeScreen = ({
 
   return (
     <motion.div 
-      className="flex flex-col h-[calc(100vh-140px)] md:h-auto md:min-h-0 overflow-hidden"
+      className={`flex flex-col overflow-hidden md:h-auto md:min-h-0 ${isProfessional ? 'h-[calc(100vh-140px)]' : 'h-[calc(100vh-80px)]'}`}
       initial="hidden"
       animate="visible"
       variants={containerVariants}
@@ -106,26 +106,26 @@ export const HomeScreen = ({
         <ThemeToggle />
       </div>
 
-      {/* Hero Image - Compact for basic mode */}
+      {/* Hero Image - Larger for basic mode */}
       <motion.div 
-        className={`relative mx-4 mt-3 rounded-2xl overflow-hidden group cursor-pointer ${!isProfessional ? 'h-24' : ''}`}
+        className={`relative mx-4 mt-3 rounded-2xl overflow-hidden group cursor-pointer ${!isProfessional ? 'h-48' : ''}`}
         variants={itemVariants}
       >
         <img 
           src={homeBanner} 
           alt="Talonario Digital" 
-          className={`w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110 ${isProfessional ? 'h-32' : 'h-24'}`}
+          className={`w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110 ${isProfessional ? 'h-32' : 'h-48'}`}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-secondary/80 to-secondary/30" />
-        <div className="absolute bottom-2 left-3 flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg">
-            <img src={lacerLogo} alt="Lacer" className="w-5 h-5 object-contain" />
+        <div className={`absolute left-4 flex items-center gap-3 ${isProfessional ? 'bottom-2' : 'bottom-4'}`}>
+          <div className={`rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg ${isProfessional ? 'w-8 h-8' : 'w-12 h-12'}`}>
+            <img src={lacerLogo} alt="Lacer" className={`object-contain ${isProfessional ? 'w-5 h-5' : 'w-8 h-8'}`} />
           </div>
           <div>
-            <h2 className="text-base font-bold text-white drop-shadow-md">
+            <h2 className={`font-bold text-white drop-shadow-md ${isProfessional ? 'text-base' : 'text-xl'}`}>
               Talonario Digital
             </h2>
-            <p className="text-[10px] text-white/90 drop-shadow-sm">
+            <p className={`text-white/90 drop-shadow-sm ${isProfessional ? 'text-[10px]' : 'text-sm'}`}>
               ¿Qué deseas hacer hoy?
             </p>
           </div>
