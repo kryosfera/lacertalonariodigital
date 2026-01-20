@@ -255,28 +255,32 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
 
 // Genera texto para WhatsApp con URL
 export const generateWhatsAppMessage = (data: RecipeData, recipeUrl?: string): string => {
-  let message = `🏥 *RECETA DIGITAL LACER*\n\n`;
-  message += `👤 *Paciente:* ${data.patientName || "No especificado"}\n`;
-  message += `📅 *Fecha:* ${data.date}\n\n`;
+  let message = `🏥 *RECETA LACER*\n`;
+  message += `━━━━━━━━━━━━━━━\n\n`;
   
-  if (recipeUrl) {
-    message += `🔗 *Ver receta completa:*\n${recipeUrl}\n\n`;
-    message += `_Muestra este enlace en tu farmacia para que puedan ver los productos recomendados._\n\n`;
+  if (data.patientName) {
+    message += `👤 ${data.patientName}\n`;
   }
+  message += `📅 ${data.date}\n\n`;
   
-  message += `📋 *Productos recomendados:*\n`;
+  message += `📋 *Productos:*\n`;
   
   data.products.forEach((product, index) => {
-    const qty = product.quantity && product.quantity > 1 ? ` (x${product.quantity})` : "";
-    message += `${index + 1}. ${product.name}${qty}\n`;
-    message += `   _C.N. ${product.reference?.replace(".", "") || "N/A"}_\n`;
+    const qty = product.quantity && product.quantity > 1 ? ` ×${product.quantity}` : "";
+    message += `• ${product.name}${qty}\n`;
+    if (product.ean) {
+      message += `  _EAN: ${product.ean}_\n`;
+    }
   });
   
   if (data.notes) {
-    message += `\n📝 *Notas:*\n${data.notes}\n`;
+    message += `\n📝 _${data.notes}_\n`;
   }
   
-  message += `\n_Generado con Talonario Digital Lacer_`;
+  if (recipeUrl) {
+    message += `\n━━━━━━━━━━━━━━━\n`;
+    message += `🔗 *Ver en farmacia:*\n${recipeUrl}\n`;
+  }
   
   return message;
 };
