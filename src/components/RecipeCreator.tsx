@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Send, Printer, Download, ShoppingCart, Plus, MessageCircle, Mail, User, Check } from "lucide-react";
+import { Send, Printer, Download, ShoppingCart, Plus, MessageCircle, Mail, User, Check, Package } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CategorySelector } from "./CategorySelector";
@@ -377,7 +377,9 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
         <CategorySelector
           onSelectCategory={handleSelectCategory}
           onClose={handleCloseSelector}
+          onGoHome={onGoHome}
           productCountByCategory={productCountByCategory}
+          selectedProductsCount={selectedProducts.size}
           isClosing={isClosingCategory}
         />
       )}
@@ -580,17 +582,60 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
 
       {/* Send Dialog */}
       <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {sendMethod === "whatsapp" ? "Enviar por WhatsApp" : "Enviar por Email"}
             </DialogTitle>
             <DialogDescription>
-              Introduce los datos del paciente para enviar la receta
+              Revisa la receta y añade los datos del paciente
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4 py-4">
+            {/* Visual Recipe Summary */}
+            <div className="bg-muted/50 rounded-lg p-3 space-y-2">
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                Resumen de la receta
+              </p>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {selectedProductsData.map((product) => (
+                  <div 
+                    key={product.id} 
+                    className="flex items-center gap-2 bg-background rounded-md p-2"
+                  >
+                    <div className="w-10 h-10 rounded bg-white border flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {product.thumbnail_url ? (
+                        <img
+                          src={product.thumbnail_url}
+                          alt={product.name}
+                          className="w-full h-full object-contain p-0.5"
+                        />
+                      ) : (
+                        <Package className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {product.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        C.N. {product.reference} • x{product.quantity}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {notes && (
+                <div className="pt-2 border-t border-border/50">
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium">Notas:</span> {notes}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Contact input */}
             {sendMethod === "whatsapp" ? (
               <div className="space-y-2">
                 <Label htmlFor="phone">Teléfono (opcional)</Label>
@@ -623,7 +668,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
               onClick={sendMethod === "whatsapp" ? handleSendWhatsApp : handleSendEmail}
             >
               <Send className="w-4 h-4 mr-2" />
-              Enviar receta
+              Enviar receta ({selectedProducts.size} productos)
             </Button>
           </div>
         </DialogContent>

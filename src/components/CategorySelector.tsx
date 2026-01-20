@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { X, FolderOpen, Package, ChevronRight } from "lucide-react";
+import { X, FolderOpen, Package, ShoppingCart, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -15,14 +16,18 @@ interface Category {
 interface CategorySelectorProps {
   onSelectCategory: (categoryId: string, categoryName: string) => void;
   onClose: () => void;
+  onGoHome?: () => void;
   productCountByCategory: Map<string, number>;
+  selectedProductsCount?: number;
   isClosing?: boolean;
 }
 
 export const CategorySelector = ({
   onSelectCategory,
   onClose,
+  onGoHome,
   productCountByCategory,
+  selectedProductsCount = 0,
   isClosing = false,
 }: CategorySelectorProps) => {
   const isMobile = useIsMobile();
@@ -65,9 +70,16 @@ export const CategorySelector = ({
           isClosing ? 'screen-slide-out' : 'screen-slide-in'
         }`}
       >
-        {/* Compact header */}
+        {/* Compact header with selected count */}
         <div className="flex items-center justify-between px-4 py-2 border-b border-border/30">
-          <h2 className="text-base font-semibold text-foreground">Selecciona categoría</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-semibold text-foreground">Selecciona categoría</h2>
+            {selectedProductsCount > 0 && (
+              <Badge className="bg-secondary text-secondary-foreground font-bold">
+                {selectedProductsCount}
+              </Badge>
+            )}
+          </div>
           <Button
             variant="ghost"
             size="icon"
@@ -130,6 +142,19 @@ export const CategorySelector = ({
             </div>
           )}
         </div>
+
+        {/* Floating action bar when products are selected */}
+        {selectedProductsCount > 0 && onGoHome && (
+          <div className="p-3 border-t border-border/30 bg-background">
+            <Button
+              onClick={onGoHome}
+              className="w-full bg-secondary hover:bg-secondary/90 gap-2"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              Ver receta ({selectedProductsCount} productos)
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -157,14 +182,21 @@ export const CategorySelector = ({
               </p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="text-white hover:bg-white/10"
-          >
-            <X className="w-6 h-6" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {selectedProductsCount > 0 && (
+              <Badge className="bg-white text-secondary font-bold px-3 py-1">
+                {selectedProductsCount} seleccionados
+              </Badge>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="text-white hover:bg-white/10"
+            >
+              <X className="w-6 h-6" />
+            </Button>
+          </div>
         </div>
       </div>
 
