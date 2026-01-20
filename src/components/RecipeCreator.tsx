@@ -473,7 +473,6 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
           onToggleProduct={toggleProduct}
           onBack={handleBackToCategories}
           onClose={handleCloseSelector}
-          onGoHome={onGoHome}
           isClosing={isClosingProduct}
         />
       )}
