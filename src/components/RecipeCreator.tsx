@@ -77,7 +77,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
   const { data: patients = [] } = usePatients();
   const createRecipe = useCreateRecipe();
 
-  // Fetch templates for professional users
+  // Fetch templates - available for all users to load saved templates
   const { data: templates = [], refetch: refetchTemplates } = useQuery({
     queryKey: ["recipe-templates"],
     queryFn: async () => {
@@ -88,7 +88,6 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       if (error) throw error;
       return data;
     },
-    enabled: isProfessional,
   });
 
   // Fetch products
@@ -489,6 +488,8 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
           productCountByCategory={productCountByCategory}
           selectedProductsCount={selectedProducts.size}
           isClosing={isClosingCategory}
+          templates={templates}
+          onLoadTemplate={loadTemplate}
         />
       )}
 
@@ -531,11 +532,11 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
           </CardHeader>
 
           <CardContent className="space-y-5">
-            {/* Patient Info */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="patient-name">Paciente</Label>
-                {isProfessional ? (
+            {/* Patient Info - Only for Professional users */}
+            {isProfessional && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="patient-name">Paciente</Label>
                   <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
                     <PopoverTrigger asChild>
                       <div className="relative">
@@ -588,24 +589,17 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                       </Command>
                     </PopoverContent>
                   </Popover>
-                ) : (
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="date">Fecha</Label>
                   <Input
-                    id="patient-name"
-                    placeholder="Nombre del paciente"
-                    value={patientName}
-                    onChange={(e) => setPatientName(e.target.value)}
+                    id="date"
+                    type="date"
+                    defaultValue={new Date().toISOString().split("T")[0]}
                   />
-                )}
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="date">Fecha</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  defaultValue={new Date().toISOString().split("T")[0]}
-                />
-              </div>
-            </div>
+            )}
 
             {/* Add Products Button */}
             <Button
