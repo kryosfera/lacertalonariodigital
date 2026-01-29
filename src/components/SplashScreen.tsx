@@ -55,7 +55,7 @@ export const SplashScreen = ({ onFinish, minDuration = 2000 }: SplashScreenProps
         isExiting ? "scale-90 opacity-0 -translate-y-4" : 
         showCard ? "scale-100 opacity-100 translate-y-0" : "scale-75 opacity-0 translate-y-8"
       }`}>
-        <div className="relative p-6 md:p-8 rounded-3xl backdrop-blur-xl bg-white/20 border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.15),0_0_60px_rgba(255,255,255,0.1),inset_0_1px_0_rgba(255,255,255,0.4)]">
+        <div className="relative p-6 md:p-8 rounded-3xl bg-white border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.15),0_0_60px_rgba(255,255,255,0.1)]">
           {/* Inner glow effect */}
           <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-white/25 via-white/5 to-transparent pointer-events-none" />
           
