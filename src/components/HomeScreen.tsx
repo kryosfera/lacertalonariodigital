@@ -206,38 +206,38 @@ export const HomeScreen = ({
           variants={containerVariants}
         >
           <motion.div 
-            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border border-border/50 shadow-sm"
+            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 shadow-sm"
             variants={itemVariants}
           >
-            <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
-              <CalendarDays className="w-5 h-5 text-secondary" />
+            <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shadow-md">
+              <CalendarDays className="w-5 h-5 text-secondary-foreground" />
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-foreground">{stats.thisMonth}</p>
+              <p className="text-2xl font-bold text-secondary">{stats.thisMonth}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Este mes</p>
             </div>
           </motion.div>
           <motion.div 
-            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border border-border/50 shadow-sm"
+            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 shadow-sm"
             variants={itemVariants}
           >
-            <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-secondary" />
+            <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shadow-md">
+              <TrendingUp className="w-5 h-5 text-secondary-foreground" />
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-foreground">{stats.totalRecipes}</p>
+              <p className="text-2xl font-bold text-secondary">{stats.totalRecipes}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Recetas</p>
             </div>
           </motion.div>
           <motion.div 
-            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border border-border/50 shadow-sm"
+            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 shadow-sm"
             variants={itemVariants}
           >
-            <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
-              <UserCheck className="w-5 h-5 text-secondary" />
+            <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shadow-md">
+              <UserCheck className="w-5 h-5 text-secondary-foreground" />
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-foreground">{stats.totalPatients}</p>
+              <p className="text-2xl font-bold text-secondary">{stats.totalPatients}</p>
               <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Pacientes</p>
             </div>
           </motion.div>
