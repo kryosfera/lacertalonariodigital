@@ -53,9 +53,9 @@ All colors MUST be HSL.
     --sidebar-border: 214 32% 91%;
     --sidebar-ring: 221 83% 53%;
 
-    /* Medical theme gradients */
-    --gradient-medical: linear-gradient(135deg, hsl(221 83% 53%), hsl(221 83% 38%));
-    --gradient-hero: linear-gradient(135deg, hsl(221 83% 53%) 0%, hsl(217 91% 60%) 100%);
+    /* Medical theme gradients - Using Lacer red */
+    --gradient-medical: linear-gradient(135deg, hsl(0 72% 51%), hsl(0 72% 41%));
+    --gradient-hero: linear-gradient(135deg, hsl(0 72% 51%) 0%, hsl(0 72% 45%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(210 40% 98%) 100%);
     
     /* Shadows */
