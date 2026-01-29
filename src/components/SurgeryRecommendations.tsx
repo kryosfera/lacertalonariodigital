@@ -33,7 +33,7 @@ const recommendations = [
     icon: Scissors,
     pdfUrl: "/docs/Cirugia_Oral_General.pdf",
     imageUrl: "https://www.lacertalonariodigital.com/archivos/recomendacion-cirujia-p.jpg",
-    gradient: "from-primary to-primary/80",
+    gradient: "from-secondary to-secondary/80",
   },
   {
     id: "extracciones-dentales",
@@ -51,7 +51,7 @@ const recommendations = [
     icon: Syringe,
     pdfUrl: "/docs/Injerto_Encias.pdf",
     imageUrl: "https://www.lacertalonariodigital.com/archivos/recomendacion-injerto-p.jpg",
-    gradient: "from-success to-success/80",
+    gradient: "from-secondary to-secondary/80",
   },
 ];
 
@@ -158,7 +158,7 @@ export const SurgeryRecommendations = () => {
       {/* Header */}
       <div className="relative mx-4 rounded-3xl overflow-hidden">
         {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary/90 to-secondary" />
+        <div className="absolute inset-0 bg-gradient-to-br from-secondary via-secondary/90 to-secondary/70" />
         
         {/* Decorative elements */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl transform translate-x-10 -translate-y-10" />
@@ -195,7 +195,7 @@ export const SurgeryRecommendations = () => {
             return (
               <Card 
                 key={rec.id}
-                className="group overflow-hidden border-border/50 hover:border-primary/20 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
+                className="group overflow-hidden border-border/50 hover:border-secondary/20 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
               >
                 <CardContent className="p-0">
                   {/* Image */}
@@ -255,7 +255,7 @@ export const SurgeryRecommendations = () => {
                             onClick={() => handleShareEmail(rec)}
                             className="gap-2 cursor-pointer"
                           >
-                            <Mail className="w-4 h-4 text-primary" />
+                            <Mail className="w-4 h-4 text-secondary" />
                             Enviar por Email
                           </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -276,7 +276,7 @@ export const SurgeryRecommendations = () => {
         </h3>
         
         <Card 
-          className="group overflow-hidden border-border/50 hover:border-primary/20 transition-all duration-200 hover:shadow-lg"
+          className="group overflow-hidden border-border/50 hover:border-secondary/20 transition-all duration-200 hover:shadow-lg"
         >
           <CardContent className="p-0">
             <div className="flex items-center gap-4">
@@ -309,7 +309,7 @@ export const SurgeryRecommendations = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 px-2 gap-1.5 text-xs text-primary"
+                    className="h-7 px-2 gap-1.5 text-xs text-secondary"
                     onClick={() => setShowVideoModal(true)}
                   >
                     <Play className="w-3.5 h-3.5" />
@@ -339,7 +339,7 @@ export const SurgeryRecommendations = () => {
                         onClick={handleShareVideoEmail}
                         className="gap-2 cursor-pointer"
                       >
-                        <Mail className="w-4 h-4 text-primary" />
+                        <Mail className="w-4 h-4 text-secondary" />
                         Enviar por Email
                       </DropdownMenuItem>
                     </DropdownMenuContent>
