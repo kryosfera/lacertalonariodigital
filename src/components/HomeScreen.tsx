@@ -109,13 +109,13 @@ export const HomeScreen = ({
 
       {/* Hero Image - Larger for basic mode */}
       <motion.div 
-        className={`relative mx-4 mt-3 rounded-2xl overflow-hidden group cursor-pointer ${!isProfessional ? 'h-48' : ''}`}
+        className={`relative mx-4 mt-3 rounded-2xl overflow-hidden group cursor-pointer ${!isProfessional ? 'h-48 md:h-64 lg:h-80' : ''}`}
         variants={itemVariants}
       >
         <img 
           src={homeBanner} 
           alt="Talonario Digital" 
-          className={`w-full object-cover object-center transition-transform duration-500 ease-out group-hover:scale-110 ${isProfessional ? 'h-32' : 'h-48'}`}
+          className={`w-full object-cover object-top transition-transform duration-500 ease-out group-hover:scale-110 ${isProfessional ? 'h-32 md:h-48 lg:h-64' : 'h-48 md:h-64 lg:h-80'}`}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-secondary/80 to-secondary/30" />
         <div className={`absolute left-4 flex items-center gap-3 ${isProfessional ? 'bottom-2' : 'bottom-4'}`}>
