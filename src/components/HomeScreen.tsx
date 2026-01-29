@@ -5,6 +5,7 @@ import lacerLogo from "@/assets/lacer-logo-color.png";
 import homeBanner from "@/assets/home-banner.jpg";
 import { UserMode } from "@/hooks/useUserMode";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { LegalFooter } from "@/components/LegalFooter";
 
 interface HomeScreenProps {
   onNavigate: (tab: string) => void;
@@ -217,13 +218,16 @@ export const HomeScreen = ({
 
       {/* Bottom hint */}
       <motion.div 
-        className="text-center pb-3"
+        className="text-center pb-1"
         variants={itemVariants}
       >
         <p className="text-[10px] text-muted-foreground/40 font-medium tracking-wide">
           v2.0 • {isProfessional ? 'PROFESIONAL' : 'MODO RÁPIDO'}
         </p>
       </motion.div>
+
+      {/* Legal Footer */}
+      <LegalFooter />
     </motion.div>
   );
 };

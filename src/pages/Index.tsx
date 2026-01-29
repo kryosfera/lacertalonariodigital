@@ -15,6 +15,7 @@ import { ProfilePage } from "@/components/ProfilePage";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUserMode } from "@/hooks/useUserMode";
 import { useAuth } from "@/hooks/useAuth";
+import { LegalFooter } from "@/components/LegalFooter";
 import lacerLogo from "@/assets/lacer-logo.png";
 
 const Index = () => {
@@ -123,6 +124,7 @@ const Index = () => {
       <main className="container mx-auto px-4 py-2 md:py-6">
         {/* Desktop: Tabs navigation */}
         {!isMobile && (
+          <>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className={`grid w-full max-w-3xl mx-auto h-auto p-1 bg-muted/50 rounded-xl ${isProfessional ? 'grid-cols-7' : 'grid-cols-3'}`}>
               {desktopTabs.map((tab) => (
@@ -205,6 +207,10 @@ const Index = () => {
               </>
             )}
           </Tabs>
+
+          {/* Legal Footer - Desktop only (Home has its own on mobile) */}
+          <LegalFooter className="mt-8" />
+        </>
         )}
 
         {/* Mobile: Content without tabs (bottom nav handles navigation) */}
