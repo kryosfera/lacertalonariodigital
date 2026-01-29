@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { FileText, Mail, Lock, Loader2 } from 'lucide-react';
+import { Mail, Lock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import lacerLogo from '@/assets/lacer-logo-color.png';
 
 const authSchema = z.object({
   email: z.string().trim().email({ message: 'Email inválido' }).max(255),
@@ -78,26 +79,38 @@ const Auth = () => {
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <Loader2 className="w-8 h-8 animate-spin text-secondary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 rounded-lg gradient-medical flex items-center justify-center mb-4">
-            <FileText className="w-7 h-7 text-white" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-secondary/5 via-background to-secondary/10 p-4">
+      <Card className="w-full max-w-md border-secondary/20 shadow-xl">
+        <CardHeader className="text-center pb-2">
+          <div className="mx-auto w-20 h-20 rounded-2xl bg-white shadow-lg flex items-center justify-center mb-4 border border-secondary/10">
+            <img src={lacerLogo} alt="Lacer" className="w-14 h-14 object-contain" />
           </div>
-          <CardTitle className="text-2xl">Talonario Digital</CardTitle>
-          <CardDescription>Accede a tu cuenta para continuar</CardDescription>
+          <CardTitle className="text-2xl text-foreground">Talonario Digital</CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Accede a tu cuenta profesional
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
-              <TabsTrigger value="signup">Registrarse</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 mb-6 bg-secondary/10">
+              <TabsTrigger 
+                value="login" 
+                className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground"
+              >
+                Iniciar Sesión
+              </TabsTrigger>
+              <TabsTrigger 
+                value="signup"
+                className="data-[state=active]:bg-secondary data-[state=active]:text-secondary-foreground"
+              >
+                Registrarse
+              </TabsTrigger>
             </TabsList>
 
             <Form {...form}>
@@ -111,7 +124,12 @@ const Auth = () => {
                       <FormControl>
                         <div className="relative">
                           <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input {...field} type="email" placeholder="tu@email.com" className="pl-10" />
+                          <Input 
+                            {...field} 
+                            type="email" 
+                            placeholder="tu@email.com" 
+                            className="pl-10 border-secondary/20 focus-visible:ring-secondary" 
+                          />
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -127,20 +145,33 @@ const Auth = () => {
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                          <Input {...field} type="password" placeholder="••••••" className="pl-10" />
+                          <Input 
+                            {...field} 
+                            type="password" 
+                            placeholder="••••••" 
+                            className="pl-10 border-secondary/20 focus-visible:ring-secondary" 
+                          />
                         </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  className="w-full bg-secondary hover:bg-secondary/90 text-secondary-foreground shadow-md" 
+                  disabled={isLoading}
+                >
                   {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {activeTab === 'login' ? 'Iniciar Sesión' : 'Crear Cuenta'}
                 </Button>
               </form>
             </Form>
           </Tabs>
+          
+          <p className="text-center text-xs text-muted-foreground mt-6">
+            Al continuar, aceptas nuestros términos de servicio y política de privacidad.
+          </p>
         </CardContent>
       </Card>
     </div>
