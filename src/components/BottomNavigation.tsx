@@ -10,7 +10,7 @@ interface BottomNavigationProps {
 
 const basicNavItems = [
   { id: "home", label: "Inicio", icon: Home },
-  { id: "nueva-receta", label: "Crear", icon: Plus, isCenter: true },
+  { id: "nueva-receta", label: "Nueva", icon: Plus, isCenter: true },
   { id: "recomendaciones", label: "Cirugía", icon: Scissors },
 ];
 
