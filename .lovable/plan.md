@@ -1,212 +1,83 @@
 
-# Plan: Rediseño de Página de Inicio y Navegación
+# Plan: Optimizar Flujo de Nueva Receta para Usuarios Basicos
 
-## Resumen
+## Objetivo
+Simplificar el flujo de "Nueva Receta" para usuarios en modo basico, mostrando directamente la pantalla de seleccion de categorias como primer paso y permitiendo acceso rapido a plantillas guardadas.
 
-Rediseño completo de la página de inicio con mejor distribución responsive, navegación mejorada para desktop/tablet, y aplicación consistente del rojo Lacer en ambos modos (básico y profesional).
+## Cambios Propuestos
 
----
+### 1. Modificar CategorySelector para incluir Plantillas
+**Archivo:** `src/components/CategorySelector.tsx`
 
-## Problemas Actuales Identificados
+- Agregar una seccion de "Plantillas Rapidas" en la parte superior del selector de categorias
+- Mostrar un boton de acceso a plantillas si existen plantillas guardadas (para usuarios que cambiaron de modo profesional a basico o plantillas publicas futuras)
+- El boton mostrara un icono de carpeta con el texto "Cargar Plantilla"
 
-1. **Hero y botones compiten por espacio** - En desktop el hero y los quick actions no aprovechan el ancho disponible
-2. **Navegación desktop poco intuitiva** - Los tabs genéricos no destacan las acciones principales
-3. **Inconsistencia visual** - El modo profesional no usa suficiente el rojo corporativo de Lacer
-4. **Distribución vertical** - Los elementos se apilan verticalmente sin aprovechar layouts de 2 columnas en pantallas grandes
+### 2. Simplificar RecipeCreator para Modo Basico
+**Archivo:** `src/components/RecipeCreator.tsx`
 
----
+- Ocultar los campos de "Paciente" y "Fecha" cuando el usuario esta en modo basico
+- Estos campos solo se mostraran para usuarios profesionales
+- Mantener el campo de "Notas adicionales" visible para ambos modos
+- Simplificar la vista del card de receta para usuarios basicos
 
-## Diseño Propuesto
+### 3. Ajustar el flujo de navegacion
+**Archivo:** `src/pages/Index.tsx`
 
-### Estructura Desktop/Tablet (Nueva)
+- Para usuarios basicos, cuando navegan a "nueva-receta" o "seleccionar-categoria", ir directamente al CategorySelector
+- El RecipeCreator se mostrara solo cuando el usuario tenga productos seleccionados y cierre el CategorySelector
 
-```text
-┌─────────────────────────────────────────────────────────┐
-│  HEADER: Logo + Nav Links + User Actions                │
-│  [Inicio] [Nueva Receta] [Cirugía] [Historial] [Perfil] │
-└─────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────┐
-│                                                         │
-│  ┌─────────────────────┐  ┌──────────────────────────┐ │
-│  │                     │  │                          │ │
-│  │    HERO BANNER      │  │   QUICK ACTIONS GRID     │ │
-│  │    (60% width)      │  │   (40% width)            │ │
-│  │                     │  │   ┌─────┐  ┌─────┐       │ │
-│  │  Logo + Título      │  │   │Nueva│  │Cirug│       │ │
-│  │  "¿Qué deseas..."   │  │   │Recet│  │ía   │       │ │
-│  │                     │  │   └─────┘  └─────┘       │ │
-│  │                     │  │   ┌─────┐  ┌─────┐       │ │
-│  │                     │  │   │Histo│  │Pacie│       │ │
-│  │                     │  │   │rial │  │ntes │       │ │
-│  └─────────────────────┘  └──────────────────────────┘ │
-│                                                         │
-│  ┌─────────────────────────────────────────────────────┐│
-│  │          STATS ROW (solo profesional)               ││
-│  │  [Este mes: X]  |  [Recetas: Y]  |  [Pacientes: Z]  ││
-│  └─────────────────────────────────────────────────────┘│
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
-
-### Estructura Móvil (Optimizada)
+## Diagrama del Nuevo Flujo (Modo Basico)
 
 ```text
-┌───────────────────────┐
-│  HERO BANNER          │
-│  (altura adaptativa)  │
-│  Logo + Título        │
-└───────────────────────┘
-
-┌───────────────────────┐
-│  QUICK ACTIONS 2x2    │
-│  ┌─────┐  ┌─────┐    │
-│  │Nueva│  │Cirug│    │
-│  └─────┘  └─────┘    │
-│  ┌─────┐  ┌─────┐    │
-│  │Hist │  │Paci │    │
-│  └─────┘  └─────┘    │
-└───────────────────────┘
-
-┌───────────────────────┐
-│  STATS (profesional)  │
-└───────────────────────┘
-
-===== BOTTOM NAV =====
++-------------------+
+|       HOME        |
+|  (Nueva Receta)   |
++---------+---------+
+          |
+          v
++-------------------+
+|   CATEGORIAS      |
+| [Cargar Plantilla]|
+| [Categoria 1]     |
+| [Categoria 2]     |
++---------+---------+
+          |
+          v
++-------------------+
+|    PRODUCTOS      |
+| (Seleccionar)     |
++---------+---------+
+          |
+          v
++-------------------+
+|     RESUMEN       |
+| - Productos       |
+| - Notas           |
+| [Enviar]          |
++-------------------+
 ```
 
----
+## Detalles Tecnicos
 
-## Cambios Específicos
+### Cambios en CategorySelector.tsx
+1. Agregar prop opcional `templates` para recibir plantillas disponibles
+2. Agregar prop `onLoadTemplate` para callback cuando se selecciona una plantilla
+3. Mostrar boton de plantillas en el header si hay plantillas disponibles
+4. Implementar un dialog o dropdown para seleccionar plantillas
 
-### 1. Header Rediseñado (Desktop/Tablet)
+### Cambios en RecipeCreator.tsx
+1. Envolver la seccion de datos del paciente en condicional `{isProfessional && (...)}`
+2. Ocultar el campo de fecha para usuarios basicos
+3. Pasar las plantillas al CategorySelector
+4. Manejar la carga de plantillas desde CategorySelector
 
-**Cambios:**
-- Navegación horizontal con enlaces de texto en lugar de tabs con iconos
-- Diseño más limpio y profesional
-- Indicador de pestaña activa con borde inferior rojo
-- Logo de Lacer más prominente
-- Botones de usuario con fondo sutil al hover
+### Cambios en Index.tsx (minimos)
+- El flujo actual ya funciona correctamente con `startWithCategories`
+- No se requieren cambios significativos
 
-### 2. HomeScreen - Layout de 2 Columnas
-
-**Desktop/Tablet:**
-- Hero ocupa 60% del ancho, quick actions el 40%
-- Layout side-by-side para mejor aprovechamiento del espacio
-- Hero con altura fija que muestra la cara de la dentista
-- Quick actions en grid 2x2 con más espacio para respirar
-
-**Móvil:**
-- Mantiene layout vertical actual
-- Hero proporcionalmente más pequeño
-- Quick actions prominentes
-
-### 3. Aplicación Consistente del Rojo Lacer
-
-**Elementos que usarán el rojo (#E31937 / secondary):**
-- Botones de acción rápida (ambos modos)
-- Indicador de tab activo en navegación
-- Iconos destacados
-- Barra de stats en modo profesional
-- Hover states en links principales
-
-### 4. Quick Actions Mejorados
-
-**Diseño:**
-- Iconos más grandes y centrados
-- Efecto hover con elevación
-- Borde sutil para definición
-- Fondo con gradiente sutil rojo-oscuro
-
-### 5. Stats Row Mejorado (Profesional)
-
-**Cambios:**
-- Diseño en tarjetas individuales en lugar de barra sólida
-- Iconos junto a los números
-- Animación de entrada
-
----
-
-## Archivos a Modificar
-
-| Archivo | Cambios |
-|---------|---------|
-| `src/pages/Index.tsx` | Nuevo header con navegación horizontal, layout de 2 columnas |
-| `src/components/HomeScreen.tsx` | Layout responsive mejorado, distribución hero/actions |
-| `src/components/BottomNavigation.tsx` | Ajustes menores de color |
-| `src/index.css` | Nuevas utilidades CSS para el layout |
-
----
-
-## Detalles Técnicos
-
-### Nueva Navegación Desktop
-
-```typescript
-// Navegación horizontal limpia
-<nav className="hidden md:flex items-center gap-6">
-  <NavLink active={tab === "home"}>Inicio</NavLink>
-  <NavLink active={tab === "nueva-receta"}>Nueva Receta</NavLink>
-  <NavLink active={tab === "recomendaciones"}>Post-Cirugía</NavLink>
-  {isProfessional && (
-    <>
-      <NavLink active={tab === "historial"}>Historial</NavLink>
-      <NavLink active={tab === "pacientes"}>Pacientes</NavLink>
-    </>
-  )}
-</nav>
-```
-
-### Layout 2 Columnas HomeScreen
-
-```typescript
-// Desktop: Hero izquierda, Actions derecha
-<div className="flex flex-col lg:flex-row gap-6">
-  <div className="lg:w-3/5">
-    {/* Hero Banner */}
-  </div>
-  <div className="lg:w-2/5">
-    {/* Quick Actions */}
-  </div>
-</div>
-```
-
-### Estilos de Botones de Acción
-
-```typescript
-// Botón de acción con rojo Lacer
-className="group flex flex-col items-center gap-3 p-6 
-  rounded-2xl bg-gradient-to-br from-secondary to-secondary/90
-  shadow-lg hover:shadow-xl hover:-translate-y-1 
-  transition-all duration-300"
-```
-
----
-
-## Breakpoints Responsivos
-
-| Pantalla | Comportamiento |
-|----------|----------------|
-| **Mobile** (<768px) | Layout vertical, bottom nav |
-| **Tablet** (768-1024px) | Header con nav, layout 2 columnas más compacto |
-| **Desktop** (>1024px) | Header completo, layout 2 columnas amplio |
-
----
-
-## Mejoras UX Incluidas
-
-1. **Jerarquía visual clara** - Hero como punto focal, acciones como CTA secundario
-2. **Espaciado consistente** - Sistema de 8px para todos los gaps
-3. **Feedback táctil** - Hover states, press states con escalado
-4. **Accesibilidad** - Contraste adecuado texto/fondo en todos los botones
-5. **Performance** - Sin cambios de layout al cargar (evita CLS)
-
----
-
-## Resultado Esperado
-
-- Home que aprovecha todo el ancho en desktop/tablet
-- Navegación más profesional y limpia
-- Identidad visual Lacer reforzada con el rojo corporativo
-- Experiencia consistente entre modo básico y profesional
-- Mejor visibilidad de la imagen del hero (cara de la dentista)
+## Beneficios
+- Flujo mas rapido para usuarios basicos (menos pasos)
+- Interfaz mas limpia sin campos innecesarios
+- Acceso directo a plantillas desde el inicio del proceso
+- Mantiene toda la funcionalidad para usuarios profesionales
