@@ -35,12 +35,9 @@ const LegalNotice = () => {
               Sociedad de la Información y Comercio Electrónico (LSSI-CE), se informa:
             </p>
             <div className="rounded-xl border border-border p-4 space-y-2 text-sm text-muted-foreground">
-              <p><strong className="text-foreground">Denominación social:</strong> Laboratorios Lacer, S.A.</p>
-              <p><strong className="text-foreground">CIF:</strong> [A completar por Lacer]</p>
-              <p><strong className="text-foreground">Domicilio social:</strong> [Dirección completa a completar]</p>
-              <p><strong className="text-foreground">Teléfono:</strong> [A completar]</p>
-              <p><strong className="text-foreground">Email:</strong> [A completar]</p>
-              <p><strong className="text-foreground">Inscripción registral:</strong> [Datos del Registro Mercantil]</p>
+              <p><strong className="text-foreground">Denominación social:</strong> Kryosfera Solutions SL</p>
+              <p><strong className="text-foreground">CIF:</strong> B67219345</p>
+              <p><strong className="text-foreground">Domicilio social:</strong> C/ Nicaragua 106, 08029 Barcelona</p>
             </div>
           </section>
 
@@ -71,7 +68,7 @@ const LegalNotice = () => {
             <h2 className="text-lg font-semibold text-foreground">4. Propiedad intelectual</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               Todos los contenidos de la aplicación (textos, imágenes, marcas, logotipos, código fuente, 
-              diseño gráfico) son propiedad de Laboratorios Lacer, S.A. o de terceros que han autorizado 
+              diseño gráfico) son propiedad de Kryosfera Solutions SL o de terceros que han autorizado 
               su uso, y están protegidos por las leyes de propiedad intelectual e industrial.
             </p>
             <p className="text-sm text-muted-foreground leading-relaxed">
@@ -83,7 +80,7 @@ const LegalNotice = () => {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-foreground">5. Exclusión de responsabilidad</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Laboratorios Lacer no se hace responsable de:
+              Kryosfera Solutions SL no se hace responsable de:
             </p>
             <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
               <li>Errores u omisiones en los contenidos</li>
@@ -111,14 +108,6 @@ const LegalNotice = () => {
             </p>
           </section>
 
-          <div className="rounded-xl bg-muted/50 p-4 text-xs text-muted-foreground">
-            <p className="font-medium text-foreground mb-2">⚠️ Aviso importante</p>
-            <p>
-              Este texto es una plantilla genérica que debe ser completada y revisada por el 
-              departamento legal de Laboratorios Lacer para incluir todos los datos identificativos 
-              y cumplir con la normativa aplicable.
-            </p>
-          </div>
         </div>
       </main>
 

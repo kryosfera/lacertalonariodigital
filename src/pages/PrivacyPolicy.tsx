@@ -31,9 +31,10 @@ const PrivacyPolicy = () => {
           <section className="space-y-3">
             <h2 className="text-lg font-semibold text-foreground">1. Responsable del tratamiento</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              El responsable del tratamiento de tus datos personales es Laboratorios Lacer, S.A., 
-              con domicilio en Barcelona (España). Para cualquier consulta relacionada con la 
-              protección de datos, puedes contactar con nuestro Delegado de Protección de Datos.
+              El responsable del tratamiento de tus datos personales es Kryosfera Solutions SL, 
+              con CIF B67219345 y domicilio en C/ Nicaragua 106, 08029 Barcelona (España). 
+              Para cualquier consulta relacionada con la protección de datos, puedes contactarnos 
+              a través de los canales indicados en el Aviso Legal.
             </p>
           </section>
 
@@ -119,14 +120,6 @@ const PrivacyPolicy = () => {
             </p>
           </section>
 
-          <div className="rounded-xl bg-muted/50 p-4 text-xs text-muted-foreground">
-            <p className="font-medium text-foreground mb-2">⚠️ Aviso importante</p>
-            <p>
-              Este texto es una plantilla genérica que debe ser revisada y adaptada por el 
-              departamento legal de Laboratorios Lacer para cumplir con todos los requisitos 
-              legales aplicables.
-            </p>
-          </div>
         </div>
       </main>
 
