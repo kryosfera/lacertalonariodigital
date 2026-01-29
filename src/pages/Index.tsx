@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Users, User, Settings } from "lucide-react";
+import { Users, User, Settings, LayoutGrid, AlignCenter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RecipeCreator } from "@/components/RecipeCreator";
 import { PatientList } from "@/components/PatientList";
 import { RecipeHistory } from "@/components/RecipeHistory";
 import { DashboardStats } from "@/components/DashboardStats";
 import { HomeScreen } from "@/components/HomeScreen";
+import { HomeScreenBento, HomeScreenCentered } from "@/components/home";
 import { SurgeryRecommendations } from "@/components/SurgeryRecommendations";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { DesktopNavigation } from "@/components/DesktopNavigation";
@@ -19,9 +20,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { LegalFooter } from "@/components/LegalFooter";
 import lacerLogo from "@/assets/lacer-logo.png";
 
+type HomeVariant = 'original' | 'bento' | 'centered';
+
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [startWithCategories, setStartWithCategories] = useState(false);
+  const [homeVariant, setHomeVariant] = useState<HomeVariant>('bento');
   const isMobile = useIsMobile();
   const { userMode, isLoading, showProfileSelector, setUserMode } = useUserMode();
   const { user } = useAuth();
@@ -54,10 +58,22 @@ const Index = () => {
   const isProfessional = userMode === 'professional';
 
   // Render content based on active tab
+  const renderHomeScreen = () => {
+    switch (homeVariant) {
+      case 'bento':
+        return <HomeScreenBento onNavigate={handleNavigate} userMode={userMode} />;
+      case 'centered':
+        return <HomeScreenCentered onNavigate={handleNavigate} userMode={userMode} />;
+      default:
+        return <HomeScreen onNavigate={handleNavigate} userMode={userMode} />;
+    }
+  };
+
+  // Render content based on active tab
   const renderContent = () => {
     switch (activeTab) {
       case "home":
-        return <HomeScreen onNavigate={handleNavigate} userMode={userMode} />;
+        return renderHomeScreen();
       
       case "dashboard":
         if (!isProfessional) return null;
@@ -177,6 +193,29 @@ const Index = () => {
 
               {/* Right Actions */}
               <div className="flex items-center gap-2">
+                {/* Home Variant Toggle - Only visible on home */}
+                {activeTab === "home" && (
+                  <div className="hidden md:flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                    <Button 
+                      variant={homeVariant === 'bento' ? 'secondary' : 'ghost'} 
+                      size="icon" 
+                      className="w-7 h-7"
+                      onClick={() => setHomeVariant('bento')}
+                      title="Vista Bento Grid"
+                    >
+                      <LayoutGrid className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button 
+                      variant={homeVariant === 'centered' ? 'secondary' : 'ghost'} 
+                      size="icon" 
+                      className="w-7 h-7"
+                      onClick={() => setHomeVariant('centered')}
+                      title="Vista Centrada"
+                    >
+                      <AlignCenter className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                )}
                 <ThemeToggle />
                 <Link to="/admin" className="hidden lg:inline-flex">
                   <Button variant="ghost" size="icon" className="w-9 h-9">
