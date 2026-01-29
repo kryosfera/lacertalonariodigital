@@ -1,4 +1,4 @@
-import { FileText, Clock, Users, Scissors, Sparkles } from "lucide-react";
+import { FileText, Clock, Users, Scissors, Sparkles, TrendingUp, CalendarDays, UserCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import lacerLogo from "@/assets/lacer-logo-color.png";
@@ -6,6 +6,7 @@ import homeBanner from "@/assets/home-banner.jpg";
 import { UserMode } from "@/hooks/useUserMode";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LegalFooter } from "@/components/LegalFooter";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface HomeScreenProps {
   onNavigate: (tab: string) => void;
@@ -94,116 +95,159 @@ export const HomeScreen = ({
 }: HomeScreenProps) => {
   const isProfessional = userMode === 'professional';
   const quickActions = isProfessional ? professionalQuickActions : basicQuickActions;
+  const isMobile = useIsMobile();
 
   return (
     <motion.div 
-      className={`flex flex-col overflow-hidden md:h-auto md:min-h-0 ${isProfessional ? 'h-[calc(100vh-140px)]' : 'h-[calc(100vh-80px)]'}`}
+      className="flex flex-col pb-20 md:pb-0"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
-      {/* Theme Toggle - Top right corner */}
-      <div className="absolute top-2 right-2 z-10">
-        <ThemeToggle />
-      </div>
-
-      {/* Hero Image - Larger for basic mode */}
-      <motion.div 
-        className={`relative mx-4 mt-3 rounded-2xl overflow-hidden group cursor-pointer ${!isProfessional ? 'h-48 md:h-64 lg:h-80' : ''}`}
-        variants={itemVariants}
-      >
-        <img 
-          src={homeBanner} 
-          alt="Talonario Digital" 
-          className={`w-full object-cover object-top transition-transform duration-500 ease-out group-hover:scale-110 ${isProfessional ? 'h-32 md:h-48 lg:h-64' : 'h-48 md:h-64 lg:h-80'}`}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-secondary/80 to-secondary/30" />
-        <div className={`absolute left-4 flex items-center gap-3 ${isProfessional ? 'bottom-2' : 'bottom-4'}`}>
-          <div className={`rounded-xl bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg ${isProfessional ? 'w-8 h-8' : 'w-12 h-12'}`}>
-            <img src={lacerLogo} alt="Lacer" className={`object-contain ${isProfessional ? 'w-5 h-5' : 'w-8 h-8'}`} />
-          </div>
-          <div>
-            <h2 className={`font-bold text-white drop-shadow-md ${isProfessional ? 'text-base' : 'text-xl'}`}>
-              Talonario Digital
-            </h2>
-            <p className={`text-white/90 drop-shadow-sm ${isProfessional ? 'text-[10px]' : 'text-sm'}`}>
-              ¿Qué deseas hacer hoy?
-            </p>
-          </div>
+      {/* Theme Toggle - Top right corner (mobile only) */}
+      {isMobile && (
+        <div className="absolute top-2 right-2 z-10">
+          <ThemeToggle />
         </div>
-      </motion.div>
+      )}
 
-      {/* Description - Hidden on basic mode mobile for space */}
-      {isProfessional && (
-        <motion.p 
-          className="text-xs text-muted-foreground text-center mx-4 mt-3 leading-relaxed hidden md:block"
+      {/* Desktop/Tablet: Two Column Layout */}
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 px-4 mt-3 lg:mt-0">
+        
+        {/* Left Column: Hero Banner */}
+        <motion.div 
+          className="relative rounded-2xl overflow-hidden group cursor-pointer lg:w-3/5"
           variants={itemVariants}
         >
-          Un talonario de recetas en formato digital que permite gestionar electrónicamente las recetas para sus pacientes.
-        </motion.p>
-      )}
+          <div className="relative h-48 md:h-64 lg:h-80 xl:h-96">
+            <img 
+              src={homeBanner} 
+              alt="Talonario Digital" 
+              className="w-full h-full object-cover object-top transition-transform duration-500 ease-out group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-secondary/80 via-secondary/40 to-transparent" />
+            <div className="absolute left-4 bottom-4 md:left-6 md:bottom-6">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                  <img src={lacerLogo} alt="Lacer" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+                </div>
+                <div>
+                  <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-white drop-shadow-lg">
+                    Talonario Digital
+                  </h2>
+                  <p className="text-sm md:text-base text-white/90 drop-shadow-md">
+                    ¿Qué deseas hacer hoy?
+                  </p>
+                </div>
+              </div>
+              {/* Description - visible on desktop */}
+              <p className="hidden lg:block text-sm text-white/80 max-w-md leading-relaxed drop-shadow-md">
+                Un talonario de recetas en formato digital que permite gestionar electrónicamente las recetas para sus pacientes.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Right Column: Quick Actions */}
+        <motion.div 
+          className="lg:w-2/5 flex flex-col justify-center"
+          variants={containerVariants}
+        >
+          <div className={`grid gap-4 ${isProfessional ? 'grid-cols-2' : 'grid-cols-2'}`}>
+            {quickActions.map((action) => {
+              const Icon = action.icon;
+              return (
+                <motion.button 
+                  key={action.id} 
+                  onClick={() => onNavigate(action.id)} 
+                  className="group flex flex-col items-center gap-3 p-5 md:p-6 rounded-2xl bg-gradient-to-br from-secondary to-secondary/90 text-secondary-foreground shadow-lg transition-all duration-300 active:scale-95 hover:shadow-xl hover:-translate-y-1"
+                  variants={itemVariants}
+                  whileHover={{ y: -4 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/20 flex items-center justify-center shadow-md group-hover:bg-white/30 transition-colors">
+                    <Icon className="w-7 h-7 md:w-8 md:h-8 text-secondary-foreground" />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm md:text-base font-semibold text-secondary-foreground leading-tight">
+                      {action.title}
+                    </p>
+                    <p className="text-[10px] md:text-xs text-secondary-foreground/70 mt-0.5">
+                      {action.subtitle}
+                    </p>
+                  </div>
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {/* Discrete upgrade link for Basic Users - inside right column on desktop */}
+          {!isProfessional && (
+            <motion.div 
+              className="text-center mt-6 hidden lg:block"
+              variants={itemVariants}
+            >
+              <Link 
+                to="/auth"
+                className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-secondary transition-colors"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>¿Eres profesional? Activa todas las funciones</span>
+              </Link>
+            </motion.div>
+          )}
+        </motion.div>
+      </div>
 
       {/* Stats Row - Only for Professional */}
       {isProfessional && (
         <motion.div 
-          className="flex justify-between rounded-2xl mx-4 mt-3 px-4 py-3 bg-secondary"
-          variants={itemVariants}
+          className="grid grid-cols-3 gap-4 mx-4 mt-6"
+          variants={containerVariants}
         >
-          <div className="text-center flex-1">
-            <p className="text-2xl font-bold text-white">{stats.thisMonth}</p>
-            <p className="text-[10px] text-white/70 uppercase tracking-wide">Este mes</p>
-          </div>
-          <div className="w-px bg-white/30" />
-          <div className="text-center flex-1">
-            <p className="text-2xl font-bold text-white">{stats.totalRecipes}</p>
-            <p className="text-[10px] text-white/70 uppercase tracking-wide">Recetas</p>
-          </div>
-          <div className="w-px bg-white/30" />
-          <div className="text-center flex-1">
-            <p className="text-2xl font-bold text-white">{stats.totalPatients}</p>
-            <p className="text-[10px] text-white/70 uppercase tracking-wide">Pacientes</p>
-          </div>
+          <motion.div 
+            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border border-border/50 shadow-sm"
+            variants={itemVariants}
+          >
+            <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
+              <CalendarDays className="w-5 h-5 text-secondary" />
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-foreground">{stats.thisMonth}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Este mes</p>
+            </div>
+          </motion.div>
+          <motion.div 
+            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border border-border/50 shadow-sm"
+            variants={itemVariants}
+          >
+            <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-secondary" />
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-foreground">{stats.totalRecipes}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Recetas</p>
+            </div>
+          </motion.div>
+          <motion.div 
+            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-card border border-border/50 shadow-sm"
+            variants={itemVariants}
+          >
+            <div className="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center">
+              <UserCheck className="w-5 h-5 text-secondary" />
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-foreground">{stats.totalPatients}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wide">Pacientes</p>
+            </div>
+          </motion.div>
         </motion.div>
       )}
 
-      {/* Quick Actions - Larger and more prominent */}
-      <div className={`flex-1 flex items-center justify-center px-4 ${isProfessional ? 'py-4' : 'py-6'}`}>
-        <motion.div 
-          className={`grid gap-4 w-full ${isProfessional ? 'grid-cols-2 max-w-sm' : 'grid-cols-2 max-w-md'}`}
-          variants={containerVariants}
-        >
-          {quickActions.map((action) => {
-            const Icon = action.icon;
-            return (
-              <motion.button 
-                key={action.id} 
-                onClick={() => onNavigate(action.id)} 
-                className={`group flex flex-col items-center gap-3 rounded-2xl bg-secondary text-secondary-foreground shadow-lg transition-colors active:scale-95 hover:shadow-xl hover:bg-secondary/90 ${isProfessional ? 'p-5' : 'p-6'}`}
-                variants={itemVariants}
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <div className={`rounded-2xl bg-white/20 flex items-center justify-center shadow-md group-hover:bg-white/30 transition-colors ${isProfessional ? 'w-14 h-14' : 'w-16 h-16'}`}>
-                  <Icon className={`text-secondary-foreground ${isProfessional ? 'w-7 h-7' : 'w-8 h-8'}`} />
-                </div>
-                <div className="text-center">
-                  <p className={`font-semibold text-secondary-foreground leading-tight ${isProfessional ? 'text-sm' : 'text-base'}`}>
-                    {action.title}
-                  </p>
-                  <p className="text-[10px] text-secondary-foreground/70 mt-0.5">
-                    {action.subtitle}
-                  </p>
-                </div>
-              </motion.button>
-            );
-          })}
-        </motion.div>
-      </div>
-
-      {/* Discrete upgrade link for Basic Users */}
+      {/* Discrete upgrade link for Basic Users - mobile */}
       {!isProfessional && (
         <motion.div 
-          className="text-center pb-2"
+          className="text-center mt-6 lg:hidden px-4"
           variants={itemVariants}
         >
           <Link 
@@ -218,7 +262,7 @@ export const HomeScreen = ({
 
       {/* Bottom hint */}
       <motion.div 
-        className="text-center pb-1"
+        className="text-center py-4"
         variants={itemVariants}
       >
         <p className="text-[10px] text-muted-foreground/40 font-medium tracking-wide">
