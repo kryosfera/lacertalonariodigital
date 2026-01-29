@@ -510,28 +510,28 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       )}
 
       {/* Recipe Summary */}
-      <div className="max-w-2xl mx-auto pb-20 md:pb-0">
+      <div className="max-w-2xl mx-auto pb-20 md:pb-0 px-2 md:px-0">
         <Card className="shadow-medical">
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-2 md:pb-3 px-3 md:px-6 pt-3 md:pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
-                  <ShoppingCart className="w-5 h-5 text-secondary" />
+                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
+                  <ShoppingCart className="w-4 h-4 md:w-5 md:h-5 text-secondary" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg">Receta Digital</CardTitle>
-                  <CardDescription>Crea y envía recetas a tus pacientes</CardDescription>
+                  <CardTitle className="text-base md:text-lg">Receta Digital</CardTitle>
+                  <CardDescription className="text-xs md:text-sm">Crea y envía recetas a tus pacientes</CardDescription>
                 </div>
               </div>
               {selectedProducts.size > 0 && (
-                <Badge className="bg-secondary text-secondary-foreground font-bold text-lg px-3 py-1">
+                <Badge className="bg-secondary text-secondary-foreground font-bold text-base md:text-lg px-2.5 md:px-3 py-0.5 md:py-1">
                   {selectedProducts.size}
                 </Badge>
               )}
             </div>
           </CardHeader>
 
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-3 md:space-y-5 px-3 md:px-6 pb-3 md:pb-6">
             {/* Patient Info - Only for Professional users */}
             {isProfessional && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
