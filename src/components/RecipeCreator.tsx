@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Send, Printer, Download, ShoppingCart, Plus, MessageCircle, Mail, User, Check, Package, Minus, Save, FolderOpen, Trash2 } from "lucide-react";
+import { Send, Printer, Download, ShoppingCart, Plus, MessageCircle, Mail, User, Check, Package, Minus, Save, FolderOpen, Trash2, Mic } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CategorySelector } from "./CategorySelector";
@@ -20,6 +20,7 @@ import { useUserMode } from "@/hooks/useUserMode";
 import { usePatients, Patient } from "@/hooks/usePatients";
 import { useCreateRecipe, RecipeProduct } from "@/hooks/useRecipes";
 import { cn } from "@/lib/utils";
+import { VoiceDictation } from "./VoiceDictation";
 
 interface Product {
   id: string;
@@ -184,6 +185,32 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
   const clearSelection = () => {
     setSelectedProducts(new Map());
   };
+
+  // Handle voice dictation results
+  const handleVoiceProductsConfirmed = useCallback((
+    voiceProducts: { id: string; quantity: number }[], 
+    instructions: string
+  ) => {
+    // Add products from voice dictation
+    setSelectedProducts((prev) => {
+      const next = new Map(prev);
+      voiceProducts.forEach(({ id, quantity }) => {
+        const existingQty = next.get(id) || 0;
+        next.set(id, existingQty + quantity);
+      });
+      return next;
+    });
+
+    // Append instructions to notes
+    if (instructions.trim()) {
+      setNotes((prev) => {
+        if (prev.trim()) {
+          return prev + '\n\n' + instructions;
+        }
+        return instructions;
+      });
+    }
+  }, []);
 
   const getRecipeData = () => ({
     patientName,
@@ -601,15 +628,21 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
               </div>
             )}
 
-            {/* Add Products Button */}
-            <Button
-              variant="outline"
-              className="w-full h-14 border-dashed border-2 hover:border-secondary hover:bg-secondary/5 transition-colors"
-              onClick={handleOpenCategorySelector}
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Añadir Productos
-            </Button>
+            {/* Add Products Buttons */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1 h-14 border-dashed border-2 hover:border-secondary hover:bg-secondary/5 transition-colors"
+                onClick={handleOpenCategorySelector}
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Añadir Productos
+              </Button>
+              <VoiceDictation 
+                onProductsConfirmed={handleVoiceProductsConfirmed}
+                existingNotes={notes}
+              />
+            </div>
 
             {/* Selected Products List with improved badges */}
             <div className="rounded-lg border bg-muted/20 p-3">
