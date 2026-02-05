@@ -161,14 +161,14 @@ export const CategorySelector = ({
           </div>
 
           {/* Fullscreen grid - fills remaining space */}
-          <div className="flex-1 p-2">
+          <div className="flex-1 p-1.5 overflow-hidden">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
               </div>
             ) : (
               <div 
-                className="grid gap-2 h-full"
+                className="grid gap-1.5 h-full"
                 style={{ 
                   gridTemplateColumns: `repeat(${gridConfig.cols}, 1fr)`,
                   gridTemplateRows: `repeat(${Math.min(gridConfig.rows, Math.ceil(totalItems / gridConfig.cols))}, 1fr)`
@@ -178,17 +178,17 @@ export const CategorySelector = ({
                   <button
                     key={category.id}
                     onClick={() => onSelectCategory(category.id, category.name)}
-                    className="flex items-center justify-center bg-white rounded-xl border border-border/20 hover:bg-muted/20 active:scale-95 transition-all duration-200 overflow-hidden card-scale-in shadow-sm"
-                    style={{ animationDelay: `${index * 30}ms` }}
+                    className="relative flex items-center justify-center bg-white rounded-lg border border-border/10 hover:border-secondary/50 hover:shadow-lg active:scale-[0.97] transition-all duration-200 overflow-hidden card-scale-in"
+                    style={{ animationDelay: `${index * 25}ms` }}
                   >
                     {category.image_url ? (
                       <img
                         src={category.image_url}
                         alt={category.name}
-                        className="w-full h-full object-contain p-3"
+                        className="w-full h-full object-contain p-1"
                       />
                     ) : (
-                      <span className="text-sm font-semibold text-foreground text-center leading-tight px-2">
+                      <span className="text-sm font-bold text-foreground text-center leading-tight px-2">
                         {category.name}
                       </span>
                     )}
@@ -199,12 +199,12 @@ export const CategorySelector = ({
                 {uncategorizedCount > 0 && (
                   <button
                     onClick={() => onSelectCategory("uncategorized", "Otros productos")}
-                    className="flex items-center justify-center bg-muted/30 rounded-xl border border-border/20 hover:bg-muted/50 active:scale-95 transition-all duration-200"
+                    className="flex items-center justify-center bg-muted/20 rounded-lg border border-border/10 hover:border-secondary/50 hover:shadow-lg active:scale-[0.97] transition-all duration-200"
                   >
-                    <div className="flex flex-col items-center gap-1">
-                      <Package className="w-8 h-8 text-muted-foreground" />
-                      <span className="text-xs font-medium text-muted-foreground">
-                        Otros ({uncategorizedCount})
+                    <div className="flex flex-col items-center gap-0.5">
+                      <Package className="w-6 h-6 text-muted-foreground" />
+                      <span className="text-[10px] font-medium text-muted-foreground">
+                        Otros
                       </span>
                     </div>
                   </button>
