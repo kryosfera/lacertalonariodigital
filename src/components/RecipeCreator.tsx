@@ -542,7 +542,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
         <div className="flex flex-col h-full md:block">
           
           {/* Quick Actions Bar - Mobile first */}
-          <div className="px-2 md:px-0 mb-2 md:mb-4">
+          <div className="px-3 md:px-0 mb-2 md:mb-4">
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -560,7 +560,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
           </div>
 
           {/* Products Grid - Main content area */}
-          <div className="flex-1 px-2 md:px-0">
+          <div className="flex-1 px-3 md:px-0">
             <TooltipProvider delayDuration={300}>
               {selectedProducts.size > 0 ? (
                 <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
@@ -585,7 +585,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                   </div>
                   
                   {/* Products list - Compact visual grid with animations */}
-                  <div className="p-2 max-h-[35vh] md:max-h-[40vh] overflow-y-auto">
+                  <div className="p-2 max-h-[30vh] md:max-h-[40vh] overflow-y-auto">
                     <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-1.5">
                       <AnimatePresence mode="popLayout">
                         {selectedProductsData.map((product, index) => (
@@ -712,8 +712,8 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
             </TooltipProvider>
           </div>
 
-          {/* Notes - Collapsible/minimal on mobile */}
-          <div className="px-2 md:px-0 mt-2">
+          {/* Notes - Compact on mobile */}
+          <div className="px-3 md:px-0 mt-3">
             <Textarea
               placeholder="Notas adicionales (opcional)..."
               value={notes}
@@ -725,7 +725,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
 
           {/* Patient Info - Only for Professional users, compact */}
           {isProfessional && (
-            <div className="px-2 md:px-0 mt-2">
+            <div className="px-3 md:px-0 mt-3">
               <div className="flex gap-2">
                 <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
                   <PopoverTrigger asChild>
@@ -784,7 +784,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
 
           {/* Templates - Professional only, inline chips */}
           {isProfessional && templates.length > 0 && (
-            <div className="px-2 md:px-0 mt-2">
+            <div className="px-3 md:px-0 mt-3">
               <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
                 <span className="text-xs text-muted-foreground whitespace-nowrap">Plantillas:</span>
                 {templates.slice(0, 3).map((template) => (
@@ -814,49 +814,56 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
             </div>
           )}
 
-          {/* Action Buttons - Fixed bottom on mobile, inline on desktop */}
-          <div className="fixed bottom-0 left-0 right-0 p-2 bg-background border-t md:relative md:border-0 md:bg-transparent md:p-0 md:mt-4 md:px-0 safe-area-pb">
-            <div className="grid grid-cols-4 gap-1.5 md:gap-2">
-              <Button
-                onClick={() => {
-                  setSendMethod("whatsapp");
-                  setShowSendDialog(true);
-                }}
-                className="h-11 md:h-12 bg-[#25D366] hover:bg-[#128C7E] text-white flex-col md:flex-row gap-0.5 md:gap-2 px-1 md:px-4"
-                disabled={selectedProducts.size === 0}
-              >
-                <MessageCircle className="w-5 h-5" />
-                <span className="text-[10px] md:text-sm font-medium">WhatsApp</span>
-              </Button>
+          {/* Action Buttons - Integrated in content flow (NOT fixed) */}
+          <div className="px-3 md:px-0 mt-4 mb-4 space-y-3">
+            {/* Primary action - WhatsApp full width */}
+            <Button
+              onClick={() => {
+                setSendMethod("whatsapp");
+                setShowSendDialog(true);
+              }}
+              className="w-full h-12 md:h-14 bg-[#25D366] hover:bg-[#128C7E] text-white font-semibold text-base gap-2"
+              disabled={selectedProducts.size === 0}
+            >
+              <MessageCircle className="w-5 h-5" />
+              Enviar por WhatsApp
+              {selectedProducts.size > 0 && (
+                <Badge variant="secondary" className="ml-1 bg-white/20 text-white">
+                  {selectedProductsData.reduce((acc, p) => acc + p.quantity, 0)} uds
+                </Badge>
+              )}
+            </Button>
+
+            {/* Secondary actions - Inline row */}
+            <div className="flex gap-2">
               <Button
                 onClick={() => {
                   setSendMethod("email");
                   setShowSendDialog(true);
                 }}
-                variant="secondary"
-                className="h-11 md:h-12 flex-col md:flex-row gap-0.5 md:gap-2 px-1 md:px-4"
+                variant="outline"
+                className="flex-1 h-11 gap-2"
                 disabled={selectedProducts.size === 0}
               >
-                <Mail className="w-5 h-5" />
-                <span className="text-[10px] md:text-sm font-medium">Email</span>
+                <Mail className="w-4 h-4" />
+                <span className="text-sm">Email</span>
               </Button>
               <Button
                 variant="outline"
-                className="h-11 md:h-12 flex-col md:flex-row gap-0.5 md:gap-2 px-1 md:px-4"
+                className="flex-1 h-11 gap-2"
                 disabled={selectedProducts.size === 0 || isSending}
                 onClick={handleDownloadPDF}
               >
-                <Download className="w-5 h-5" />
-                <span className="text-[10px] md:text-sm font-medium">PDF</span>
+                <Download className="w-4 h-4" />
+                <span className="text-sm">PDF</span>
               </Button>
               <Button
                 variant="outline"
-                className="h-11 md:h-12 flex-col md:flex-row gap-0.5 md:gap-2 px-1 md:px-4"
+                className="h-11 w-11 p-0"
                 disabled={selectedProducts.size === 0 || isSending}
                 onClick={handlePrint}
               >
-                <Printer className="w-5 h-5" />
-                <span className="text-[10px] md:text-sm font-medium">Imprimir</span>
+                <Printer className="w-4 h-4" />
               </Button>
             </div>
           </div>
