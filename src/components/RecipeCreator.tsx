@@ -561,89 +561,155 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
 
           {/* Products Grid - Main content area */}
           <div className="flex-1 px-2 md:px-0">
-            {selectedProducts.size > 0 ? (
-              <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
-                {/* Compact header */}
-                <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30">
-                  <div className="flex items-center gap-2">
-                    <Badge className="bg-secondary text-secondary-foreground font-bold">
-                      {selectedProducts.size}
-                    </Badge>
-                    <span className="text-sm font-medium text-foreground">
-                      producto{selectedProducts.size !== 1 ? 's' : ''}
-                    </span>
+            <TooltipProvider delayDuration={300}>
+              {selectedProducts.size > 0 ? (
+                <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+                  {/* Compact header */}
+                  <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30">
+                    <div className="flex items-center gap-2">
+                      <Badge className="bg-secondary text-secondary-foreground font-bold">
+                        {selectedProducts.size}
+                      </Badge>
+                      <span className="text-sm font-medium text-foreground">
+                        producto{selectedProducts.size !== 1 ? 's' : ''}
+                      </span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={clearSelection}
+                      className="h-7 text-xs text-muted-foreground hover:text-destructive"
+                    >
+                      Limpiar
+                    </Button>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearSelection}
-                    className="h-7 text-xs text-muted-foreground hover:text-destructive"
-                  >
-                    Limpiar
-                  </Button>
-                </div>
-                
-                {/* Products list - Compact visual grid */}
-                <div className="p-2 max-h-[35vh] md:max-h-[40vh] overflow-y-auto">
-                  <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-1.5">
-                    {selectedProductsData.map((product) => (
-                      <div
-                        key={product.id}
-                        className="relative group"
-                      >
-                        <button
-                          onClick={() => removeProduct(product.id)}
-                          className="w-full aspect-square bg-white rounded-lg border overflow-hidden hover:ring-2 hover:ring-destructive/50 transition-all"
-                        >
-                          {product.thumbnail_url ? (
-                            <img
-                              src={product.thumbnail_url}
-                              alt={product.name}
-                              className="w-full h-full object-contain p-1"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Package className="w-6 h-6 text-muted-foreground/50" />
+                  
+                  {/* Products list - Compact visual grid with animations */}
+                  <div className="p-2 max-h-[35vh] md:max-h-[40vh] overflow-y-auto">
+                    <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-1.5">
+                      <AnimatePresence mode="popLayout">
+                        {selectedProductsData.map((product, index) => (
+                          <motion.div
+                            key={product.id}
+                            initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.8, y: -10 }}
+                            transition={{ 
+                              type: "spring", 
+                              stiffness: 400, 
+                              damping: 25,
+                              delay: index * 0.03 
+                            }}
+                            className="relative group"
+                          >
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => removeProduct(product.id)}
+                                  className="w-full aspect-square bg-white rounded-lg border overflow-hidden hover:ring-2 hover:ring-destructive/50 transition-all"
+                                >
+                                  {product.thumbnail_url ? (
+                                    <img
+                                      src={product.thumbnail_url}
+                                      alt={product.name}
+                                      className="w-full h-full object-contain p-1"
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center">
+                                      <Package className="w-6 h-6 text-muted-foreground/50" />
+                                    </div>
+                                  )}
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-[200px] text-center">
+                                <p className="text-xs font-medium">{product.name}</p>
+                                <p className="text-[10px] text-muted-foreground">C.N. {product.reference}</p>
+                              </TooltipContent>
+                            </Tooltip>
+                            {/* Quantity badge */}
+                            {product.quantity > 1 && (
+                              <motion.div 
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                className="absolute -top-1 -right-1 w-5 h-5 bg-secondary text-white text-xs font-bold rounded-full flex items-center justify-center shadow"
+                              >
+                                {product.quantity}
+                              </motion.div>
+                            )}
+                            {/* Quick quantity controls on hover/touch */}
+                            <div className="absolute bottom-0 left-0 right-0 flex opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, product.quantity - 1); }}
+                                className="flex-1 bg-black/70 text-white text-xs py-0.5 rounded-bl-lg hover:bg-black/90"
+                              >
+                                −
+                              </button>
+                              <button
+                                onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, product.quantity + 1); }}
+                                className="flex-1 bg-black/70 text-white text-xs py-0.5 rounded-br-lg hover:bg-black/90"
+                              >
+                                +
+                              </button>
                             </div>
-                          )}
-                        </button>
-                        {/* Quantity badge */}
-                        {product.quantity > 1 && (
-                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-secondary text-white text-xs font-bold rounded-full flex items-center justify-center shadow">
-                            {product.quantity}
-                          </div>
-                        )}
-                        {/* Quick quantity controls on hover/touch */}
-                        <div className="absolute bottom-0 left-0 right-0 flex opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, product.quantity - 1); }}
-                            className="flex-1 bg-black/70 text-white text-xs py-0.5 rounded-bl-lg hover:bg-black/90"
-                          >
-                            −
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, product.quantity + 1); }}
-                            className="flex-1 bg-black/70 text-white text-xs py-0.5 rounded-br-lg hover:bg-black/90"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
-                    ))}
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                    </div>
                   </div>
+
+                  {/* Floating summary when > 6 products */}
+                  <AnimatePresence>
+                    {selectedProducts.size > 6 && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="border-t bg-secondary/5 px-3 py-2"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <ShoppingCart className="w-4 h-4 text-secondary" />
+                            <span className="text-sm font-medium text-foreground">
+                              {selectedProductsData.reduce((acc, p) => acc + p.quantity, 0)} unidades totales
+                            </span>
+                          </div>
+                          <div className="flex -space-x-2">
+                            {selectedProductsData.slice(0, 4).map((p) => (
+                              <div key={p.id} className="w-6 h-6 rounded-full bg-white border-2 border-background overflow-hidden">
+                                {p.thumbnail_url ? (
+                                  <img src={p.thumbnail_url} alt="" className="w-full h-full object-contain" />
+                                ) : (
+                                  <Package className="w-full h-full p-1 text-muted-foreground" />
+                                )}
+                              </div>
+                            ))}
+                            {selectedProducts.size > 4 && (
+                              <div className="w-6 h-6 rounded-full bg-secondary text-white text-[10px] font-bold border-2 border-background flex items-center justify-center">
+                                +{selectedProducts.size - 4}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-8 md:py-12 text-center">
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-muted/50 flex items-center justify-center mb-3">
-                  <ShoppingCart className="w-8 h-8 md:w-10 md:h-10 text-muted-foreground/50" />
-                </div>
-                <p className="text-sm font-medium text-muted-foreground">Sin productos</p>
-                <p className="text-xs text-muted-foreground/70 mt-1">
-                  Pulsa "Añadir Productos" para comenzar
-                </p>
-              </div>
-            )}
+              ) : (
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex flex-col items-center justify-center py-8 md:py-12 text-center"
+                >
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+                    <ShoppingCart className="w-8 h-8 md:w-10 md:h-10 text-muted-foreground/50" />
+                  </div>
+                  <p className="text-sm font-medium text-muted-foreground">Sin productos</p>
+                  <p className="text-xs text-muted-foreground/70 mt-1">
+                    Pulsa "Añadir Productos" para comenzar
+                  </p>
+                </motion.div>
+              )}
+            </TooltipProvider>
           </div>
 
           {/* Notes - Collapsible/minimal on mobile */}
