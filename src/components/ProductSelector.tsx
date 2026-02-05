@@ -225,7 +225,7 @@ export const ProductSelector = ({
     );
   }
 
-  // Desktop: Grid de tarjetas
+  // Desktop: Grid visual con imágenes maximizadas
   return (
     <div 
       className={`fixed inset-0 z-50 bg-secondary ${
@@ -233,77 +233,98 @@ export const ProductSelector = ({
       }`}
     >
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-secondary border-b border-white/10 px-4 py-4">
-        <div className="container mx-auto">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onBack}
-                className="text-white hover:bg-white/10"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </Button>
-              <div>
-                <h2 className="text-lg font-bold text-white">{categoryName}</h2>
-                <p className="text-xs text-white/70">
-                  {filteredProducts.length} productos
-                </p>
-              </div>
+      <div className="sticky top-0 z-10 bg-secondary border-b border-white/10 px-4 py-3">
+        <div className="container mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onBack}
+              className="text-white hover:bg-white/10"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h2 className="text-lg font-bold text-white">{categoryName}</h2>
+              <p className="text-xs text-white/70">
+                {filteredProducts.length} productos
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="relative w-48 lg:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar..."
+                value={searchTerm}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="pl-9 bg-white/90 border-0"
+              />
             </div>
 
-            <div className="flex items-center gap-2">
-              <div className="relative w-48 sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Buscar producto o C.N..."
-                  value={searchTerm}
-                  onChange={(e) => onSearchChange(e.target.value)}
-                  className="pl-9 bg-white/90 border-0"
-                />
-              </div>
+            {selectedProducts.size > 0 && (
+              <Badge className="bg-white text-secondary font-bold px-3 py-1">
+                {selectedProducts.size} seleccionados
+              </Badge>
+            )}
 
-              {selectedProducts.size > 0 && (
-                <Badge className="bg-white text-secondary font-bold">
-                  {selectedProducts.size} seleccionados
-                </Badge>
-              )}
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="text-white hover:bg-white/10"
-              >
-                <X className="w-6 h-6" />
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onClose}
+              className="text-white hover:bg-white/10"
+            >
+              <X className="w-6 h-6" />
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* Products Grid */}
-      <ScrollArea className="h-[calc(100vh-80px)]">
-        <div className="container mx-auto px-4 py-6">
+      {/* Products Grid - Maximized images */}
+      <ScrollArea className="h-[calc(100vh-130px)]">
+        <div className="container mx-auto px-6 py-6">
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-              {filteredProducts.map((product, index) => (
-                <div
-                  key={product.id}
-                  className="card-scale-in"
-                  style={{ animationDelay: `${index * 15}ms` }}
-                >
-                  <ProductCard
-                    id={product.id}
-                    name={product.name}
-                    reference={product.reference}
-                    thumbnailUrl={product.thumbnail_url}
-                    isSelected={selectedProducts.has(product.id)}
-                    onToggle={onToggleProduct}
-                  />
-                </div>
-              ))}
+            <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+              {filteredProducts.map((product, index) => {
+                const isSelected = selectedProducts.has(product.id);
+                
+                return (
+                  <button
+                    key={product.id}
+                    onClick={() => onToggleProduct(product.id)}
+                    className={`group relative bg-white rounded-xl overflow-hidden transition-all duration-200 hover:scale-105 hover:shadow-2xl card-scale-in aspect-square ${
+                      isSelected 
+                        ? 'ring-4 ring-white shadow-xl scale-105' 
+                        : ''
+                    }`}
+                    style={{ animationDelay: `${index * 15}ms` }}
+                  >
+                    {/* Selection indicator */}
+                    {isSelected && (
+                      <div className="absolute top-2 right-2 z-10 w-6 h-6 bg-secondary rounded-full flex items-center justify-center shadow-lg">
+                        <Check className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                    
+                    {/* Product image - maximized */}
+                    {product.thumbnail_url ? (
+                      <img
+                        src={product.thumbnail_url}
+                        alt={product.name}
+                        className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-200"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-muted/50 flex flex-col items-center justify-center p-3">
+                        <Package className="w-10 h-10 text-muted-foreground/50 mb-2" />
+                        <span className="text-xs font-medium text-foreground text-center leading-tight line-clamp-2">
+                          {product.name}
+                        </span>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-40 text-white/70">
@@ -328,7 +349,7 @@ export const ProductSelector = ({
         <Button
           size="lg"
           onClick={onClose}
-          className={`shadow-xl px-6 gap-2 ${selectedProducts.size > 0 ? 'bg-primary hover:bg-primary/90' : 'bg-white text-foreground hover:bg-white/90'}`}
+          className={`shadow-xl px-6 gap-2 ${selectedProducts.size > 0 ? 'bg-white text-secondary hover:bg-white/90 font-bold' : 'bg-white/20 text-white hover:bg-white/30'}`}
         >
           {selectedProducts.size > 0 ? (
             <>
