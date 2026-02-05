@@ -136,13 +136,13 @@ export const HomeScreen = ({
                     Talonario Digital
                   </h2>
                   <p className="text-sm md:text-base text-white/90 drop-shadow-md">
-                    ¿Qué deseas hacer hoy?
-                  </p>
-                </div>
-              </div>
-              {/* Description - visible on desktop */}
-              <p className="hidden lg:block text-sm text-white/80 max-w-md leading-relaxed drop-shadow-md">
-                Un talonario de recetas en formato digital que permite gestionar electrónicamente las recetas para sus pacientes.
+140:                     Recetas digitales
+141:                   </p>
+142:                 </div>
+143:               </div>
+144:               {/* Description - visible on desktop */}
+145:               <p className="hidden lg:block text-sm text-white/80 max-w-md leading-relaxed drop-shadow-md">
+146:                 Un talonario de recetas en formato digital que permite gestionar electrónicamente las recetas para sus pacientes, de forma simplificada, mediante envío directo por WhatsApp o email.
               </p>
             </div>
           </div>
