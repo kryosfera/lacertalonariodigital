@@ -329,12 +329,13 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
 
 // Genera texto para WhatsApp con URL
 export const generateWhatsAppMessage = (data: RecipeData, recipeUrl?: string): string => {
-  let message = `𝗟𝗔𝗖𝗘𝗥\n`;
-  message += `📅 ${data.date}\n`;
+  let message = `Consulta la receta en:\n`;
   
   if (recipeUrl) {
-    message += `\n${recipeUrl}`;
+    message += `${recipeUrl}\n`;
   }
+  
+  message += `¡Gracias!`;
   
   return message;
 };
