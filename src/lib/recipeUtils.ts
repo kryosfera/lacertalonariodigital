@@ -329,21 +329,11 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
 
 // Genera texto para WhatsApp con URL
 export const generateWhatsAppMessage = (data: RecipeData, recipeUrl?: string): string => {
-  // Simple, clean message with Lacer branding
-  let message = `╔═══════════════╗\n`;
-  message += `║   𝗟𝗔𝗖𝗘𝗥   ║\n`;
-  message += `║  Talonario Digital  ║\n`;
-  message += `╚═══════════════╝\n\n`;
-  
-  if (data.patientName) {
-    message += `👤 ${data.patientName}\n`;
-  }
+  let message = `𝗟𝗔𝗖𝗘𝗥\n`;
   message += `📅 ${data.date}\n`;
-  message += `📦 ${data.products.length} producto${data.products.length > 1 ? 's' : ''}\n`;
   
   if (recipeUrl) {
-    message += `\n🔗 *Ver receta completa:*\n${recipeUrl}\n`;
-    message += `\n_Muestra este enlace en la farmacia_`;
+    message += `\n${recipeUrl}`;
   }
   
   return message;
