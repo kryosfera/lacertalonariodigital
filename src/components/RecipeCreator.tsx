@@ -1,6 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -536,202 +535,231 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
         />
       )}
 
-      {/* Recipe Summary */}
-      <div className="max-w-2xl mx-auto pb-20 md:pb-0 px-2 md:px-0">
-        <Card className="shadow-medical">
-          <CardHeader className="pb-2 md:pb-3 px-3 md:px-6 pt-3 md:pt-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
-                  <ShoppingCart className="w-4 h-4 md:w-5 md:h-5 text-secondary" />
-                </div>
-                <div>
-                  <CardTitle className="text-base md:text-lg">Receta Digital</CardTitle>
-                  <CardDescription className="text-xs md:text-sm">Crea y envía recetas a tus pacientes</CardDescription>
-                </div>
-              </div>
-              {selectedProducts.size > 0 && (
-                <Badge className="bg-secondary text-secondary-foreground font-bold text-base md:text-lg px-2.5 md:px-3 py-0.5 md:py-1">
-                  {selectedProducts.size}
-                </Badge>
-              )}
-            </div>
-          </CardHeader>
-
-          <CardContent className="space-y-3 md:space-y-5 px-3 md:px-6 pb-3 md:pb-6">
-            {/* Patient Info - Only for Professional users */}
-            {isProfessional && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="patient-name">Paciente</Label>
-                  <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
-                    <PopoverTrigger asChild>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                        <Input
-                          id="patient-name"
-                          placeholder="Buscar o escribir nombre..."
-                          value={patientName}
-                          onChange={(e) => {
-                            setPatientName(e.target.value);
-                            setSelectedPatient(null);
-                            if (e.target.value.length > 0) {
-                              setPatientSearchOpen(true);
-                            }
-                          }}
-                          onFocus={() => patients.length > 0 && setPatientSearchOpen(true)}
-                          className="pl-10"
-                        />
-                        {selectedPatient && (
-                          <Check className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500 w-4 h-4" />
-                        )}
-                      </div>
-                    </PopoverTrigger>
-                    <PopoverContent className="p-0 w-[300px]" align="start">
-                      <Command>
-                        <CommandList>
-                          {filteredPatients.length === 0 ? (
-                            <CommandEmpty>No se encontraron pacientes</CommandEmpty>
-                          ) : (
-                            <CommandGroup heading="Pacientes">
-                              {filteredPatients.map((patient) => (
-                                <CommandItem
-                                  key={patient.id}
-                                  value={patient.name}
-                                  onSelect={() => handleSelectPatient(patient)}
-                                  className="cursor-pointer"
-                                >
-                                  <User className="mr-2 h-4 w-4" />
-                                  <div className="flex flex-col">
-                                    <span>{patient.name}</span>
-                                    {patient.phone && (
-                                      <span className="text-xs text-muted-foreground">{patient.phone}</span>
-                                    )}
-                                  </div>
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          )}
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="date">Fecha</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    defaultValue={new Date().toISOString().split("T")[0]}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Add Products Buttons */}
+      {/* Recipe Summary - Maximized for mobile */}
+      <div className="max-w-2xl mx-auto pb-24 md:pb-4">
+        {/* Mobile: Full-height flex layout */}
+        <div className="flex flex-col h-full md:block">
+          
+          {/* Quick Actions Bar - Mobile first */}
+          <div className="px-2 md:px-0 mb-2 md:mb-4">
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                className="flex-1 h-14 border-dashed border-2 hover:border-secondary hover:bg-secondary/5 transition-colors"
+                className="flex-1 h-12 md:h-14 border-dashed border-2 hover:border-secondary hover:bg-secondary/5 transition-colors font-medium"
                 onClick={handleOpenCategorySelector}
               >
                 <Plus className="w-5 h-5 mr-2" />
-                Añadir Productos
+                <span className="hidden sm:inline">Añadir </span>Productos
               </Button>
               <VoiceDictation 
                 onProductsConfirmed={handleVoiceProductsConfirmed}
                 existingNotes={notes}
               />
             </div>
+          </div>
 
-            {/* Selected Products List with improved badges */}
-            <div className="rounded-lg border bg-muted/20 p-3">
-              <SelectedProductsBadge
-                products={selectedProductsData}
-                onRemove={removeProduct}
-                onUpdateQuantity={updateQuantity}
-                onClear={clearSelection}
-              />
-            </div>
-
-            {/* Notes */}
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notas adicionales</Label>
-              <Textarea
-                id="notes"
-                placeholder="Indicaciones especiales..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-              />
-            </div>
-
-            {/* Templates Section - Professional only */}
-            {isProfessional && (
-              <div className="space-y-2 pt-2 border-t border-border/50">
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs text-muted-foreground">Plantillas</Label>
-                  {selectedProducts.size > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-7 text-xs gap-1"
-                      onClick={() => setShowTemplateDialog(true)}
-                    >
-                      <Save className="w-3 h-3" />
-                      Guardar como plantilla
-                    </Button>
-                  )}
+          {/* Products Grid - Main content area */}
+          <div className="flex-1 px-2 md:px-0">
+            {selectedProducts.size > 0 ? (
+              <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+                {/* Compact header */}
+                <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30">
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-secondary text-secondary-foreground font-bold">
+                      {selectedProducts.size}
+                    </Badge>
+                    <span className="text-sm font-medium text-foreground">
+                      producto{selectedProducts.size !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearSelection}
+                    className="h-7 text-xs text-muted-foreground hover:text-destructive"
+                  >
+                    Limpiar
+                  </Button>
                 </div>
-                {templates.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {templates.slice(0, 4).map((template) => (
-                      <div key={template.id} className="flex items-center gap-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs gap-1"
-                          onClick={() => loadTemplate(template)}
+                
+                {/* Products list - Compact visual grid */}
+                <div className="p-2 max-h-[35vh] md:max-h-[40vh] overflow-y-auto">
+                  <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-1.5">
+                    {selectedProductsData.map((product) => (
+                      <div
+                        key={product.id}
+                        className="relative group"
+                      >
+                        <button
+                          onClick={() => removeProduct(product.id)}
+                          className="w-full aspect-square bg-white rounded-lg border overflow-hidden hover:ring-2 hover:ring-destructive/50 transition-all"
                         >
-                          <FolderOpen className="w-3 h-3" />
-                          {template.name.slice(0, 15)}{template.name.length > 15 ? '...' : ''}
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                          onClick={() => deleteTemplate(template.id)}
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </Button>
+                          {product.thumbnail_url ? (
+                            <img
+                              src={product.thumbnail_url}
+                              alt={product.name}
+                              className="w-full h-full object-contain p-1"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Package className="w-6 h-6 text-muted-foreground/50" />
+                            </div>
+                          )}
+                        </button>
+                        {/* Quantity badge */}
+                        {product.quantity > 1 && (
+                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-secondary text-white text-xs font-bold rounded-full flex items-center justify-center shadow">
+                            {product.quantity}
+                          </div>
+                        )}
+                        {/* Quick quantity controls on hover/touch */}
+                        <div className="absolute bottom-0 left-0 right-0 flex opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, product.quantity - 1); }}
+                            className="flex-1 bg-black/70 text-white text-xs py-0.5 rounded-bl-lg hover:bg-black/90"
+                          >
+                            −
+                          </button>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); updateQuantity(product.id, product.quantity + 1); }}
+                            className="flex-1 bg-black/70 text-white text-xs py-0.5 rounded-br-lg hover:bg-black/90"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
                     ))}
-                    {templates.length > 4 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{templates.length - 4} más
-                      </Badge>
-                    )}
                   </div>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    No tienes plantillas guardadas
-                  </p>
-                )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 md:py-12 text-center">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+                  <ShoppingCart className="w-8 h-8 md:w-10 md:h-10 text-muted-foreground/50" />
+                </div>
+                <p className="text-sm font-medium text-muted-foreground">Sin productos</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">
+                  Pulsa "Añadir Productos" para comenzar
+                </p>
               </div>
             )}
+          </div>
 
-            {/* Actions */}
-            <div className="grid grid-cols-2 gap-2 pt-2">
+          {/* Notes - Collapsible/minimal on mobile */}
+          <div className="px-2 md:px-0 mt-2">
+            <Textarea
+              placeholder="Notas adicionales (opcional)..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              rows={2}
+              className="resize-none text-sm bg-muted/30 border-muted"
+            />
+          </div>
+
+          {/* Patient Info - Only for Professional users, compact */}
+          {isProfessional && (
+            <div className="px-2 md:px-0 mt-2">
+              <div className="flex gap-2">
+                <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
+                  <PopoverTrigger asChild>
+                    <div className="relative flex-1">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                      <Input
+                        placeholder="Paciente..."
+                        value={patientName}
+                        onChange={(e) => {
+                          setPatientName(e.target.value);
+                          setSelectedPatient(null);
+                          if (e.target.value.length > 0) {
+                            setPatientSearchOpen(true);
+                          }
+                        }}
+                        onFocus={() => patients.length > 0 && setPatientSearchOpen(true)}
+                        className="pl-10 h-10"
+                      />
+                      {selectedPatient && (
+                        <Check className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500 w-4 h-4" />
+                      )}
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0 w-[280px]" align="start">
+                    <Command>
+                      <CommandList>
+                        {filteredPatients.length === 0 ? (
+                          <CommandEmpty>No se encontraron pacientes</CommandEmpty>
+                        ) : (
+                          <CommandGroup heading="Pacientes">
+                            {filteredPatients.map((patient) => (
+                              <CommandItem
+                                key={patient.id}
+                                value={patient.name}
+                                onSelect={() => handleSelectPatient(patient)}
+                                className="cursor-pointer"
+                              >
+                                <User className="mr-2 h-4 w-4" />
+                                <div className="flex flex-col">
+                                  <span>{patient.name}</span>
+                                  {patient.phone && (
+                                    <span className="text-xs text-muted-foreground">{patient.phone}</span>
+                                  )}
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        )}
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          )}
+
+          {/* Templates - Professional only, inline chips */}
+          {isProfessional && templates.length > 0 && (
+            <div className="px-2 md:px-0 mt-2">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                <span className="text-xs text-muted-foreground whitespace-nowrap">Plantillas:</span>
+                {templates.slice(0, 3).map((template) => (
+                  <Button
+                    key={template.id}
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1 whitespace-nowrap flex-shrink-0"
+                    onClick={() => loadTemplate(template)}
+                  >
+                    <FolderOpen className="w-3 h-3" />
+                    {template.name.slice(0, 12)}{template.name.length > 12 ? '…' : ''}
+                  </Button>
+                ))}
+                {selectedProducts.size > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 text-xs gap-1 whitespace-nowrap flex-shrink-0"
+                    onClick={() => setShowTemplateDialog(true)}
+                  >
+                    <Save className="w-3 h-3" />
+                    Guardar
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons - Fixed bottom on mobile, inline on desktop */}
+          <div className="fixed bottom-0 left-0 right-0 p-2 bg-background border-t md:relative md:border-0 md:bg-transparent md:p-0 md:mt-4 md:px-0 safe-area-pb">
+            <div className="grid grid-cols-4 gap-1.5 md:gap-2">
               <Button
                 onClick={() => {
                   setSendMethod("whatsapp");
                   setShowSendDialog(true);
                 }}
-                className="w-full bg-[#25D366] hover:bg-[#128C7E] text-white"
+                className="h-11 md:h-12 bg-[#25D366] hover:bg-[#128C7E] text-white flex-col md:flex-row gap-0.5 md:gap-2 px-1 md:px-4"
                 disabled={selectedProducts.size === 0}
               >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                WhatsApp
+                <MessageCircle className="w-5 h-5" />
+                <span className="text-[10px] md:text-sm font-medium">WhatsApp</span>
               </Button>
               <Button
                 onClick={() => {
@@ -739,33 +767,33 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                   setShowSendDialog(true);
                 }}
                 variant="secondary"
-                className="w-full"
+                className="h-11 md:h-12 flex-col md:flex-row gap-0.5 md:gap-2 px-1 md:px-4"
                 disabled={selectedProducts.size === 0}
               >
-                <Mail className="w-4 h-4 mr-2" />
-                Email
+                <Mail className="w-5 h-5" />
+                <span className="text-[10px] md:text-sm font-medium">Email</span>
               </Button>
               <Button
                 variant="outline"
-                className="w-full"
+                className="h-11 md:h-12 flex-col md:flex-row gap-0.5 md:gap-2 px-1 md:px-4"
                 disabled={selectedProducts.size === 0 || isSending}
                 onClick={handleDownloadPDF}
               >
-                <Download className="w-4 h-4 mr-2" />
-                PDF
+                <Download className="w-5 h-5" />
+                <span className="text-[10px] md:text-sm font-medium">PDF</span>
               </Button>
               <Button
                 variant="outline"
-                className="w-full"
+                className="h-11 md:h-12 flex-col md:flex-row gap-0.5 md:gap-2 px-1 md:px-4"
                 disabled={selectedProducts.size === 0 || isSending}
                 onClick={handlePrint}
               >
-                <Printer className="w-4 h-4 mr-2" />
-                Imprimir
+                <Printer className="w-5 h-5" />
+                <span className="text-[10px] md:text-sm font-medium">Imprimir</span>
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Send Dialog */}
