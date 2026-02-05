@@ -74,7 +74,7 @@ export const HomeScreenCentered = ({
             Talonario Digital
           </h1>
           <p className="text-lg lg:text-xl text-muted-foreground max-w-lg mx-auto">
-            Gestiona tus recetas de forma digital, rápida y profesional
+            Un talonario de recetas en formato digital que permite gestionar electrónicamente las recetas para sus pacientes, de forma simplificada, mediante envío directo por WhatsApp o email.
           </p>
         </motion.div>
 

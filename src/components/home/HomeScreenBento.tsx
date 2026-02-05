@@ -91,7 +91,7 @@ export const HomeScreenBento = ({
               </div>
             </div>
             <p className="text-sm lg:text-base text-white/70 max-w-md leading-relaxed hidden lg:block">
-              Gestiona tus recetas de forma digital. Rápido, sencillo y profesional.
+              Un talonario de recetas en formato digital que permite gestionar electrónicamente las recetas para sus pacientes, de forma simplificada, mediante envío directo por WhatsApp o email.
             </p>
           </div>
         </motion.div>
