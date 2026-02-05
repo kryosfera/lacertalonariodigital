@@ -161,14 +161,14 @@ export const CategorySelector = ({
           </div>
 
           {/* Fullscreen grid - fills remaining space */}
-          <div className="flex-1 p-2">
+          <div className="flex-1 p-1.5 overflow-hidden">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
               </div>
             ) : (
               <div 
-                className="grid gap-2 h-full"
+                className="grid gap-1.5 h-full"
                 style={{ 
                   gridTemplateColumns: `repeat(${gridConfig.cols}, 1fr)`,
                   gridTemplateRows: `repeat(${Math.min(gridConfig.rows, Math.ceil(totalItems / gridConfig.cols))}, 1fr)`
@@ -178,17 +178,17 @@ export const CategorySelector = ({
                   <button
                     key={category.id}
                     onClick={() => onSelectCategory(category.id, category.name)}
-                    className="flex items-center justify-center bg-white rounded-xl border border-border/20 hover:bg-muted/20 active:scale-95 transition-all duration-200 overflow-hidden card-scale-in shadow-sm"
-                    style={{ animationDelay: `${index * 30}ms` }}
+                    className="relative flex items-center justify-center bg-white rounded-lg border border-border/10 hover:border-secondary/50 hover:shadow-lg active:scale-[0.97] transition-all duration-200 overflow-hidden card-scale-in"
+                    style={{ animationDelay: `${index * 25}ms` }}
                   >
                     {category.image_url ? (
                       <img
                         src={category.image_url}
                         alt={category.name}
-                        className="w-full h-full object-contain p-3"
+                        className="w-full h-full object-contain p-1"
                       />
                     ) : (
-                      <span className="text-sm font-semibold text-foreground text-center leading-tight px-2">
+                      <span className="text-sm font-bold text-foreground text-center leading-tight px-2">
                         {category.name}
                       </span>
                     )}
@@ -199,12 +199,12 @@ export const CategorySelector = ({
                 {uncategorizedCount > 0 && (
                   <button
                     onClick={() => onSelectCategory("uncategorized", "Otros productos")}
-                    className="flex items-center justify-center bg-muted/30 rounded-xl border border-border/20 hover:bg-muted/50 active:scale-95 transition-all duration-200"
+                    className="flex items-center justify-center bg-muted/20 rounded-lg border border-border/10 hover:border-secondary/50 hover:shadow-lg active:scale-[0.97] transition-all duration-200"
                   >
-                    <div className="flex flex-col items-center gap-1">
-                      <Package className="w-8 h-8 text-muted-foreground" />
-                      <span className="text-xs font-medium text-muted-foreground">
-                        Otros ({uncategorizedCount})
+                    <div className="flex flex-col items-center gap-0.5">
+                      <Package className="w-6 h-6 text-muted-foreground" />
+                      <span className="text-[10px] font-medium text-muted-foreground">
+                        Otros
                       </span>
                     </div>
                   </button>
@@ -284,66 +284,49 @@ export const CategorySelector = ({
           </div>
         </div>
 
-        {/* Categories Grid */}
+        {/* Categories Grid - Maximized logos */}
         <ScrollArea className="h-[calc(100vh-80px)]">
-          <div className="container mx-auto px-4 py-6">
+          <div className="container mx-auto px-6 py-8">
             {isLoading ? (
               <div className="flex items-center justify-center h-40">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
               </div>
             ) : (
-              <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-                {categoriesWithProducts.map((category, index) => {
-                  const count = productCountByCategory.get(category.id) || 0;
-
-                  return (
-                    <button
-                      key={category.id}
-                      onClick={() => onSelectCategory(category.id, category.name)}
-                      className="group bg-white rounded-lg overflow-hidden transition-all duration-200 hover:scale-105 hover:shadow-xl card-scale-in"
-                      style={{ animationDelay: `${index * 20}ms` }}
-                    >
-                      {category.image_url ? (
-                        <div className="aspect-square w-full">
-                          <img
-                            src={category.image_url}
-                            alt={category.name}
-                            className="w-full h-full object-contain bg-white p-2"
-                          />
-                        </div>
-                      ) : (
-                        <div className="aspect-square w-full bg-muted flex items-center justify-center">
-                          <FolderOpen className="w-8 h-8 text-muted-foreground" />
-                        </div>
-                      )}
-                      <div className="p-2 bg-white border-t">
-                        <h3 className="text-[10px] sm:text-xs font-semibold text-foreground line-clamp-2 text-center leading-tight">
+              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                {categoriesWithProducts.map((category, index) => (
+                  <button
+                    key={category.id}
+                    onClick={() => onSelectCategory(category.id, category.name)}
+                    className="group bg-white rounded-xl overflow-hidden transition-all duration-200 hover:scale-105 hover:shadow-2xl card-scale-in aspect-square"
+                    style={{ animationDelay: `${index * 20}ms` }}
+                  >
+                    {category.image_url ? (
+                      <img
+                        src={category.image_url}
+                        alt={category.name}
+                        className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-200"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-muted/50 flex items-center justify-center p-4">
+                        <span className="text-base font-bold text-foreground text-center leading-tight">
                           {category.name}
-                        </h3>
-                        <p className="text-[9px] sm:text-[10px] text-muted-foreground text-center mt-0.5">
-                          {count} productos
-                        </p>
+                        </span>
                       </div>
-                    </button>
-                  );
-                })}
+                    )}
+                  </button>
+                ))}
 
                 {/* Uncategorized */}
                 {uncategorizedCount > 0 && (
                   <button
                     onClick={() => onSelectCategory("uncategorized", "Otros productos")}
-                    className="group bg-white rounded-lg overflow-hidden transition-all duration-200 hover:scale-105 hover:shadow-xl"
+                    className="group bg-white/80 rounded-xl overflow-hidden transition-all duration-200 hover:scale-105 hover:shadow-2xl aspect-square flex items-center justify-center"
                   >
-                    <div className="aspect-square w-full bg-muted flex items-center justify-center">
-                      <Package className="w-8 h-8 text-muted-foreground" />
-                    </div>
-                    <div className="p-2 bg-white border-t">
-                      <h3 className="text-[10px] sm:text-xs font-semibold text-foreground line-clamp-2 text-center leading-tight">
-                        Otros productos
-                      </h3>
-                      <p className="text-[9px] sm:text-[10px] text-muted-foreground text-center mt-0.5">
-                        {uncategorizedCount} productos
-                      </p>
+                    <div className="flex flex-col items-center gap-2">
+                      <Package className="w-12 h-12 text-muted-foreground group-hover:text-foreground transition-colors" />
+                      <span className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
+                        Otros ({uncategorizedCount})
+                      </span>
                     </div>
                   </button>
                 )}
