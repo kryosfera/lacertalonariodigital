@@ -1,93 +1,74 @@
 
-# Dos mejoras en el panel de Categorías
+# Sincronización de categorías con la web de referencia
 
-## Objetivo
-1. Subir el logo de Lacer Aligner al bucket `category-images` y asociarlo a la categoría correspondiente en la base de datos.
-2. Añadir un campo de upload de imagen directo en el formulario de edición/creación de categorías, para que en el futuro el admin pueda asignar fotos sin salir del formulario.
+## Situación actual
 
----
+Comparando la web `lacertalonariodigital.com/es/marcas` con nuestra base de datos:
 
-## Cambio 1: Logo de Lacer Aligner
+**Faltan 4 categorías en la app:**
+- Lacer Infantil (slug: `lacer-infantil`, imagen: `lacer-infantil.png`)
+- Lacer Efficare (slug: `lacer-efficare`, imagen: `lacer-efficare.png`)
+- Lacer Picks Interdental (slug: `lacer-picks-interdental`, imagen: `lacer-picks-interdental.png`)
+- Lacer Cinta, Hilo y Seda (slug: `lacer-cinta-hilo-y-seda`, imagen: `lacer-cintas-hilo-seda.png`)
 
-El logo subido (`user-uploads://2026_LacerAligner_logo-02.png`) se copiará a `public/category-images/lacer-aligner.png` y también se subirá al bucket `category-images` de Supabase Storage. Luego se actualizará la `image_url` de la categoría "Lacer Aligner" (o "lacer-aligner") directamente.
+**1 categoría con nombre diferente:**
+- Tenemos `LACER SEDA DENTAL` — la web lo llama `Lacer Cinta, Hilo y Seda`. Se puede renombrar o dejar la existente y añadir la nueva por separado (decisión pendiente — ver pregunta abajo).
 
-El flujo real:
-- Copiar la imagen a `public/category-images/` para que esté disponible como asset estático.
-- Al guardar en el bucket `category-images` con nombre `lacer-aligner.png`, la Edge Function `sync-category-images` ya existente puede hacer el match por slug automáticamente.
-- Alternativamente (más inmediato): actualizar el campo `image_url` de la categoría directamente desde el formulario de admin con el upload integrado.
+**2 categorías que están en nuestra app pero NO en la web de referencia:**
+- `CEPILLO ELECTRICO` (sin imagen)
+- `LACER SEDA DENTAL` (si se renombra a Lacer Cinta, Hilo y Seda)
 
----
+## Plan de implementación
 
-## Cambio 2: Upload de imagen en el formulario de categorías
+### Paso 1: Migración SQL — insertar las 4 categorías faltantes
 
-### Qué se añade en `CategoriesAdmin.tsx`
-
-- El tipo `Category` se amplía con `image_url: string | null`.
-- El formulario en el diálogo incluye una nueva sección de imagen con:
-  - Vista previa de la imagen actual (si existe).
-  - Botón "Subir imagen" con `<input type="file" accept="image/*">`.
-  - Al seleccionar un archivo, se sube al bucket `category-images` con nombre `{slug}.{ext}` usando `supabase.storage.from('category-images').upload()`.
-  - Se obtiene la URL pública y se guarda en `categories.image_url`.
-  - Botón "Eliminar imagen" para limpiar el campo.
-- La tabla de categorías muestra una columna de miniatura de imagen.
-
-### Flujo de subida
-
-```
-1. Admin abre diálogo "Editar/Nueva Categoría"
-2. Selecciona archivo de imagen
-3. Se sube a bucket category-images con nombre {slug}.png/.jpg
-4. Se obtiene publicUrl y se guarda en el campo image_url
-5. Al guardar la categoría, image_url se incluye en el payload de upsert
-```
-
-### Consideraciones de storage
-
-- El bucket `category-images` ya existe y es público.
-- No se requieren cambios de RLS en storage (admins ya pueden gestionar desde server-side via service role en Edge Functions). Sin embargo, para upload desde el cliente necesitamos una política RLS en `storage.objects`. Se añadirá una migración SQL:
+Se insertarán con `sort_order` altos para que aparezcan al final, y con sus imágenes ya disponibles en la web de referencia. Las imágenes de las categorías nuevas se descargarán desde la web de Lacer y se subirán al bucket `category-images`.
 
 ```sql
--- Permitir a admins subir/actualizar/borrar en category-images
-CREATE POLICY "Admins can upload category images"
-ON storage.objects FOR INSERT
-TO authenticated
-WITH CHECK (
-  bucket_id = 'category-images' AND
-  public.has_role(auth.uid(), 'admin'::public.app_role)
-);
-
-CREATE POLICY "Admins can update category images"
-ON storage.objects FOR UPDATE
-TO authenticated
-USING (
-  bucket_id = 'category-images' AND
-  public.has_role(auth.uid(), 'admin'::public.app_role)
-);
-
-CREATE POLICY "Admins can delete category images"
-ON storage.objects FOR DELETE
-TO authenticated
-USING (
-  bucket_id = 'category-images' AND
-  public.has_role(auth.uid(), 'admin'::public.app_role)
-);
+INSERT INTO public.categories (name, slug, sort_order, image_url) VALUES
+  ('LACER INFANTIL', 'lacer-infantil', 20, NULL),
+  ('LACER EFFICARE', 'lacer-efficare', 21, NULL),
+  ('LACER PICKS INTERDENTAL', 'lacer-picks-interdental', 22, NULL),
+  ('LACER CINTA HILO Y SEDA', 'lacer-cinta-hilo-y-seda', 23, NULL);
 ```
 
----
+### Paso 2: Descargar y subir imágenes desde la web de Lacer
 
-## Archivos a modificar/crear
+Las imágenes están disponibles en URLs públicas de la web:
+- `https://lacertalonariodigital.com/archivos/lacer-infantil.png`
+- `https://lacertalonariodigital.com/archivos/lacer-efficare.png`
+- `https://lacertalonariodigital.com/archivos/lacer-picks-interdental.png`
+- `https://lacertalonariodigital.com/archivos/lacer-cintas-hilo-seda.png`
 
-| Archivo | Cambio |
-|---|---|
-| `supabase/migrations/XXXXXX_category_image_upload_rls.sql` | Políticas RLS en storage.objects para admins en bucket category-images |
-| `src/components/admin/CategoriesAdmin.tsx` | Añadir campo de upload, miniatura en tabla, lógica de subida a storage |
-| `public/category-images/lacer-aligner.png` | Copia local del logo subido |
+Se descargarán y subirán al bucket `category-images`, luego se actualizará `image_url` en la tabla.
 
----
+### Paso 3: Renombrar LACER SEDA DENTAL (opcional)
+
+Propongo renombrar `LACER SEDA DENTAL` a `LACER CINTA HILO Y SEDA` para que coincida con la web de referencia, y actualizar su `slug` a `lacer-cinta-hilo-y-seda`. Esto evita tener dos categorías similares.
+
+```sql
+UPDATE public.categories 
+SET name = 'LACER CINTA HILO Y SEDA', 
+    slug = 'lacer-cinta-hilo-y-seda'
+WHERE slug = 'lacer-seda-dental';
+```
+
+### Paso 4: Verificar productos sin categoría
+
+Revisar si hay productos que deberían pertenecer a las nuevas categorías pero están sin asignar.
+
+## Pregunta pendiente
+
+Sobre `LACER SEDA DENTAL` vs `LACER CINTA HILO Y SEDA`: ¿prefieres renombrar la categoría existente o mantenerlas separadas? Si tienes productos ya asignados a `LACER SEDA DENTAL`, renombrarla es lo más limpio.
 
 ## Resultado final
 
-- El formulario de categorías tendrá un selector de imagen con previsualización.
-- Al guardar, la imagen se sube a storage y la URL se guarda en la base de datos.
-- La tabla de categorías mostrará miniaturas.
-- El logo de Lacer Aligner quedará asociado a su categoría de inmediato.
+La app tendrá exactamente las mismas categorías que la web de referencia, con sus logos correspondientes y nombres unificados.
+
+## Archivos/recursos afectados
+
+| Acción | Detalle |
+|---|---|
+| Migración SQL | INSERT de 4 nuevas categorías + UPDATE de nombre en LACER SEDA DENTAL |
+| Storage | Subir 4 imágenes nuevas al bucket category-images |
+| Base de datos | UPDATE image_url de las 4 nuevas categorías |
