@@ -132,16 +132,11 @@ export const ProductSelector = ({
         </div>
 
         {/* Products grid - fills remaining space */}
-        <div className={`flex-1 p-1.5 ${needsScroll ? 'overflow-auto' : 'overflow-hidden'}`}>
+        <div className="flex-1 overflow-auto p-1.5">
           {filteredProducts.length > 0 ? (
             <div 
-              className={`grid gap-1.5 ${needsScroll ? '' : 'h-full'}`}
-              style={needsScroll ? {
-                gridTemplateColumns: 'repeat(3, 1fr)'
-              } : { 
-                gridTemplateColumns: `repeat(${gridConfig.cols}, 1fr)`,
-                gridTemplateRows: `repeat(${gridConfig.rows}, 1fr)`
-              }}
+              className="grid gap-1.5"
+              style={{ gridTemplateColumns: filteredProducts.length <= 4 ? 'repeat(2, 1fr)' : 'repeat(3, 1fr)' }}
             >
               {filteredProducts.map((product, index) => {
                 const isSelected = selectedProducts.has(product.id);
@@ -150,11 +145,11 @@ export const ProductSelector = ({
                   <button
                     key={product.id}
                     onClick={() => onToggleProduct(product.id)}
-                    className={`relative flex items-center justify-center bg-white rounded-lg border-2 transition-all duration-200 overflow-hidden card-scale-in ${
+                    className={`relative flex flex-col bg-white rounded-lg border-2 transition-all duration-200 overflow-hidden card-scale-in aspect-[3/4] ${
                       isSelected 
                         ? 'border-secondary ring-2 ring-secondary/30 shadow-md' 
                         : 'border-transparent hover:border-secondary/30'
-                    } ${needsScroll ? 'aspect-square' : ''}`}
+                    }`}
                     style={{ animationDelay: `${index * 15}ms` }}
                   >
                     {/* Selection indicator */}
@@ -164,21 +159,25 @@ export const ProductSelector = ({
                       </div>
                     )}
                     
-                    {/* Product image - maximized */}
-                    {product.thumbnail_url ? (
-                      <img
-                        src={product.thumbnail_url}
-                        alt={product.name}
-                        className="w-full h-full object-contain p-1"
-                      />
-                    ) : (
-                      <div className="flex flex-col items-center justify-center gap-1">
+                    {/* Product image - top 70% */}
+                    <div className="flex-1 flex items-center justify-center w-full min-h-0 p-1">
+                      {product.thumbnail_url ? (
+                        <img
+                          src={product.thumbnail_url}
+                          alt={product.name}
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
                         <Package className="w-8 h-8 text-muted-foreground/50" />
-                        <span className="text-[10px] font-medium text-foreground text-center leading-tight px-1 line-clamp-2">
-                          {product.name}
-                        </span>
-                      </div>
-                    )}
+                      )}
+                    </div>
+
+                    {/* Product name - bottom ~30% */}
+                    <div className="px-1 pb-1.5 pt-0.5 border-t border-border/20">
+                      <span className="text-[9px] font-medium text-foreground text-center leading-tight line-clamp-2 block">
+                        {product.name}
+                      </span>
+                    </div>
                   </button>
                 );
               })}
@@ -285,7 +284,7 @@ export const ProductSelector = ({
       <ScrollArea className="h-[calc(100vh-130px)]">
         <div className="container mx-auto px-6 py-6">
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {filteredProducts.map((product, index) => {
                 const isSelected = selectedProducts.has(product.id);
                 
@@ -293,7 +292,7 @@ export const ProductSelector = ({
                   <button
                     key={product.id}
                     onClick={() => onToggleProduct(product.id)}
-                    className={`group relative bg-white rounded-xl overflow-hidden transition-all duration-200 hover:scale-105 hover:shadow-2xl card-scale-in aspect-square ${
+                    className={`group relative flex flex-col bg-white rounded-xl overflow-hidden transition-all duration-200 hover:scale-105 hover:shadow-2xl card-scale-in aspect-[3/4] ${
                       isSelected 
                         ? 'ring-4 ring-white shadow-xl scale-105' 
                         : ''
@@ -307,21 +306,25 @@ export const ProductSelector = ({
                       </div>
                     )}
                     
-                    {/* Product image - maximized */}
-                    {product.thumbnail_url ? (
-                      <img
-                        src={product.thumbnail_url}
-                        alt={product.name}
-                        className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-200"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-muted/50 flex flex-col items-center justify-center p-3">
-                        <Package className="w-10 h-10 text-muted-foreground/50 mb-2" />
-                        <span className="text-xs font-medium text-foreground text-center leading-tight line-clamp-2">
-                          {product.name}
-                        </span>
-                      </div>
-                    )}
+                    {/* Product image - top ~70% */}
+                    <div className="flex-1 flex items-center justify-center w-full min-h-0 p-2">
+                      {product.thumbnail_url ? (
+                        <img
+                          src={product.thumbnail_url}
+                          alt={product.name}
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-200"
+                        />
+                      ) : (
+                        <Package className="w-10 h-10 text-muted-foreground/50" />
+                      )}
+                    </div>
+
+                    {/* Product name - bottom ~30% */}
+                    <div className="px-2 pb-2 pt-1 border-t border-border/20">
+                      <span className="text-xs font-medium text-foreground text-center leading-tight line-clamp-2 block">
+                        {product.name}
+                      </span>
+                    </div>
                   </button>
                 );
               })}
