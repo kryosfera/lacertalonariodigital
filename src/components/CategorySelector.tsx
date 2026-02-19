@@ -1,4 +1,5 @@
 import { useState } from "react";
+import lacerLogoBocasSanas from "@/assets/lacer-logo-bocas_sanas.jpg";
 import { useQuery } from "@tanstack/react-query";
 import { X, FolderOpen, Package, ShoppingCart, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -244,9 +245,9 @@ export const CategorySelector = ({
           <div className="container mx-auto flex items-center justify-between">
             <div className="flex items-center gap-3">
               <img
-                src="https://www.lacer.es/themes/custom/flavor/logo.svg"
-                alt="Lacer"
-                className="h-8 brightness-0 invert"
+                src={lacerLogoBocasSanas}
+                alt="Lacer Talonario Digital"
+                className="h-12 object-contain"
               />
               <div>
                 <h2 className="text-lg font-bold text-white">Selecciona Categoría</h2>
