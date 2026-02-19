@@ -324,6 +324,14 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     // Capture data BEFORE any reset
     const recipeData = getRecipeData();
     const phone = patientPhone;
+
+    // CRÍTICO iOS Safari: window.open() debe llamarse sincrónicamente desde el gesto del usuario.
+    // Si se llama después de un await, Safari lo bloquea silenciosamente.
+    // Solución: pre-abrimos about:blank ahora y redirigimos la URL después del await.
+    const preOpenedWindow = phone
+      ? window.open("about:blank", "_blank")
+      : null;
+
     let recipeUrl: string | undefined;
     
     try {
@@ -343,9 +351,11 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
         }
       }
       
-      sendViaWhatsApp(recipeData, phone, recipeUrl);
+      sendViaWhatsApp(recipeData, phone, recipeUrl, preOpenedWindow);
       toast.success("Abriendo WhatsApp...");
     } catch (error) {
+      // Si algo falla, cerrar la ventana pre-abierta para no dejar una pestaña en blanco
+      if (preOpenedWindow) preOpenedWindow.close();
       toast.error("Error al generar el enlace");
     } finally {
       setIsSending(false);
