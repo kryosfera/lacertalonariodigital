@@ -1,136 +1,57 @@
 
-# Comparativa completa: productos de la app vs web de referencia
+# Plan: Descargar imágenes al bucket y actualizar productos
 
-He analizado todas las categorías de la web `lacertalonariodigital.com/es/marcas` y las he comparado con los 87 productos activos de la base de datos. El resultado es el siguiente:
+## Objetivo
+Tener todas las imágenes de producto alojadas en el bucket propio `product-images`, sin depender de URLs externas de `lacertalonariodigital.com`. Así podrás cerrar la web de referencia sin perder ninguna imagen.
 
----
+## Estado actual
+- 20 productos activos **sin imagen** en la base de datos
+- Los productos que ya tienen imagen usan URLs del bucket propio (`wvqqoigrslatxnbykcji.supabase.co/storage/v1/object/public/product-images/...`)
+- Hay 8 imágenes ya en `public/products/` (formato CN numérico)
 
-## Estado actual: lo que está BIEN
+## Estrategia
 
-Estas categorías están perfectamente sincronizadas (mismos productos, mismo nombre):
+Para cada uno de los 20 productos sin imagen:
+1. Descargar la imagen desde `lacertalonariodigital.com/archivos/` usando la herramienta de fetch
+2. Subirla al bucket `product-images` con un nombre descriptivo (usando el slug del producto)
+3. Actualizar `thumbnail_url` y `main_image_url` en la base de datos con la URL pública del bucket
 
-- GingiLacer: GINGILACER PASTA, GINGILACER COLUTORIO - OK
-- Clorhexidina Lacer: 5 productos - OK
-- Fluor Lacer: 3 productos - OK
-- SensiLacer: 4 productos (Pasta, Gel Dental, Colutorio, Gel Bioadhesivo) - OK
-- XeroLacer: 4 productos (Pasta, Colutorio, Spray, Gel Tópico) - OK
-- LacerBlanc: 6 productos - OK
-- Lacer Natur: 3 productos - OK
-- LacerPro: 2 productos - OK
-- LacerFresh: 3 productos - OK
-- LacerOros: 2 productos - OK
-- OrtoLacer: 3 productos - OK
-- AftaLacer: 3 productos - OK
-- Lacer Cepillos Dentales: 13 cepillos + Limpiador Lingual - OK
-- Lacer Interdentales: 9 modelos - OK
-- Lacer Cinta Hilo y Seda: 4 productos - OK
-- Lacer Hidro: Coincide en productos principales (aunque con nombres distintos, ver abajo)
+Para **CEPILLO LACER NATUR** (no aparece en la web de referencia): se marcará como `is_visible = false` para ocultarlo de la app.
 
----
+## Mapa completo: 19 productos → imagen a descargar
 
-## Diferencias encontradas
+| Producto | Archivo origen (referencia) | Nombre en bucket |
+|---|---|---|
+| CEPILLO GINGILACER CABEZAL PEQUEÑO | `1685605cdlcabezalpequenogingilacer_v2-p.jpg` | `cepillo-gingilacer-cabezal-pequeno.jpg` |
+| CEPILLO LACER MEDIO CABEZAL PEQUEÑO | `1685582cdlcabezalpequenomedio_v2-p.jpg` | `cepillo-lacer-medio-cabezal-pequeno.jpg` |
+| CERA ORTOLACER | `1639455-cera-ortolacer-7-barras-p.jpg` | `cera-ortolacer.jpg` |
+| CLORHEXIDINA COLUTORIO 0,2% | `5418_clorhexidina_lacer_colutorio_02_500ml-600x600.png` | `clorhexidina-colutorio-02.png` |
+| CLORHEXIDINA GEL DENTÍFRICO BIOAD 50ml | `3546058-clorhexidina-lacer-gel-bioadhesivo-50ml-p.jpg` | `clorhexidina-gel-dentifico-bioad-50ml.jpg` |
+| CLORHEXIDINA SPRAY | `2477421-clorhexidina-lacer-spray-40-ml-p.jpg` | `clorhexidina-spray.jpg` |
+| LACER COLUTORIO | `2057654_colutorio-lacer-500-ml-p.jpg` | `lacer-colutorio.jpg` |
+| LACER GEL DENTÍFRICO | `1748669-gel-dental-lacer-125-ml-p.jpg` | `lacer-gel-dentifrico.jpg` |
+| LACER PASTA DENTRÍFICA | `3918473-pasta-dentifrica-lacer-125-ml-p.jpg` | `lacer-pasta-dentifrica.jpg` |
+| LACER HIDRO ADVANCED BLANCO | `2126190lacerhidroadvancedblanco-p.jpg` | `lacer-hidro-advanced-blanco.jpg` |
+| LACER HIDRO ADVANCED NEGRO | `2126190lacerhidroadvancednegro-p.jpg` | `lacer-hidro-advanced-negro.jpg` |
+| LACER HIDRO PORTATIL INALAMBRICO | `2126206lacerhidroportatilinalambrico-p.jpg` | `lacer-hidro-portatil-inalambrico.jpg` |
+| PACK RECAMBIOS HIDRO ADVANCED BLANCO | `2126220packrecambioslacerhidroadvancedblanco-p.jpg` | `pack-recambios-lacer-hidro-advanced-blanco.jpg` |
+| PACK RECAMBIOS HIDRO NEGRO | `2126220packrecambioslacerhidronegro-p.jpg` | `pack-recambios-lacer-hidro-negro.jpg` |
+| LACER INTERDENTAL ANGULAR CONICO | `1505255_cil_angular-conico-p.jpg` | `lacer-interdental-angular-conico.jpg` |
+| LACER MUCOREPAIR COLUTORIO | `mucorepair-600x600.png` | `lacer-mucorepair-colutorio.png` |
+| LACERBLANC PAINT ON | `1625724-lacerblanc-pincel-blanqueador-p.jpg` | `lacerblanc-paint-on.jpg` |
+| LACERBLANC WHITE FLASH | `1932488-lacerblanc-white-flash-p.jpg` | `lacerblanc-white-flash.jpg` |
+| SENSILACER PASTA | `sensilacerpasta125mlref2083554-p.png` | `sensilacer-pasta.png` |
 
-### 1. Productos FALTANTES en la app (existen en la web, no en nuestra BD)
+## Pasos de implementación
 
-**Categoría LACER MUCOREPAIR** — falta 1 producto:
-- La web tiene: `GEL TOPICO MUCOREPAIR` + `LACER MUCOREPAIR COLUTORIO`
-- Nuestra app tiene: solo `LACER MUCOREPAIR GEL TOPICO` (el colutorio no está)
-- **Accion: insertar `LACER MUCOREPAIR COLUTORIO`**
+**Paso 1:** Descargar cada imagen de la web de referencia y guardarla en `public/products/` con el nombre del slug del producto (igual que el patrón de los 8 archivos ya existentes).
 
-**Categoría LACER JUNIOR** — la web tiene 4 productos:
-- `GEL LACER JUNIOR FRESA` - OK en nuestra app
-- `GEL LACER JUNIOR MENTA` - OK en nuestra app
-- `CEPILLO ELECTRICO` - OK en nuestra app (como `CEPILLO ELECTRICO JUNIOR`)
-- `RECAMBIOS CEPILLO ELECTRICO` - OK en nuestra app (como `RECAMBIOS CEPILLO ELECTRICO JUNIOR`)
+**Paso 2:** Subir cada imagen al bucket `product-images` mediante la Edge Function `sync-product-images` o actualizando directamente la base de datos con las nuevas URLs del bucket propio.
 
-Hay un problema adicional: `GEL LACER INFANTIL` está asignado a la categoría LACER JUNIOR en nuestra app, pero en la web pertenece a la categoría **LACER INFANTIL**. Hay que reasignarlo.
+**Paso 3:** Ejecutar SQL para actualizar `thumbnail_url` y `main_image_url` en los 19 productos, y `is_visible = false` en CEPILLO LACER NATUR.
 
-**Categoría LACER INFANTIL** — la web tiene 1 producto:
-- `GEL LACER INFANTIL` — existe en nuestra BD pero está asignado a LACER JUNIOR (error de categoría)
-- **Accion: reasignar a categoría LACER INFANTIL**
-
-**Categoría LACER EFFICARE** — la web tiene 3 productos:
-- `LACER EFFICARE` (cepillo eléctrico adulto) - existe en la BD pero sin categoría asignada
-- `RECAMBIOS LACER EFFICARE` - existe en la BD pero sin categoría asignada
-- `RECAMBIOS ENCÍAS` / `RECAMBIOS ENCÍAS LACER EFFICARE` - existe en la BD pero sin categoría asignada
-- **Accion: asignar los 3 productos a la categoría LACER EFFICARE**
-
-**Categoría LACER PICKS INTERDENTAL** — la web tiene 1 producto:
-- `SOFT PICKS 30 UDS` — existe en la BD pero está en categoría LACER INTERDENTALES (`LACER SOFT PICKS 30 UDS` y `SOFT PICKS 30 UDS` - parece duplicado)
-- **Accion: reasignar `SOFT PICKS 30 UDS` a categoría LACER PICKS INTERDENTAL y eliminar el duplicado `LACER SOFT PICKS 30 UDS`**
-
-**Categoría LACER HIDRO** — la web tiene 5 productos con nombres distintos:
-- Web: `LACER HIDRO ADVANCED BLANCO` → App: `IRRIGADOR BUCAL ADVANCED BLANCO`
-- Web: `LACER HIDRO ADVANCED NEGRO` → App: `IRRIGADOR BUCAL ADVANCED NEGRO`
-- Web: `LACER HIDRO PORTATIL INALAMBRICO` → App: `IRRIGADOR BUCAL PORTATIL INALAMBRICO`
-- Web: `PACK RECAMBIOS LACER HIDRO ADVANCED BLANCO` → App: `PACK RECAMBIOS LACER HIDRO ADVANCED BLANCO` (OK)
-- Web: `PACK RECAMBIOS LACER HIDRO NEGRO` → App: `PACK RECAMBIOS LACER HIDRO NEGRO` (OK)
-- Nuestra app tiene 2 extras no en la web: `IRRIGADOR LACER HIDRO` y `RECAMBIOS IRRIGADOR LACER HIDRO` (pueden mantenerse si son válidos)
-- **Accion: renombrar los 3 productos de Hidro para que coincidan con la web**
-
-### 2. Categoría LACER ALIGNER
-
-La web de referencia NO muestra la categoría `LACER ALIGNER` en `/es/marcas`. Es posible que sea una sección separada (tipo médico/profesional) o que se haya añadido internamente. Se deja como está por ahora — no hay acción requerida.
-
----
-
-## Plan de implementación (SQL puro, sin cambios de código)
-
-### Paso 1: Insertar LACER MUCOREPAIR COLUTORIO
-
-```sql
-INSERT INTO public.products (name, slug, category_id, is_active, is_visible, sort_order)
-SELECT 'LACER MUCOREPAIR COLUTORIO', 'lacer-mucorepair-colutorio', id, true, true, 1
-FROM public.categories WHERE slug = 'lacer-mucorepair';
-```
-
-### Paso 2: Reasignar GEL LACER INFANTIL a categoría LACER INFANTIL
-
-```sql
-UPDATE public.products
-SET category_id = (SELECT id FROM categories WHERE slug = 'lacer-infantil')
-WHERE slug = 'gel-lacer-infantil';
-```
-
-### Paso 3: Asignar los 3 productos de LACER EFFICARE a su categoría
-
-```sql
-UPDATE public.products
-SET category_id = (SELECT id FROM categories WHERE slug = 'lacer-efficare')
-WHERE slug IN ('lacer-efficare', 'recambios-lacer-efficare', 'recambios-encias-lacer-efficare');
-```
-
-### Paso 4: Reasignar SOFT PICKS 30 UDS a LACER PICKS INTERDENTAL y eliminar el duplicado
-
-```sql
--- Eliminar el duplicado
-DELETE FROM public.products WHERE slug = 'lacer-soft-picks-30-uds';
-
--- Reasignar el original
-UPDATE public.products
-SET category_id = (SELECT id FROM categories WHERE slug = 'lacer-picks-interdental')
-WHERE slug = 'soft-picks-30-uds';
-```
-
-### Paso 5: Renombrar productos LACER HIDRO para coincidir con la web
-
-```sql
-UPDATE public.products SET name = 'LACER HIDRO ADVANCED BLANCO' WHERE slug = 'irrigador-bucal-advanced-blanco';
-UPDATE public.products SET name = 'LACER HIDRO ADVANCED NEGRO' WHERE slug = 'irrigador-bucal-advanced-negro';
-UPDATE public.products SET name = 'LACER HIDRO PORTATIL INALAMBRICO' WHERE slug = 'irrigador-bucal-portatil-inalambrico';
-```
-
----
-
-## Resumen de cambios
-
-| Tipo | Descripción |
-|---|---|
-| INSERT | 1 producto nuevo: LACER MUCOREPAIR COLUTORIO |
-| UPDATE categoría | GEL LACER INFANTIL → de LACER JUNIOR a LACER INFANTIL |
-| UPDATE categoría | 3 productos de LACER EFFICARE → asignados a su categoría |
-| UPDATE categoría | SOFT PICKS 30 UDS → de LACER INTERDENTALES a LACER PICKS INTERDENTAL |
-| DELETE | LACER SOFT PICKS 30 UDS (duplicado) |
-| UPDATE nombre | 3 productos LACER HIDRO renombrados para coincidir con la web |
-
-No se requieren cambios de código — solo operaciones en la base de datos.
+## Resultado final
+- Bucket `product-images`: 19 imágenes nuevas añadidas, todas con nombre igual al slug del producto
+- Base de datos: 19 productos actualizados con URLs del bucket propio
+- CEPILLO LACER NATUR: ocultado de la app
+- Independencia total de la web de referencia
