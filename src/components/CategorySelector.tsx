@@ -185,7 +185,7 @@ export const CategorySelector = ({
                       <img
                         src={category.image_url}
                         alt={category.name}
-                        className="w-full h-full object-contain p-1"
+                        className="w-full h-full object-contain p-0.5"
                       />
                     ) : (
                       <span className="text-sm font-bold text-foreground text-center leading-tight px-2">
@@ -286,13 +286,13 @@ export const CategorySelector = ({
 
         {/* Categories Grid - Maximized logos */}
         <ScrollArea className="h-[calc(100vh-80px)]">
-          <div className="container mx-auto px-6 py-8">
+          <div className="container mx-auto px-4 py-4">
             {isLoading ? (
               <div className="flex items-center justify-center h-40">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
               </div>
             ) : (
-              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
                 {categoriesWithProducts.map((category, index) => (
                   <button
                     key={category.id}
@@ -304,7 +304,7 @@ export const CategorySelector = ({
                       <img
                         src={category.image_url}
                         alt={category.name}
-                        className="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform duration-200"
+                        className="w-full h-full object-contain p-1 group-hover:scale-105 transition-transform duration-200"
                       />
                     ) : (
                       <div className="w-full h-full bg-muted/50 flex items-center justify-center p-4">
