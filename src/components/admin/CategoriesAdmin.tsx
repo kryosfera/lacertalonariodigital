@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Loader2, GripVertical } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, GripVertical, Upload, X, ImageIcon } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -63,6 +63,7 @@ type Category = {
   name: string;
   slug: string;
   sort_order: number | null;
+  image_url: string | null;
 };
 
 function SortableCategoryRow({
@@ -96,6 +97,19 @@ function SortableCategoryRow({
           <GripVertical className="w-4 h-4" />
         </button>
       </TableCell>
+      <TableCell>
+        {category.image_url ? (
+          <img
+            src={category.image_url}
+            alt={category.name}
+            className="w-10 h-10 object-contain rounded border border-border bg-muted"
+          />
+        ) : (
+          <div className="w-10 h-10 rounded border border-border bg-muted flex items-center justify-center">
+            <ImageIcon className="w-4 h-4 text-muted-foreground" />
+          </div>
+        )}
+      </TableCell>
       <TableCell className="font-medium">{category.name}</TableCell>
       <TableCell className="text-muted-foreground">{category.slug}</TableCell>
       <TableCell>{category.sort_order ?? 0}</TableCell>
@@ -121,6 +135,11 @@ export function CategoriesAdmin() {
   const [deleteCategory, setDeleteCategory] = useState<Category | null>(null);
   const [localOrder, setLocalOrder] = useState<Category[] | null>(null);
 
+  // Image state
+  const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null); // current image_url (existing or newly uploaded)
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const form = useForm<CategoryFormData>({
@@ -133,7 +152,7 @@ export function CategoriesAdmin() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('categories')
-        .select('id, name, slug, sort_order')
+        .select('id, name, slug, sort_order, image_url')
         .order('sort_order')
         .order('name');
       if (error) throw error;
@@ -163,6 +182,7 @@ export function CategoriesAdmin() {
         name: data.name,
         slug: data.slug,
         sort_order: data.sort_order,
+        image_url: pendingImageUrl,
       };
 
       if (editingCategory) {
@@ -214,12 +234,14 @@ export function CategoriesAdmin() {
 
   const handleNew = () => {
     setEditingCategory(null);
+    setPendingImageUrl(null);
     form.reset({ name: '', slug: '', sort_order: 0 });
     setDialogOpen(true);
   };
 
   const handleEdit = (category: Category) => {
     setEditingCategory(category);
+    setPendingImageUrl(category.image_url);
     form.reset({
       name: category.name,
       slug: category.slug,
@@ -231,6 +253,7 @@ export function CategoriesAdmin() {
   const handleClose = () => {
     setDialogOpen(false);
     setEditingCategory(null);
+    setPendingImageUrl(null);
     form.reset();
   };
 
@@ -241,6 +264,51 @@ export function CategoriesAdmin() {
       .replace(/[\u0300-\u036f]/g, '')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '');
+  };
+
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const slug = form.getValues('slug');
+    if (!slug) {
+      toast({ title: 'Introduce primero el slug/URL de la categoría', variant: 'destructive' });
+      return;
+    }
+
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'png';
+    const filePath = `${slug}.${fileExt}`;
+
+    setIsUploadingImage(true);
+    try {
+      // Upsert: remove existing first, then upload
+      await supabase.storage.from('category-images').remove([filePath]);
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('category-images')
+        .upload(filePath, file, { upsert: true, contentType: file.type });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('category-images')
+        .getPublicUrl(uploadData.path);
+
+      // Add cache-busting to force reload
+      setPendingImageUrl(`${publicUrl}?t=${Date.now()}`);
+      toast({ title: 'Imagen subida correctamente' });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+      toast({ title: 'Error al subir imagen', description: message, variant: 'destructive' });
+    } finally {
+      setIsUploadingImage(false);
+      // Reset file input so same file can be re-selected
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setPendingImageUrl(null);
   };
 
   return (
@@ -267,6 +335,7 @@ export function CategoriesAdmin() {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-10"></TableHead>
+                <TableHead className="w-14">Imagen</TableHead>
                 <TableHead>Nombre</TableHead>
                 <TableHead>URL</TableHead>
                 <TableHead>Orden</TableHead>
@@ -278,7 +347,7 @@ export function CategoriesAdmin() {
                 <TableBody>
                   {displayCategories.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                      <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                         No hay categorías
                       </TableCell>
                     </TableRow>
@@ -353,11 +422,63 @@ export function CategoriesAdmin() {
                   </FormItem>
                 )}
               />
+
+              {/* Image upload section */}
+              <div className="space-y-2">
+                <p className="text-sm font-medium leading-none">Imagen</p>
+                {pendingImageUrl ? (
+                  <div className="relative inline-block">
+                    <img
+                      src={pendingImageUrl}
+                      alt="Vista previa"
+                      className="h-24 w-auto max-w-full object-contain rounded border border-border bg-muted p-2"
+                    />
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -top-2 -right-2 h-6 w-6"
+                      onClick={handleRemoveImage}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="h-24 w-full rounded border border-dashed border-border bg-muted flex items-center justify-center text-muted-foreground text-sm">
+                    Sin imagen
+                  </div>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageFileChange}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingImage}
+                >
+                  {isUploadingImage ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="mr-2 h-4 w-4" />
+                  )}
+                  {isUploadingImage ? 'Subiendo...' : 'Subir imagen'}
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  La imagen se sube al storage automáticamente al seleccionarla.
+                </p>
+              </div>
+
               <div className="flex justify-end gap-2 pt-4">
                 <Button type="button" variant="outline" onClick={handleClose}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={saveMutation.isPending}>
+                <Button type="submit" disabled={saveMutation.isPending || isUploadingImage}>
                   {saveMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {editingCategory ? 'Guardar' : 'Crear'}
                 </Button>
