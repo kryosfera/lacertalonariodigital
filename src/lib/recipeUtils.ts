@@ -168,34 +168,50 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
   const pageWidth = doc.internal.pageSize.getWidth();
   
   // Header con logo
-  doc.setFillColor(220, 38, 38); // Color rojo Lacer
-  doc.rect(0, 0, pageWidth, 40, "F");
-  
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(24);
-  doc.setFont("helvetica", "bold");
-  doc.text("LACER", 20, 25);
-  
-  doc.setFontSize(12);
-  doc.setFont("helvetica", "normal");
-  doc.text("Receta Digital", pageWidth - 20, 25, { align: "right" });
-  
+  // Fondo blanco para la cabecera
+  doc.setFillColor(255, 255, 255);
+  doc.rect(0, 0, pageWidth, 45, "F");
+  // Línea roja inferior del header
+  doc.setFillColor(220, 38, 38);
+  doc.rect(0, 42, pageWidth, 3, "F");
+
+  // Cargar logo como base64
+  try {
+    const logoResponse = await fetch(window.location.origin + '/lacer-logo-bocas_sanas.jpg');
+    if (logoResponse.ok) {
+      const logoBlob = await logoResponse.blob();
+      const logoDataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(logoBlob);
+      });
+      doc.addImage(logoDataUrl, 'JPEG', 8, 5, 90, 33);
+    }
+  } catch {
+    // Fallback: texto si no carga el logo
+    doc.setTextColor(220, 38, 38);
+    doc.setFontSize(22);
+    doc.setFont("helvetica", "bold");
+    doc.text("LACER", 20, 28);
+  }
+
   // QR Code in header if URL is provided
   if (recipeUrl) {
     const qrDataUrl = await generateQRCode(recipeUrl);
     if (qrDataUrl) {
-      // Add white background for QR
-      doc.setFillColor(255, 255, 255);
-      doc.roundedRect(pageWidth - 45, 5, 30, 30, 2, 2, "F");
-      doc.addImage(qrDataUrl, "PNG", pageWidth - 43, 7, 26, 26);
+      // Add light background for QR
+      doc.setFillColor(248, 248, 248);
+      doc.roundedRect(pageWidth - 45, 4, 32, 32, 2, 2, "F");
+      doc.addImage(qrDataUrl, "PNG", pageWidth - 43, 6, 28, 28);
     }
   }
-  
+
   // Reset color
   doc.setTextColor(0, 0, 0);
   
   // Info del paciente
-  let yPos = 55;
+  let yPos = 60;
   
   doc.setFontSize(10);
   doc.setTextColor(100, 100, 100);
