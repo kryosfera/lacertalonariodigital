@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Package, FolderTree, ArrowLeft, LogOut, Loader2, ImageIcon, RefreshCw } from 'lucide-react';
+import { Package, FolderTree, ArrowLeft, LogOut, Loader2, ImageIcon, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -13,8 +13,8 @@ const Admin = () => {
   const navigate = useNavigate();
   const { user, isAdmin, isLoading, signOut } = useAuth();
   const [isSyncing, setIsSyncing] = useState(false);
-
   const [isSyncingCategories, setIsSyncingCategories] = useState(false);
+  const [isCleaningUrls, setIsCleaningUrls] = useState(false);
 
   const handleSyncImages = async () => {
     setIsSyncing(true);
@@ -70,6 +70,25 @@ const Admin = () => {
     }
   };
 
+  const handleCleanExpiredUrls = async () => {
+    setIsCleaningUrls(true);
+    try {
+      const { data, error } = await supabase.rpc('cleanup_expired_short_urls');
+      if (error) throw error;
+      const count = data as number;
+      toast.success(
+        count === 0
+          ? 'No había URLs expiradas'
+          : `${count} URL${count !== 1 ? 's' : ''} expirada${count !== 1 ? 's' : ''} eliminada${count !== 1 ? 's' : ''}`,
+        { duration: 5000 }
+      );
+    } catch (error: any) {
+      toast.error(`Error al limpiar: ${error.message}`);
+    } finally {
+      setIsCleaningUrls(false);
+    }
+  };
+
   useEffect(() => {
     if (!isLoading && !user) {
       navigate('/auth');
@@ -117,7 +136,21 @@ const Admin = () => {
                 <p className="text-xs text-muted-foreground">Gestión de productos y categorías</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCleanExpiredUrls}
+                disabled={isCleaningUrls}
+                title="Limpiar URLs cortas expiradas"
+              >
+                {isCleaningUrls ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4 mr-2" />
+                )}
+                Limpiar URLs
+              </Button>
               <Button 
                 variant="outline" 
                 size="sm" 
