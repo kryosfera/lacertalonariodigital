@@ -1,48 +1,57 @@
 
-# Añadir nombre del producto en la cuadrícula del selector
+# Alta de 5 productos Lacer Aligner con imágenes
 
-## Objetivo
-Mostrar el nombre del producto debajo de cada imagen en la cuadrícula del `ProductSelector`, tanto en móvil como en escritorio, sin sacrificar el tamaño de la imagen.
+## Situación actual
+- La categoría **LACER ALIGNER** (id: `058c97e6-1649-46fc-b2d9-a3f6294e2eb3`) ya existe en la base de datos pero no tiene ningún producto asignado.
+- Las 5 imágenes de producto han sido subidas directamente por el usuario (las 2 imágenes de bodegón son de referencia, no se usarán como imagen de producto).
 
-## Problema actual
-Los botones de producto son cuadrados (`aspect-square`) y solo muestran la imagen. Si no hay imagen, aparece el nombre, pero si hay imagen, el nombre está totalmente oculto. El dentista debe recordar qué imagen corresponde a qué producto.
+## Productos a dar de alta
 
-## Solución propuesta
+| Nombre | C.N. (reference) | EAN | Slug | Imagen |
+|---|---|---|---|---|
+| LACER ALIGNER PASTA 125ml | 222127.7 | 8430340066961 | `lacer-aligner-pasta-125ml` | `6696_Lacer_Aligner_Pasta_Dentifrica_125ml_01.png` |
+| LACER ALIGNER COLUTORIO 500ml | 222128.4 | 8430340066985 | `lacer-aligner-colutorio-500ml` | `6698_Lacer_Aligner_Colutorio_500ml_01.png` |
+| LACER ALIGNER ESPUMA BUCAL 50ml | 222967.9 | 8430340067241 | `lacer-aligner-espuma-bucal-50ml` | `6724_Lacer_Aligner_Espuma_50ml_01.png` |
+| LACER ALIGNER SPRAY 30ml | 222932.7 | 8430340067005 | `lacer-aligner-spray-30ml` | `6700_Lacer_Aligner_Spray_30ml_01.png` |
+| LACER ALIGNER TABLETAS DESINFECTANTES | 223247.1 | 8430340067432 | `lacer-aligner-tabletas-desinfectantes` | `6743_Lacer_Aligner_Tabletas_Limpiadoras_32.png` |
 
-Cambiar la estructura de cada tarjeta de producto de cuadrado puro a **rectángulo vertical** (imagen arriba + nombre abajo), manteniendo la imagen lo más grande posible.
+## Pasos de implementación
 
-### Layout de cada tarjeta (ambas versiones):
+**Paso 1 — Copiar imágenes al proyecto**
 
-```text
-┌─────────────────┐
-│                 │
-│    [IMAGEN]     │  ← ~70-75% del alto de la tarjeta
-│                 │
-├─────────────────┤
-│  Nombre prod.   │  ← ~25-30% restante, texto pequeño, truncado a 2 líneas
-└─────────────────┘
+Las imágenes del usuario se copian desde `user-uploads://` a `public/products/` con nombres de slug:
+- `lacer-aligner-pasta-125ml.png`
+- `lacer-aligner-colutorio-500ml.png`
+- `lacer-aligner-espuma-bucal-50ml.png`
+- `lacer-aligner-spray-30ml.png`
+- `lacer-aligner-tabletas-desinfectantes.png`
+
+**Paso 2 — Subir imágenes al bucket `product-images`**
+
+Usando la Edge Function `sync-product-images` o directamente mediante el cliente de almacenamiento, las 5 imágenes se suben al bucket con los nombres de slug correspondientes.
+
+**Paso 3 — Insertar los 5 productos en la base de datos**
+
+```sql
+INSERT INTO public.products (
+  name, slug, category_id, reference, ean,
+  thumbnail_url, main_image_url,
+  is_active, is_visible, sort_order
+) VALUES
+(
+  'LACER ALIGNER PASTA 125ml',
+  'lacer-aligner-pasta-125ml',
+  '058c97e6-1649-46fc-b2d9-a3f6294e2eb3',
+  '222127.7', '8430340066961',
+  '[bucket-url]/lacer-aligner-pasta-125ml.png',
+  '[bucket-url]/lacer-aligner-pasta-125ml.png',
+  true, true, 0
+),
+-- ... (4 productos más)
 ```
 
-## Cambios técnicos — solo en `src/components/ProductSelector.tsx`
-
-### Versión móvil
-- Cambiar el botón de `flex items-center justify-center` + `aspect-square` a `flex flex-col` con altura fija proporcional (o `aspect-[3/4]`).
-- Imagen ocupa la parte superior: `flex-1 w-full object-contain`.
-- Nombre debajo: texto `text-[10px]` centrado, `line-clamp-2`, con fondo blanco semitransparente o separado visualmente.
-- La cuadrícula puede pasar de 3 cols a 2 cols en móvil cuando hay pocos productos para que el nombre sea más legible.
-
-### Versión escritorio
-- Quitar `aspect-square` del botón y usar `flex flex-col` con `aspect-[3/4]` (más vertical).
-- Imagen: `flex-1 w-full object-contain p-2`.
-- Nombre debajo: `text-xs font-medium text-center line-clamp-2 px-2 pb-2 text-foreground`.
-- La cuadrícula de escritorio reduce de `xl:grid-cols-8` a `xl:grid-cols-6` (más tarjetas más anchas = nombre más legible).
-
-## Resultado visual esperado
-
-- **Móvil**: cada tarjeta muestra imagen en ~70% superior y nombre en ~30% inferior, 2-3 columnas según cantidad de productos.
-- **Escritorio**: tarjetas verticales con imagen grande y nombre visible en la parte inferior, cuadrícula menos densa pero más identificable.
-- El indicador de selección (check circular) y el comportamiento de selección no cambian.
-- No hay cambios en la lógica ni en la base de datos.
-
-## Archivos a modificar
-- `src/components/ProductSelector.tsx` — únicamente la estructura HTML/CSS de los botones de producto (móvil y escritorio).
+## Resultado final
+- 5 productos nuevos en la categoría LACER ALIGNER
+- Imágenes en el bucket propio (sin dependencia externa)
+- Campos `reference` (C.N.) y `ean` correctamente asignados para la dispensación en farmacia con escáner
+- Los productos aparecerán en el selector del talonario digital al seleccionar la categoría LACER ALIGNER
