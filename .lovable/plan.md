@@ -1,57 +1,48 @@
 
-# Plan: Descargar imágenes al bucket y actualizar productos
+# Añadir nombre del producto en la cuadrícula del selector
 
 ## Objetivo
-Tener todas las imágenes de producto alojadas en el bucket propio `product-images`, sin depender de URLs externas de `lacertalonariodigital.com`. Así podrás cerrar la web de referencia sin perder ninguna imagen.
+Mostrar el nombre del producto debajo de cada imagen en la cuadrícula del `ProductSelector`, tanto en móvil como en escritorio, sin sacrificar el tamaño de la imagen.
 
-## Estado actual
-- 20 productos activos **sin imagen** en la base de datos
-- Los productos que ya tienen imagen usan URLs del bucket propio (`wvqqoigrslatxnbykcji.supabase.co/storage/v1/object/public/product-images/...`)
-- Hay 8 imágenes ya en `public/products/` (formato CN numérico)
+## Problema actual
+Los botones de producto son cuadrados (`aspect-square`) y solo muestran la imagen. Si no hay imagen, aparece el nombre, pero si hay imagen, el nombre está totalmente oculto. El dentista debe recordar qué imagen corresponde a qué producto.
 
-## Estrategia
+## Solución propuesta
 
-Para cada uno de los 20 productos sin imagen:
-1. Descargar la imagen desde `lacertalonariodigital.com/archivos/` usando la herramienta de fetch
-2. Subirla al bucket `product-images` con un nombre descriptivo (usando el slug del producto)
-3. Actualizar `thumbnail_url` y `main_image_url` en la base de datos con la URL pública del bucket
+Cambiar la estructura de cada tarjeta de producto de cuadrado puro a **rectángulo vertical** (imagen arriba + nombre abajo), manteniendo la imagen lo más grande posible.
 
-Para **CEPILLO LACER NATUR** (no aparece en la web de referencia): se marcará como `is_visible = false` para ocultarlo de la app.
+### Layout de cada tarjeta (ambas versiones):
 
-## Mapa completo: 19 productos → imagen a descargar
+```text
+┌─────────────────┐
+│                 │
+│    [IMAGEN]     │  ← ~70-75% del alto de la tarjeta
+│                 │
+├─────────────────┤
+│  Nombre prod.   │  ← ~25-30% restante, texto pequeño, truncado a 2 líneas
+└─────────────────┘
+```
 
-| Producto | Archivo origen (referencia) | Nombre en bucket |
-|---|---|---|
-| CEPILLO GINGILACER CABEZAL PEQUEÑO | `1685605cdlcabezalpequenogingilacer_v2-p.jpg` | `cepillo-gingilacer-cabezal-pequeno.jpg` |
-| CEPILLO LACER MEDIO CABEZAL PEQUEÑO | `1685582cdlcabezalpequenomedio_v2-p.jpg` | `cepillo-lacer-medio-cabezal-pequeno.jpg` |
-| CERA ORTOLACER | `1639455-cera-ortolacer-7-barras-p.jpg` | `cera-ortolacer.jpg` |
-| CLORHEXIDINA COLUTORIO 0,2% | `5418_clorhexidina_lacer_colutorio_02_500ml-600x600.png` | `clorhexidina-colutorio-02.png` |
-| CLORHEXIDINA GEL DENTÍFRICO BIOAD 50ml | `3546058-clorhexidina-lacer-gel-bioadhesivo-50ml-p.jpg` | `clorhexidina-gel-dentifico-bioad-50ml.jpg` |
-| CLORHEXIDINA SPRAY | `2477421-clorhexidina-lacer-spray-40-ml-p.jpg` | `clorhexidina-spray.jpg` |
-| LACER COLUTORIO | `2057654_colutorio-lacer-500-ml-p.jpg` | `lacer-colutorio.jpg` |
-| LACER GEL DENTÍFRICO | `1748669-gel-dental-lacer-125-ml-p.jpg` | `lacer-gel-dentifrico.jpg` |
-| LACER PASTA DENTRÍFICA | `3918473-pasta-dentifrica-lacer-125-ml-p.jpg` | `lacer-pasta-dentifrica.jpg` |
-| LACER HIDRO ADVANCED BLANCO | `2126190lacerhidroadvancedblanco-p.jpg` | `lacer-hidro-advanced-blanco.jpg` |
-| LACER HIDRO ADVANCED NEGRO | `2126190lacerhidroadvancednegro-p.jpg` | `lacer-hidro-advanced-negro.jpg` |
-| LACER HIDRO PORTATIL INALAMBRICO | `2126206lacerhidroportatilinalambrico-p.jpg` | `lacer-hidro-portatil-inalambrico.jpg` |
-| PACK RECAMBIOS HIDRO ADVANCED BLANCO | `2126220packrecambioslacerhidroadvancedblanco-p.jpg` | `pack-recambios-lacer-hidro-advanced-blanco.jpg` |
-| PACK RECAMBIOS HIDRO NEGRO | `2126220packrecambioslacerhidronegro-p.jpg` | `pack-recambios-lacer-hidro-negro.jpg` |
-| LACER INTERDENTAL ANGULAR CONICO | `1505255_cil_angular-conico-p.jpg` | `lacer-interdental-angular-conico.jpg` |
-| LACER MUCOREPAIR COLUTORIO | `mucorepair-600x600.png` | `lacer-mucorepair-colutorio.png` |
-| LACERBLANC PAINT ON | `1625724-lacerblanc-pincel-blanqueador-p.jpg` | `lacerblanc-paint-on.jpg` |
-| LACERBLANC WHITE FLASH | `1932488-lacerblanc-white-flash-p.jpg` | `lacerblanc-white-flash.jpg` |
-| SENSILACER PASTA | `sensilacerpasta125mlref2083554-p.png` | `sensilacer-pasta.png` |
+## Cambios técnicos — solo en `src/components/ProductSelector.tsx`
 
-## Pasos de implementación
+### Versión móvil
+- Cambiar el botón de `flex items-center justify-center` + `aspect-square` a `flex flex-col` con altura fija proporcional (o `aspect-[3/4]`).
+- Imagen ocupa la parte superior: `flex-1 w-full object-contain`.
+- Nombre debajo: texto `text-[10px]` centrado, `line-clamp-2`, con fondo blanco semitransparente o separado visualmente.
+- La cuadrícula puede pasar de 3 cols a 2 cols en móvil cuando hay pocos productos para que el nombre sea más legible.
 
-**Paso 1:** Descargar cada imagen de la web de referencia y guardarla en `public/products/` con el nombre del slug del producto (igual que el patrón de los 8 archivos ya existentes).
+### Versión escritorio
+- Quitar `aspect-square` del botón y usar `flex flex-col` con `aspect-[3/4]` (más vertical).
+- Imagen: `flex-1 w-full object-contain p-2`.
+- Nombre debajo: `text-xs font-medium text-center line-clamp-2 px-2 pb-2 text-foreground`.
+- La cuadrícula de escritorio reduce de `xl:grid-cols-8` a `xl:grid-cols-6` (más tarjetas más anchas = nombre más legible).
 
-**Paso 2:** Subir cada imagen al bucket `product-images` mediante la Edge Function `sync-product-images` o actualizando directamente la base de datos con las nuevas URLs del bucket propio.
+## Resultado visual esperado
 
-**Paso 3:** Ejecutar SQL para actualizar `thumbnail_url` y `main_image_url` en los 19 productos, y `is_visible = false` en CEPILLO LACER NATUR.
+- **Móvil**: cada tarjeta muestra imagen en ~70% superior y nombre en ~30% inferior, 2-3 columnas según cantidad de productos.
+- **Escritorio**: tarjetas verticales con imagen grande y nombre visible en la parte inferior, cuadrícula menos densa pero más identificable.
+- El indicador de selección (check circular) y el comportamiento de selección no cambian.
+- No hay cambios en la lógica ni en la base de datos.
 
-## Resultado final
-- Bucket `product-images`: 19 imágenes nuevas añadidas, todas con nombre igual al slug del producto
-- Base de datos: 19 productos actualizados con URLs del bucket propio
-- CEPILLO LACER NATUR: ocultado de la app
-- Independencia total de la web de referencia
+## Archivos a modificar
+- `src/components/ProductSelector.tsx` — únicamente la estructura HTML/CSS de los botones de producto (móvil y escritorio).
