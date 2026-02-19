@@ -279,6 +279,13 @@ export type Database = {
             referencedRelation: "patients"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "recipes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients_with_stats"
+            referencedColumns: ["id"]
+          },
         ]
       }
       short_urls: {
@@ -328,9 +335,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      patients_with_stats: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string | null
+          last_recipe_date: string | null
+          name: string | null
+          notes: string | null
+          phone: string | null
+          recipe_count: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      cleanup_expired_short_urls: { Args: never; Returns: number }
       generate_recipe_code: { Args: never; Returns: string }
       generate_short_code: { Args: never; Returns: string }
       has_role: {

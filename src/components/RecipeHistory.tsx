@@ -3,9 +3,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Download, Eye, Mail, MessageSquare, Calendar, Loader2, FileText } from "lucide-react";
+import { Search, Download, Mail, MessageSquare, Calendar, Loader2, FileText, ChevronDown } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useRecipes, Recipe } from "@/hooks/useRecipes";
+import { useRecipes, Recipe, PAGE_SIZE } from "@/hooks/useRecipes";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { downloadPDF } from "@/lib/recipeUtils";
@@ -14,7 +14,32 @@ import { toast } from "sonner";
 export const RecipeHistory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSentVia, setFilterSentVia] = useState("all");
-  const { data: recipes = [], isLoading, error } = useRecipes();
+  const [page, setPage] = useState(0);
+  const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
+
+  const { data, isLoading, error, isFetching } = useRecipes(page);
+
+  // Accumulate recipes across pages
+  const currentPageRecipes = data?.recipes ?? [];
+  const hasMore = data?.hasMore ?? false;
+
+  // Merge new page into accumulated list (avoid duplicates by id)
+  const accumulatedIds = new Set(allRecipes.map(r => r.id));
+  const mergedRecipes = [
+    ...allRecipes,
+    ...currentPageRecipes.filter(r => !accumulatedIds.has(r.id))
+  ];
+
+  const handleLoadMore = () => {
+    // Update accumulated list before changing page
+    const currentIds = new Set(allRecipes.map(r => r.id));
+    const newOnes = currentPageRecipes.filter(r => !currentIds.has(r.id));
+    setAllRecipes(prev => [...prev, ...newOnes]);
+    setPage(p => p + 1);
+  };
+
+  // Use merged list for display
+  const displayRecipes = page === 0 ? currentPageRecipes : mergedRecipes;
 
   const getStatusBadge = (sentVia: string | null) => {
     const variants: Record<string, { label: string; className: string }> = {
@@ -37,12 +62,8 @@ export const RecipeHistory = () => {
         </div>
       );
     }
-    if (via === "email") {
-      return <Mail className="w-4 h-4 text-primary" />;
-    }
-    if (via === "whatsapp") {
-      return <MessageSquare className="w-4 h-4 text-[#25D366]" />;
-    }
+    if (via === "email") return <Mail className="w-4 h-4 text-primary" />;
+    if (via === "whatsapp") return <MessageSquare className="w-4 h-4 text-[#25D366]" />;
     return <FileText className="w-4 h-4 text-muted-foreground" />;
   };
 
@@ -62,12 +83,12 @@ export const RecipeHistory = () => {
         notes: recipe.notes || ""
       });
       toast.success("PDF descargado");
-    } catch (error) {
+    } catch {
       toast.error("Error al generar el PDF");
     }
   };
 
-  const filteredRecipes = recipes.filter((recipe) => {
+  const filteredRecipes = displayRecipes.filter((recipe) => {
     const matchesSearch =
       recipe.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       recipe.id.toLowerCase().includes(searchTerm.toLowerCase());
@@ -123,7 +144,7 @@ export const RecipeHistory = () => {
         </CardContent>
       </Card>
 
-      {isLoading ? (
+      {isLoading && page === 0 ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
         </div>
@@ -180,8 +201,8 @@ export const RecipeHistory = () => {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => handleDownloadPDF(recipe)}
                     >
@@ -193,6 +214,30 @@ export const RecipeHistory = () => {
               </CardContent>
             </Card>
           ))}
+
+          {hasMore && (
+            <div className="flex justify-center pt-2">
+              <Button
+                variant="outline"
+                onClick={handleLoadMore}
+                disabled={isFetching}
+                className="gap-2"
+              >
+                {isFetching ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <ChevronDown className="w-4 h-4" />
+                )}
+                {isFetching ? "Cargando..." : `Cargar más (${PAGE_SIZE} por página)`}
+              </Button>
+            </div>
+          )}
+
+          {!hasMore && displayRecipes.length > PAGE_SIZE && (
+            <p className="text-center text-sm text-muted-foreground py-2">
+              Has visto todas las recetas
+            </p>
+          )}
         </div>
       )}
     </div>

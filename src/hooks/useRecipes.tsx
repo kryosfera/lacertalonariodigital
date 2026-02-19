@@ -32,23 +32,28 @@ export interface CreateRecipeData {
   sent_via: 'whatsapp' | 'email' | 'both' | 'pdf' | 'print';
 }
 
-export function useRecipes() {
+const PAGE_SIZE = 20;
+
+export function useRecipes(page = 0) {
   const { user } = useAuth();
+  const from = page * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
 
   return useQuery({
-    queryKey: ['recipes', user?.id],
-    queryFn: async (): Promise<Recipe[]> => {
-      if (!user) return [];
+    queryKey: ['recipes', user?.id, page],
+    queryFn: async (): Promise<{ recipes: Recipe[]; hasMore: boolean }> => {
+      if (!user) return { recipes: [], hasMore: false };
 
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from('recipes')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .range(from, to);
 
       if (error) throw error;
 
-      return (data || []).map(recipe => ({
+      const recipes = (data || []).map(recipe => ({
         id: recipe.id,
         user_id: recipe.user_id,
         patient_id: recipe.patient_id,
@@ -59,10 +64,16 @@ export function useRecipes() {
         recipe_code: recipe.recipe_code,
         products: (recipe.products as unknown as RecipeProduct[]) || []
       }));
+
+      const hasMore = count ? from + PAGE_SIZE < count : false;
+      return { recipes, hasMore };
     },
-    enabled: !!user
+    enabled: !!user,
+    staleTime: 30 * 1000, // 30 seconds — recipes are more dynamic
   });
 }
+
+export { PAGE_SIZE };
 
 export function useCreateRecipe() {
   const { user } = useAuth();

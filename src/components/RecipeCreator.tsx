@@ -89,6 +89,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       if (error) throw error;
       return data;
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes — templates change rarely
   });
 
   // Fetch products
@@ -106,6 +107,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       if (error) throw error;
       return data as Product[];
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes — products change rarely
   });
 
   // Count products per category
