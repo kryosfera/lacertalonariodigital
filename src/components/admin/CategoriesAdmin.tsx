@@ -1,9 +1,24 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Loader2, GripVertical } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+  useSortable,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,12 +65,63 @@ type Category = {
   sort_order: number | null;
 };
 
+function SortableCategoryRow({
+  category,
+  onEdit,
+  onDelete,
+}: {
+  category: Category;
+  onEdit: (c: Category) => void;
+  onDelete: (c: Category) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: category.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <TableRow ref={setNodeRef} style={style}>
+      <TableCell>
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing p-1 text-muted-foreground hover:text-foreground"
+          aria-label="Reordenar"
+        >
+          <GripVertical className="w-4 h-4" />
+        </button>
+      </TableCell>
+      <TableCell className="font-medium">{category.name}</TableCell>
+      <TableCell className="text-muted-foreground">{category.slug}</TableCell>
+      <TableCell>{category.sort_order ?? 0}</TableCell>
+      <TableCell className="text-right">
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" size="sm" onClick={() => onEdit(category)}>
+            <Pencil className="w-4 h-4" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => onDelete(category)}>
+            <Trash2 className="w-4 h-4 text-destructive" />
+          </Button>
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+}
+
 export function CategoriesAdmin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deleteCategory, setDeleteCategory] = useState<Category | null>(null);
+  const [localOrder, setLocalOrder] = useState<Category[] | null>(null);
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   const form = useForm<CategoryFormData>({
     resolver: zodResolver(categorySchema),
@@ -71,7 +137,23 @@ export function CategoriesAdmin() {
         .order('sort_order')
         .order('name');
       if (error) throw error;
+      setLocalOrder(null);
       return data as Category[];
+    },
+  });
+
+  const reorderMutation = useMutation({
+    mutationFn: async (reordered: Category[]) => {
+      const updates = reordered.map((c, i) =>
+        supabase.from('categories').update({ sort_order: i }).eq('id', c.id)
+      );
+      await Promise.all(updates);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
+    },
+    onError: () => {
+      toast({ title: 'Error al guardar el orden', variant: 'destructive' });
     },
   });
 
@@ -116,6 +198,20 @@ export function CategoriesAdmin() {
     },
   });
 
+  const displayCategories = localOrder ?? categories ?? [];
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = displayCategories.findIndex((c) => c.id === active.id);
+    const newIndex = displayCategories.findIndex((c) => c.id === over.id);
+    const reordered = arrayMove(displayCategories, oldIndex, newIndex);
+
+    setLocalOrder(reordered);
+    reorderMutation.mutate(reordered);
+  };
+
   const handleNew = () => {
     setEditingCategory(null);
     form.reset({ name: '', slug: '', sort_order: 0 });
@@ -157,6 +253,9 @@ export function CategoriesAdmin() {
             Nueva Categoría
           </Button>
         </div>
+        <p className="text-xs text-muted-foreground mt-1">
+          Arrastra las filas para cambiar el orden de visualización.
+        </p>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -167,39 +266,35 @@ export function CategoriesAdmin() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10"></TableHead>
                 <TableHead>Nombre</TableHead>
                 <TableHead>URL</TableHead>
                 <TableHead>Orden</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {categories?.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
-                    No hay categorías
-                  </TableCell>
-                </TableRow>
-              ) : (
-                categories?.map((category) => (
-                  <TableRow key={category.id}>
-                    <TableCell className="font-medium">{category.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{category.slug}</TableCell>
-                    <TableCell>{category.sort_order || 0}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(category)}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="sm" onClick={() => setDeleteCategory(category)}>
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={displayCategories.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+                <TableBody>
+                  {displayCategories.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                        No hay categorías
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    displayCategories.map((category) => (
+                      <SortableCategoryRow
+                        key={category.id}
+                        category={category}
+                        onEdit={handleEdit}
+                        onDelete={setDeleteCategory}
+                      />
+                    ))
+                  )}
+                </TableBody>
+              </SortableContext>
+            </DndContext>
           </Table>
         )}
       </CardContent>
