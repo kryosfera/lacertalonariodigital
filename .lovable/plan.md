@@ -1,57 +1,70 @@
 
-# Alta de 5 productos Lacer Aligner con imágenes
+# Usar el nuevo logo "Talonario Digital / Bocas Sanas" en categorías, PDF y WhatsApp
 
-## Situación actual
-- La categoría **LACER ALIGNER** (id: `058c97e6-1649-46fc-b2d9-a3f6294e2eb3`) ya existe en la base de datos pero no tiene ningún producto asignado.
-- Las 5 imágenes de producto han sido subidas directamente por el usuario (las 2 imágenes de bodegón son de referencia, no se usarán como imagen de producto).
+## Qué cambia y dónde
 
-## Productos a dar de alta
+El logo subido (`lacer-logo-bocas_sanas-2.jpg`) reemplaza o complementa los logos actuales en tres sitios:
 
-| Nombre | C.N. (reference) | EAN | Slug | Imagen |
-|---|---|---|---|---|
-| LACER ALIGNER PASTA 125ml | 222127.7 | 8430340066961 | `lacer-aligner-pasta-125ml` | `6696_Lacer_Aligner_Pasta_Dentifrica_125ml_01.png` |
-| LACER ALIGNER COLUTORIO 500ml | 222128.4 | 8430340066985 | `lacer-aligner-colutorio-500ml` | `6698_Lacer_Aligner_Colutorio_500ml_01.png` |
-| LACER ALIGNER ESPUMA BUCAL 50ml | 222967.9 | 8430340067241 | `lacer-aligner-espuma-bucal-50ml` | `6724_Lacer_Aligner_Espuma_50ml_01.png` |
-| LACER ALIGNER SPRAY 30ml | 222932.7 | 8430340067005 | `lacer-aligner-spray-30ml` | `6700_Lacer_Aligner_Spray_30ml_01.png` |
-| LACER ALIGNER TABLETAS DESINFECTANTES | 223247.1 | 8430340067432 | `lacer-aligner-tabletas-desinfectantes` | `6743_Lacer_Aligner_Tabletas_Limpiadoras_32.png` |
+### 1. Pantalla de categorías (escritorio) — `CategorySelector.tsx`
+El header de escritorio actualmente carga el logo desde una URL externa de `lacer.es`. Se reemplaza por el nuevo logo importado como asset local.
 
-## Pasos de implementación
+### 2. Cabecera del PDF — `recipeUtils.ts`
+El PDF actualmente dibuja solo el texto "LACER" en blanco sobre fondo rojo. Se añade el logo como imagen incrustada en el PDF. Para ello hay que:
+- Guardar el logo también en `public/` con un nombre accesible vía URL absoluta
+- En `generateRecipePDF`, hacer un `fetch` del logo, convertirlo a base64, y añadirlo con `doc.addImage()`
+- El fondo rojo se mantiene; el logo va encima alineado a la izquierda, el texto "TALONARIO DIGITAL" a la derecha, el QR en la esquina
 
-**Paso 1 — Copiar imágenes al proyecto**
+### 3. Imagen de previsualización en WhatsApp (og:image) — `index.html`
+WhatsApp usa el `og:image` del HTML para mostrar una miniatura cuando se comparte un enlace. El logo se guarda en `public/` y se referencia en la meta tag.
 
-Las imágenes del usuario se copian desde `user-uploads://` a `public/products/` con nombres de slug:
-- `lacer-aligner-pasta-125ml.png`
-- `lacer-aligner-colutorio-500ml.png`
-- `lacer-aligner-espuma-bucal-50ml.png`
-- `lacer-aligner-spray-30ml.png`
-- `lacer-aligner-tabletas-desinfectantes.png`
+## Archivos afectados
 
-**Paso 2 — Subir imágenes al bucket `product-images`**
+| Archivo | Cambio |
+|---|---|
+| `src/assets/lacer-logo-bocas_sanas.jpg` | Nuevo asset (copiado desde user-uploads) |
+| `public/lacer-logo-bocas_sanas.jpg` | Copia en public para og:image y PDF fetch |
+| `src/components/CategorySelector.tsx` | Reemplazar URL externa del logo en header desktop por import local |
+| `src/lib/recipeUtils.ts` | Añadir logo como imagen en la cabecera del PDF |
+| `index.html` | Actualizar `og:image` y `twitter:image` al nuevo logo |
 
-Usando la Edge Function `sync-product-images` o directamente mediante el cliente de almacenamiento, las 5 imágenes se suben al bucket con los nombres de slug correspondientes.
+## Detalles técnicos
 
-**Paso 3 — Insertar los 5 productos en la base de datos**
+### CategorySelector.tsx (línea ~247)
+```tsx
+// Antes:
+<img src="https://www.lacer.es/themes/custom/flavor/logo.svg" alt="Lacer" className="h-8 brightness-0 invert" />
 
-```sql
-INSERT INTO public.products (
-  name, slug, category_id, reference, ean,
-  thumbnail_url, main_image_url,
-  is_active, is_visible, sort_order
-) VALUES
-(
-  'LACER ALIGNER PASTA 125ml',
-  'lacer-aligner-pasta-125ml',
-  '058c97e6-1649-46fc-b2d9-a3f6294e2eb3',
-  '222127.7', '8430340066961',
-  '[bucket-url]/lacer-aligner-pasta-125ml.png',
-  '[bucket-url]/lacer-aligner-pasta-125ml.png',
-  true, true, 0
-),
--- ... (4 productos más)
+// Después:
+import lacerLogoBocasSanas from "@/assets/lacer-logo-bocas_sanas.jpg";
+// ...
+<img src={lacerLogoBocasSanas} alt="Lacer Talonario Digital" className="h-10 object-contain" />
 ```
 
-## Resultado final
-- 5 productos nuevos en la categoría LACER ALIGNER
-- Imágenes en el bucket propio (sin dependencia externa)
-- Campos `reference` (C.N.) y `ean` correctamente asignados para la dispensación en farmacia con escáner
-- Los productos aparecerán en el selector del talonario digital al seleccionar la categoría LACER ALIGNER
+### recipeUtils.ts — cabecera del PDF
+```typescript
+// Fetch del logo y conversión a base64
+const logoResponse = await fetch(window.location.origin + '/lacer-logo-bocas_sanas.jpg');
+const logoBlob = await logoResponse.blob();
+const logoDataUrl = await new Promise<string>((resolve) => {
+  const reader = new FileReader();
+  reader.onload = () => resolve(reader.result as string);
+  reader.readAsDataURL(logoBlob);
+});
+// Cabecera blanca en lugar de fondo rojo entero
+doc.setFillColor(255, 255, 255);
+doc.rect(0, 0, pageWidth, 40, "F");
+// Logo: alto del header = 40mm, logo ocupa ~30mm de alto centrado
+doc.addImage(logoDataUrl, 'JPEG', 10, 5, 80, 30);
+```
+
+### index.html
+```html
+<meta property="og:image" content="/lacer-logo-bocas_sanas.jpg" />
+<meta name="twitter:image" content="/lacer-logo-bocas_sanas.jpg" />
+```
+
+## Resultado esperado
+
+- **Categorías escritorio**: el header muestra el logo oficial "Talonario Digital · Bocas Sanas" en lugar del logo anterior de lacer.es
+- **PDF**: la cabecera lleva el logo visual en lugar del texto "LACER" simple; más profesional y reconocible
+- **WhatsApp/redes**: al compartir el enlace de la receta, la miniatura de previsualización muestra el logo oficial
