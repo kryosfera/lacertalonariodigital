@@ -38,42 +38,30 @@ export function usePatients() {
     queryFn: async (): Promise<Patient[]> => {
       if (!user) return [];
 
-      // Fetch patients
-      const { data: patients, error } = await supabase
-        .from('patients')
+      // Single query using the patients_with_stats view (eliminates N+1)
+      const { data, error } = await supabase
+        .from('patients_with_stats' as 'patients')
         .select('*')
         .eq('user_id', user.id)
         .order('name', { ascending: true });
 
       if (error) throw error;
 
-      // Fetch recipe counts and last recipe date for each patient
-      const patientsWithStats = await Promise.all(
-        (patients || []).map(async (patient) => {
-          const { count } = await supabase
-            .from('recipes')
-            .select('*', { count: 'exact', head: true })
-            .eq('patient_id', patient.id);
-
-          const { data: lastRecipe } = await supabase
-            .from('recipes')
-            .select('created_at')
-            .eq('patient_id', patient.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          return {
-            ...patient,
-            recipe_count: count || 0,
-            last_recipe_date: lastRecipe?.created_at || null
-          };
-        })
-      );
-
-      return patientsWithStats;
+      return (data || []).map((p: Record<string, unknown>) => ({
+        id: p.id as string,
+        user_id: p.user_id as string,
+        name: p.name as string,
+        phone: p.phone as string | null,
+        email: p.email as string | null,
+        notes: p.notes as string | null,
+        created_at: p.created_at as string,
+        updated_at: p.updated_at as string,
+        recipe_count: (p.recipe_count as number) || 0,
+        last_recipe_date: (p.last_recipe_date as string) || null,
+      }));
     },
-    enabled: !!user
+    enabled: !!user,
+    staleTime: 2 * 60 * 1000, // 2 minutes — patients change more often than products
   });
 }
 
