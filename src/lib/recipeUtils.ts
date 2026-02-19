@@ -370,7 +370,13 @@ export const generateEmailContent = (data: RecipeData, recipeUrl?: string): { su
 };
 
 // Abre WhatsApp con el mensaje y URL de receta
-export const sendViaWhatsApp = (data: RecipeData, phoneNumber?: string, recipeUrl?: string): void => {
+// targetWindow: ventana pre-abierta sincrónicamente (necesario en iOS Safari para evitar popup blocker)
+export const sendViaWhatsApp = (
+  data: RecipeData,
+  phoneNumber?: string,
+  recipeUrl?: string,
+  targetWindow?: Window | null
+): void => {
   const message = generateWhatsAppMessage(data, recipeUrl);
   const encodedMessage = encodeURIComponent(message);
   
@@ -381,7 +387,12 @@ export const sendViaWhatsApp = (data: RecipeData, phoneNumber?: string, recipeUr
   }
   url += `?text=${encodedMessage}`;
   
-  window.open(url, "_blank");
+  if (targetWindow) {
+    // Redirigir la ventana ya abierta (funciona en iOS Safari sin activar el popup blocker)
+    targetWindow.location.href = url;
+  } else {
+    window.open(url, "_blank");
+  }
 };
 
 // Abre cliente de email
