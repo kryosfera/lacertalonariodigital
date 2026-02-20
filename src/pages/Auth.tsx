@@ -85,7 +85,7 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-secondary/5 via-background to-secondary/10 p-4 relative">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-secondary/5 via-background to-secondary/10 p-4 relative pt-safe">
       <Button
         variant="ghost"
         size="sm"

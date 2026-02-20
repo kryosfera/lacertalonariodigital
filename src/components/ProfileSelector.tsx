@@ -21,7 +21,7 @@ export const ProfileSelector = ({ onSelectMode }: ProfileSelectorProps) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-background z-50 flex flex-col">
+    <div className="fixed inset-0 bg-background z-50 flex flex-col pt-safe">
       <div className="w-full max-w-2xl mx-auto px-4 py-4 md:py-8 flex flex-col justify-between md:justify-center h-full gap-3 md:gap-6">
         {/* Logo and Header */}
         <div className="text-center space-y-1 md:space-y-4">
