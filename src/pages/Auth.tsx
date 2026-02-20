@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, Lock, Loader2 } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -85,7 +85,19 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-secondary/5 via-background to-secondary/10 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-secondary/5 via-background to-secondary/10 p-4 relative">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="absolute top-4 left-4 text-muted-foreground hover:text-foreground"
+        onClick={() => {
+          localStorage.removeItem('lacer_user_mode');
+          navigate('/');
+        }}
+      >
+        <ArrowLeft className="mr-1 h-4 w-4" />
+        Volver
+      </Button>
       <Card className="w-full max-w-md border-secondary/20 shadow-xl">
         <CardHeader className="text-center pb-2">
           <div className="mx-auto w-20 h-20 rounded-2xl bg-white shadow-lg flex items-center justify-center mb-4 border border-secondary/10">
