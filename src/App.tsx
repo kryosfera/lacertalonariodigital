@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,15 +11,17 @@ import { CookieConsentProvider } from "@/hooks/useCookieConsent";
 import { SplashScreen } from "@/components/SplashScreen";
 import { CookieBanner } from "@/components/CookieBanner";
 import { CookiePreferences } from "@/components/CookiePreferences";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import Admin from "./pages/Admin";
-import Recipe from "./pages/Recipe";
-import ShortRecipe from "./pages/ShortRecipe";
-import CookiePolicy from "./pages/CookiePolicy";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import LegalNotice from "./pages/LegalNotice";
-import NotFound from "./pages/NotFound";
+
+// Lazy-loaded route pages for code splitting
+const Index = lazy(() => import("./pages/Index"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Recipe = lazy(() => import("./pages/Recipe"));
+const ShortRecipe = lazy(() => import("./pages/ShortRecipe"));
+const CookiePolicy = lazy(() => import("./pages/CookiePolicy"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const LegalNotice = lazy(() => import("./pages/LegalNotice"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -41,18 +43,20 @@ const App = () => {
                 <CookieBanner />
                 <CookiePreferences />
                 <BrowserRouter>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/admin" element={<Admin />} />
-                    <Route path="/receta" element={<Recipe />} />
-                    <Route path="/r/:code" element={<ShortRecipe />} />
-                    <Route path="/politica-cookies" element={<CookiePolicy />} />
-                    <Route path="/politica-privacidad" element={<PrivacyPolicy />} />
-                    <Route path="/aviso-legal" element={<LegalNotice />} />
-                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
+                  <Suspense fallback={<div className="min-h-screen bg-background" />}>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/admin" element={<Admin />} />
+                      <Route path="/receta" element={<Recipe />} />
+                      <Route path="/r/:code" element={<ShortRecipe />} />
+                      <Route path="/politica-cookies" element={<CookiePolicy />} />
+                      <Route path="/politica-privacidad" element={<PrivacyPolicy />} />
+                      <Route path="/aviso-legal" element={<LegalNotice />} />
+                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </Suspense>
                 </BrowserRouter>
               </TooltipProvider>
             </CookieConsentProvider>
