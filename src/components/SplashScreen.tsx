@@ -6,7 +6,7 @@ interface SplashScreenProps {
   minDuration?: number;
 }
 
-export const SplashScreen = ({ onFinish, minDuration = 2000 }: SplashScreenProps) => {
+export const SplashScreen = ({ onFinish, minDuration = 1200 }: SplashScreenProps) => {
   const [isExiting, setIsExiting] = useState(false);
   const [showLogo, setShowLogo] = useState(false);
   const [showCard, setShowCard] = useState(false);
