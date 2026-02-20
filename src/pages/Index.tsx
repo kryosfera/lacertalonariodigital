@@ -161,7 +161,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pt-safe">
       {/* Header - Desktop/Tablet only */}
       {!isMobile && (
         <header className="bg-card/80 backdrop-blur-lg border-b border-border/50 sticky top-0 z-50">

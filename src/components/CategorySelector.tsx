@@ -124,7 +124,7 @@ export const CategorySelector = ({
       <>
         <TemplateDialogContent />
         <div 
-          className={`fixed inset-0 z-50 bg-background flex flex-col ${
+          className={`fixed inset-0 z-50 bg-background flex flex-col pt-safe ${
             isClosing ? 'screen-slide-out' : 'screen-slide-in'
           }`}
         >
@@ -236,7 +236,7 @@ export const CategorySelector = ({
     <>
       <TemplateDialogContent />
       <div 
-        className={`fixed inset-0 z-50 bg-secondary ${
+        className={`fixed inset-0 z-50 bg-secondary pt-safe ${
           isClosing ? 'screen-fade-out' : 'screen-fade-in'
         }`}
       >

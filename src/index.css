@@ -256,6 +256,10 @@ All colors MUST be HSL.
     padding-bottom: max(env(safe-area-inset-bottom, 0), 8px);
   }
   
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+  
   /* Hide scrollbar */
   .scrollbar-hide {
     -ms-overflow-style: none;
