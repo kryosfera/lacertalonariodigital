@@ -80,7 +80,7 @@ export const ProductSelector = ({
   if (isMobile) {
     return (
       <div 
-        className={`fixed inset-0 z-50 bg-background flex flex-col ${
+        className={`fixed inset-0 z-50 bg-background flex flex-col pt-safe ${
           isClosing ? 'screen-slide-out' : 'screen-slide-in'
         }`}
       >
@@ -227,7 +227,7 @@ export const ProductSelector = ({
   // Desktop: Grid visual con imágenes maximizadas
   return (
     <div 
-      className={`fixed inset-0 z-50 bg-secondary ${
+      className={`fixed inset-0 z-50 bg-secondary pt-safe ${
         isClosing ? 'screen-fade-out' : 'screen-slide-in'
       }`}
     >
