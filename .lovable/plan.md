@@ -1,17 +1,32 @@
 
-# Añadir botón "Volver" en la pantalla de inicio de sesión
 
-## Problema
-Cuando el usuario pulsa "Modo Profesional" en el selector de perfil, se le redirige a `/auth`. Una vez allí, no hay forma de volver atrás si decide no registrarse ni iniciar sesión.
+## Gestionar videos desde el panel de administracion de productos
 
-## Solución
-Añadir un botón/enlace "Volver" en la parte superior de la pantalla de Auth (`src/pages/Auth.tsx`) que navegue de vuelta a `/` (la pantalla de inicio).
+Actualmente el dialogo de edicion de productos (`ProductDialog.tsx`) no incluye ningun campo para gestionar los videos asociados. Se anadira un campo para que puedas agregar, ver y eliminar URLs de video directamente desde `/admin`.
 
-## Cambios
+### Cambios
 
-### `src/pages/Auth.tsx`
-- Importar el icono `ArrowLeft` de `lucide-react`
-- Añadir un botón con flecha en la esquina superior izquierda de la pantalla, fuera de la Card, que haga `navigate('/')`
-- Además, limpiar el `localStorage` del modo de usuario al volver, para que el selector de perfil vuelva a aparecer (si el usuario no completó el registro)
+**1. ProductDialog.tsx - Anadir campo de videos**
 
-El botón se posiciona de forma absoluta o fija en la parte superior de la pantalla para que sea siempre accesible, con un estilo discreto tipo `ghost`.
+- Anadir `video_urls` al schema de validacion (array de strings)
+- Anadir `video_urls` a los valores por defecto del formulario
+- Incluir `video_urls` en el payload que se envia a la base de datos
+- Anadir una seccion en el formulario con:
+  - Lista de URLs de video actuales con boton para eliminar cada una
+  - Input para anadir nueva URL de video con boton "Anadir"
+  - Preview visual del enlace de Vimeo anadido
+
+**2. Interfaz del campo de videos**
+
+- Se mostrara debajo de la descripcion del producto
+- Cada URL aparecera como un chip/badge con un boton X para eliminarla
+- Un input con boton "+" permitira pegar una nueva URL de Vimeo
+- Se extraera automaticamente la URL limpia si el usuario pega un iframe completo de Vimeo (extrayendo el src del iframe)
+
+### Detalles tecnicos
+
+- El campo `video_urls` ya existe en la tabla `products` como `text[]`
+- Se usara `useState` local para gestionar el array de URLs dentro del formulario
+- Se sincronizara con react-hook-form mediante `form.setValue('video_urls', ...)`
+- Se parseara automaticamente HTML de iframes pegados para extraer solo la URL del player de Vimeo
+
