@@ -52,7 +52,8 @@ export default function Recipe() {
               reference: p.reference,
               ean: (p as { ean?: string | null }).ean || null,
               quantity: (p as { quantity?: number }).quantity || 1,
-              thumbnail_url: p.thumbnail_url
+              thumbnail_url: p.thumbnail_url,
+              video_urls: (p as { video_urls?: string[] | null }).video_urls || null
             })),
             notes: decoded.notes,
             created_at: decoded.date,

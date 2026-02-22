@@ -34,7 +34,8 @@ export default function ShortRecipe() {
             r: p.reference,
             e: (p as { ean?: string | null }).ean || null,
             q: p.quantity || 1,
-            t: p.thumbnail_url
+            t: p.thumbnail_url,
+            v: p.video_urls && p.video_urls.length > 0 ? p.video_urls : undefined
           }))
         };
         const encoded = btoa(encodeURIComponent(JSON.stringify(minimalData)));
