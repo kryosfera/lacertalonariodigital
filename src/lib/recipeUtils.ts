@@ -10,6 +10,7 @@ interface Product {
   ean?: string | null;
   thumbnail_url: string | null;
   quantity?: number;
+  video_urls?: string[] | null;
 }
 
 interface RecipeData {
@@ -111,7 +112,8 @@ export const encodeRecipeData = (data: RecipeData): string => {
       r: p.reference,
       e: p.ean || null,
       q: p.quantity || 1,
-      t: p.thumbnail_url
+      t: p.thumbnail_url,
+      v: p.video_urls && p.video_urls.length > 0 ? p.video_urls : undefined
     }))
   };
   return btoa(encodeURIComponent(JSON.stringify(minimalData)));
@@ -131,7 +133,8 @@ export const decodeRecipeData = (encoded: string): RecipeData | null => {
         reference: String(p.r || ""),
         ean: p.e ? String(p.e) : null,
         quantity: Number(p.q || 1),
-        thumbnail_url: p.t ? String(p.t) : null
+        thumbnail_url: p.t ? String(p.t) : null,
+        video_urls: Array.isArray(p.v) ? p.v.map(String) : null
       }))
     };
   } catch {
