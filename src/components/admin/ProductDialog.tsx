@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { VideoUrlsField } from './VideoUrlsField';
 
 const productSchema = z.object({
   name: z.string().trim().min(1, 'Nombre requerido').max(255),
@@ -68,6 +69,7 @@ interface ProductDialogProps {
 export function ProductDialog({ open, onOpenChange, product }: ProductDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [videoUrls, setVideoUrls] = useState<string[]>([]);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -128,6 +130,7 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
         is_active: fullProduct.is_active ?? true,
         is_visible: fullProduct.is_visible ?? true,
       });
+      setVideoUrls(fullProduct.video_urls || []);
     } else if (!product) {
       form.reset({
         name: '',
@@ -142,6 +145,7 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
         is_active: true,
         is_visible: true,
       });
+      setVideoUrls([]);
     }
   }, [fullProduct, product, form]);
 
@@ -159,6 +163,7 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
         sort_order: data.sort_order,
         is_active: data.is_active,
         is_visible: data.is_visible,
+        video_urls: videoUrls.length > 0 ? videoUrls : null,
       };
 
       if (product?.id) {
@@ -345,6 +350,8 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
                 </FormItem>
               )}
             />
+
+            <VideoUrlsField videoUrls={videoUrls} onChange={setVideoUrls} />
 
             <div className="flex gap-6">
               <FormField
