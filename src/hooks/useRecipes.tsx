@@ -10,6 +10,7 @@ export interface RecipeProduct {
   ean?: string | null;
   quantity: number;
   thumbnail_url?: string | null;
+  video_urls?: string[] | null;
 }
 
 export interface Recipe {

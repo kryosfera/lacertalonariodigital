@@ -29,6 +29,7 @@ interface Product {
   ean: string | null;
   thumbnail_url: string | null;
   category_id: string | null;
+  video_urls: string[] | null;
 }
 
 interface ProductWithQuantity extends Product {
@@ -98,7 +99,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, name, reference, ean, thumbnail_url, category_id")
+        .select("id, name, reference, ean, thumbnail_url, category_id, video_urls")
         .eq("is_active", true)
         .eq("is_visible", true)
         .order("sort_order", { ascending: true })
@@ -290,7 +291,8 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       reference: p.reference,
       ean: p.ean,
       quantity: p.quantity,
-      thumbnail_url: p.thumbnail_url
+      thumbnail_url: p.thumbnail_url,
+      video_urls: p.video_urls || undefined
     }));
 
     const result = await createRecipe.mutateAsync({

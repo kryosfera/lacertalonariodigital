@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Home, AlertCircle, Clock, Barcode } from "lucide-react";
+import { Home, AlertCircle, Clock, Barcode, Play } from "lucide-react";
 import lacerLogo from "@/assets/lacer-logo-color.png";
 import { decodeRecipeData } from "@/lib/recipeUtils";
 import { BarcodeDisplay } from "@/components/BarcodeDisplay";
@@ -17,6 +17,7 @@ interface RecipeProduct {
   ean?: string | null;
   quantity: number;
   thumbnail_url?: string | null;
+  video_urls?: string[] | null;
 }
 
 interface RecipeData {
@@ -97,7 +98,8 @@ export default function Recipe() {
                 reference: String(prod.reference || ''),
                 ean: prod.ean ? String(prod.ean) : null,
                 quantity: Number(prod.quantity || 1),
-                thumbnail_url: prod.thumbnail_url ? String(prod.thumbnail_url) : null
+                thumbnail_url: prod.thumbnail_url ? String(prod.thumbnail_url) : null,
+                video_urls: Array.isArray(prod.video_urls) ? prod.video_urls.map(String) : null
               };
             })
           : [];
@@ -258,6 +260,31 @@ export default function Recipe() {
                       width={1.8}
                       fontSize={11}
                     />
+                  </div>
+                )}
+
+                {/* Product video */}
+                {product.video_urls && product.video_urls.length > 0 && (
+                  <div className="space-y-2">
+                    {product.video_urls.map((videoUrl, vIdx) => (
+                      <div key={vIdx} className="rounded-lg overflow-hidden border bg-black">
+                        <div className="relative w-full" style={{ paddingBottom: '100%' }}>
+                          <iframe
+                            src={`${videoUrl}?autoplay=0&title=0&byline=0&portrait=0`}
+                            className="absolute inset-0 w-full h-full"
+                            allow="fullscreen; picture-in-picture"
+                            allowFullScreen
+                            title={`Vídeo de ${product.name}`}
+                          />
+                        </div>
+                        <div className="px-3 py-2 bg-muted/50 flex items-center gap-2">
+                          <Play className="w-3.5 h-3.5 text-secondary" />
+                          <span className="text-xs text-muted-foreground">
+                            Vídeo explicativo de uso
+                          </span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
