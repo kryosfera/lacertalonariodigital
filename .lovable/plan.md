@@ -1,32 +1,37 @@
 
 
-## Gestionar videos desde el panel de administracion de productos
+## Asegurar que los videos aparecen en las recetas para los pacientes
 
-Actualmente el dialogo de edicion de productos (`ProductDialog.tsx`) no incluye ningun campo para gestionar los videos asociados. Se anadira un campo para que puedas agregar, ver y eliminar URLs de video directamente desde `/admin`.
+### Problema detectado
 
-### Cambios
+He revisado todo el flujo de recetas y hay **dos problemas** por los que los videos no aparecen:
 
-**1. ProductDialog.tsx - Anadir campo de videos**
+1. **Recetas guardadas en base de datos (usuarios profesionales):** El codigo de `RecipeCreator.tsx` SI incluye `video_urls` al guardar nuevas recetas (esto funciona correctamente). Sin embargo, las recetas creadas antes de esta funcionalidad no tienen videos almacenados.
 
-- Anadir `video_urls` al schema de validacion (array de strings)
-- Anadir `video_urls` a los valores por defecto del formulario
-- Incluir `video_urls` en el payload que se envia a la base de datos
-- Anadir una seccion en el formulario con:
-  - Lista de URLs de video actuales con boton para eliminar cada una
-  - Input para anadir nueva URL de video con boton "Anadir"
-  - Preview visual del enlace de Vimeo anadido
+2. **Recetas temporales / URLs cortas (usuarios basicos):** Las funciones de codificacion en `recipeUtils.ts` NO incluyen `video_urls` en la interfaz `Product` ni en las funciones `encodeRecipeData` / `decodeRecipeData`. Esto significa que al compartir recetas via URL corta, los videos se pierden completamente.
 
-**2. Interfaz del campo de videos**
+### Cambios necesarios
 
-- Se mostrara debajo de la descripcion del producto
-- Cada URL aparecera como un chip/badge con un boton X para eliminarla
-- Un input con boton "+" permitira pegar una nueva URL de Vimeo
-- Se extraera automaticamente la URL limpia si el usuario pega un iframe completo de Vimeo (extrayendo el src del iframe)
+**1. `src/lib/recipeUtils.ts` - Incluir video_urls en el modelo de datos**
+
+- Anadir `video_urls?: string[] | null` a la interfaz `Product`
+- Actualizar `encodeRecipeData` para incluir `video_urls` en los datos codificados
+- Actualizar `decodeRecipeData` para recuperar `video_urls` de los datos decodificados
+
+**2. `src/pages/ShortRecipe.tsx` - Pasar video_urls al redirigir**
+
+- Incluir `video_urls` en el objeto `minimalData` que se codifica al redirigir desde URLs cortas a la pagina de receta
+
+**3. `src/pages/Recipe.tsx` - Asegurar decodificacion de video_urls**
+
+- Verificar que al decodificar datos temporales (parametro `d`), se recuperen tambien los `video_urls` del producto
 
 ### Detalles tecnicos
 
-- El campo `video_urls` ya existe en la tabla `products` como `text[]`
-- Se usara `useState` local para gestionar el array de URLs dentro del formulario
-- Se sincronizara con react-hook-form mediante `form.setValue('video_urls', ...)`
-- Se parseara automaticamente HTML de iframes pegados para extraer solo la URL del player de Vimeo
+Los cambios son minimos y quirurgicos:
+
+- En `recipeUtils.ts`: anadir el campo `v` (video_urls) al formato compacto usado para codificar/decodificar
+- En `ShortRecipe.tsx`: mapear `video_urls` al campo compacto `v` en la redireccion
+- En `Recipe.tsx`: leer el campo `video_urls` desde los datos decodificados (el renderizado de videos ya funciona correctamente)
+- El flujo de recetas profesionales (guardadas en BD) ya funciona para recetas nuevas, no requiere cambios
 
