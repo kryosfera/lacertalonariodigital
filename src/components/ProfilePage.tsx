@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useProfile, useUpsertProfile, useUploadProfileImage } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserMode } from "@/hooks/useUserMode";
 import { SignaturePad } from "@/components/SignaturePad";
 
 export const ProfilePage = () => {

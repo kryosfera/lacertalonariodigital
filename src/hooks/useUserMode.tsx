@@ -68,6 +68,7 @@ export function UserModeProvider({ children }: { children: ReactNode }) {
       isLoading,
       setUserMode,
       upgradeToProfessional,
+      switchToBasic,
       showProfileSelector,
       setShowProfileSelector
     }}>
