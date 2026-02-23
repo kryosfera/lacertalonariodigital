@@ -7,13 +7,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Send, Printer, Download, ShoppingCart, Plus, MessageCircle, Mail, User, Check, Package, Minus, Save, FolderOpen, Trash2, ChevronUp, X } from "lucide-react";
+import { Send, Printer, Download, ShoppingCart, Plus, MessageCircle, Mail, User, Check, Package, Minus, Save, FolderOpen, Trash2, ChevronUp, X, CheckCircle2, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CategorySelector } from "./CategorySelector";
 import { ProductSelector } from "./ProductSelector";
 import { sendViaWhatsApp, sendViaEmail, downloadPDF, generateRecipeUrl, generateShortRecipeUrl, createShortUrl } from "@/lib/recipeUtils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useUserMode } from "@/hooks/useUserMode";
@@ -63,6 +64,13 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
   const [templateName, setTemplateName] = useState("");
   const [savingTemplate, setSavingTemplate] = useState(false);
   
+  // Success bottom sheet state
+  const [showSuccessDrawer, setShowSuccessDrawer] = useState(false);
+  const [successInfo, setSuccessInfo] = useState<{ method: string; productCount: number; patientName: string } | null>(null);
+  
+  // Track pre-opened window for auto-close
+  const [preOpenedWindowRef, setPreOpenedWindowRef] = useState<Window | null>(null);
+  
   // Auto-open categories when startWithCategories prop is true
   useEffect(() => {
     if (startWithCategories && !showCategorySelector) {
@@ -70,6 +78,22 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       onCategoriesShown?.();
     }
   }, [startWithCategories, onCategoriesShown, showCategorySelector]);
+
+  // Auto-close pre-opened WhatsApp window when user returns to the app
+  useEffect(() => {
+    if (!preOpenedWindowRef) return;
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && preOpenedWindowRef) {
+        // Small delay to let WhatsApp fully open before closing blank tab
+        setTimeout(() => {
+          try { preOpenedWindowRef.close(); } catch {}
+          setPreOpenedWindowRef(null);
+        }, 500);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [preOpenedWindowRef]);
   
   // Patient autocomplete state
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
@@ -306,6 +330,30 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     return result?.recipe_code || null;
   };
 
+  const showSuccess = (method: string) => {
+    setSuccessInfo({
+      method,
+      productCount: selectedProductsData.reduce((acc, p) => acc + p.quantity, 0),
+      patientName: patientName || "Sin nombre"
+    });
+    setShowSendDialog(false);
+    setShowSuccessDrawer(true);
+  };
+
+  const handleNewRecipe = () => {
+    resetForm();
+    setShowSuccessDrawer(false);
+    setSuccessInfo(null);
+  };
+
+  const handleSendAnother = (method: "whatsapp" | "email") => {
+    setShowSuccessDrawer(false);
+    setSuccessInfo(null);
+    // Don't reset — keep products, open send dialog with new method
+    setSendMethod(method);
+    setShowSendDialog(true);
+  };
+
   const resetForm = () => {
     setSelectedProducts(new Map());
     setPatientName("");
@@ -323,30 +371,25 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     
     setIsSending(true);
     
-    // Capture data BEFORE any reset
     const recipeData = getRecipeData();
     const phone = patientPhone;
 
-    // CRÍTICO iOS Safari: window.open() debe llamarse sincrónicamente desde el gesto del usuario.
-    // Si se llama después de un await, Safari lo bloquea silenciosamente.
-    // Solución: pre-abrimos about:blank ahora y redirigimos la URL después del await.
     const preOpenedWindow = phone
       ? window.open("about:blank", "_blank")
       : null;
+    
+    // Track for auto-close on return
+    if (preOpenedWindow) setPreOpenedWindowRef(preOpenedWindow);
 
     let recipeUrl: string | undefined;
     
     try {
       if (isProfessional) {
-        // Professional users: save to DB and get permanent URL
         const recipeCode = await saveRecipeToDb('whatsapp');
         if (recipeCode) {
           recipeUrl = generateRecipeUrl(recipeCode);
         }
-        toast.success("Receta guardada en historial");
-        resetForm();
       } else {
-        // Basic users: create short URL
         const shortCode = await createShortUrl(recipeData);
         if (shortCode) {
           recipeUrl = generateShortRecipeUrl(shortCode);
@@ -354,15 +397,13 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       }
       
       sendViaWhatsApp(recipeData, phone, recipeUrl, preOpenedWindow);
-      toast.success("Abriendo WhatsApp...");
-      if (!isProfessional) resetForm();
+      showSuccess("WhatsApp");
     } catch (error) {
-      // Si algo falla, cerrar la ventana pre-abierta para no dejar una pestaña en blanco
       if (preOpenedWindow) preOpenedWindow.close();
+      setPreOpenedWindowRef(null);
       toast.error("Error al generar el enlace");
     } finally {
       setIsSending(false);
-      setShowSendDialog(false);
     }
   };
 
@@ -373,8 +414,6 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     }
     
     setIsSending(true);
-    
-    // Capture data BEFORE any reset
     const recipeData = getRecipeData();
     const email = patientEmail;
     let recipeUrl: string | undefined;
@@ -385,10 +424,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
         if (recipeCode) {
           recipeUrl = generateRecipeUrl(recipeCode);
         }
-        toast.success("Receta guardada en historial");
-        resetForm();
       } else {
-        // Basic users: create short URL
         const shortCode = await createShortUrl(recipeData);
         if (shortCode) {
           recipeUrl = generateShortRecipeUrl(shortCode);
@@ -396,13 +432,11 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       }
       
       sendViaEmail(recipeData, email, recipeUrl);
-      toast.success("Abriendo cliente de correo...");
-      if (!isProfessional) resetForm();
+      showSuccess("Email");
     } catch (error) {
       toast.error("Error al generar el enlace");
     } finally {
       setIsSending(false);
-      setShowSendDialog(false);
     }
   };
 
@@ -412,8 +446,6 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       return;
     }
     setIsSending(true);
-    
-    // Capture data BEFORE any reset
     const recipeData = getRecipeData();
     
     try {
@@ -424,8 +456,6 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
         if (recipeCode) {
           recipeUrl = generateRecipeUrl(recipeCode);
         }
-        toast.success("Receta guardada en historial");
-        resetForm();
       } else {
         const shortCode = await createShortUrl(recipeData);
         if (shortCode) {
@@ -434,13 +464,11 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       }
       
       await downloadPDF(recipeData, recipeUrl);
-      toast.success("PDF descargado con código QR");
-      if (!isProfessional) resetForm();
+      showSuccess("PDF");
     } catch (error) {
       toast.error("Error al generar el PDF");
     } finally {
       setIsSending(false);
-      setShowSendDialog(false);
     }
   };
 
@@ -450,8 +478,6 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       return;
     }
     setIsSending(true);
-    
-    // Capture data BEFORE any reset
     const recipeData = getRecipeData();
     
     try {
@@ -462,8 +488,6 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
         if (recipeCode) {
           recipeUrl = generateRecipeUrl(recipeCode);
         }
-        toast.success("Receta guardada en historial");
-        resetForm();
       } else {
         const shortCode = await createShortUrl(recipeData);
         if (shortCode) {
@@ -480,12 +504,11 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
           printWindow.print();
         };
       }
-      if (!isProfessional) resetForm();
+      showSuccess("Impresión");
     } catch (error) {
       toast.error("Error al preparar la impresión");
     } finally {
       setIsSending(false);
-      setShowSendDialog(false);
     }
   };
 
@@ -1056,6 +1079,96 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Success Bottom Sheet */}
+      <Drawer open={showSuccessDrawer} onOpenChange={(open) => {
+        if (!open) handleNewRecipe();
+      }}>
+        <DrawerContent className="max-h-[85vh]">
+          <div className="mx-auto w-full max-w-md px-6 py-8">
+            {/* Success animation */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="mx-auto w-20 h-20 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-4"
+            >
+              <CheckCircle2 className="w-10 h-10 text-green-600 dark:text-green-400" />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-center space-y-2 mb-8"
+            >
+              <h3 className="text-xl font-bold text-foreground">
+                ¡Receta enviada!
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {successInfo?.productCount} producto{successInfo?.productCount !== 1 ? 's' : ''} enviado{successInfo?.productCount !== 1 ? 's' : ''} vía {successInfo?.method}
+              </p>
+              {isProfessional && (
+                <p className="text-xs text-muted-foreground">
+                  Guardada en el historial
+                </p>
+              )}
+            </motion.div>
+
+            {/* Actions */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+              className="space-y-3"
+            >
+              <Button
+                onClick={handleNewRecipe}
+                className="w-full h-12 font-semibold gap-2"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Nueva receta
+              </Button>
+
+              <div className="flex gap-2">
+                {successInfo?.method !== "WhatsApp" && (
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-11 gap-2"
+                    onClick={() => handleSendAnother("whatsapp")}
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    WhatsApp
+                  </Button>
+                )}
+                {successInfo?.method !== "Email" && (
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-11 gap-2"
+                    onClick={() => handleSendAnother("email")}
+                  >
+                    <Mail className="w-4 h-4" />
+                    Email
+                  </Button>
+                )}
+                {successInfo?.method !== "PDF" && (
+                  <Button
+                    variant="outline"
+                    className="flex-1 h-11 gap-2"
+                    onClick={() => {
+                      setShowSuccessDrawer(false);
+                      handleDownloadPDF();
+                    }}
+                  >
+                    <Download className="w-4 h-4" />
+                    PDF
+                  </Button>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </>
   );
 };
