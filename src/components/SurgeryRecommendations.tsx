@@ -25,13 +25,15 @@ interface WhatsAppShareData {
   message: string;
 }
 
+const STORAGE_BASE = "https://wvqqoigrslatxnbykcji.supabase.co/storage/v1/object/public/recomendaciones";
+
 const recommendations = [
   {
     id: "cirugia-oral-general",
     title: "Cirugía Oral General",
     description: "Recomendaciones generales tras una cirugía oral",
     icon: Scissors,
-    pdfUrl: "/docs/Cirugia_Oral_General.pdf",
+    pdfUrl: `${STORAGE_BASE}/docs/Cirugia_Oral_General.pdf`,
     imageUrl: "https://www.lacertalonariodigital.com/archivos/recomendacion-cirujia-p.jpg",
     gradient: "from-secondary to-secondary/80",
   },
@@ -40,7 +42,7 @@ const recommendations = [
     title: "Extracciones Dentales",
     description: "Cuidados posteriores a una extracción dental",
     icon: FileText,
-    pdfUrl: "/docs/Extracciones.pdf",
+    pdfUrl: `${STORAGE_BASE}/docs/Extracciones.pdf`,
     imageUrl: "https://www.lacertalonariodigital.com/archivos/recomendacion-extraccion-p.jpg",
     gradient: "from-secondary to-secondary/80",
   },
@@ -49,7 +51,7 @@ const recommendations = [
     title: "Injerto de Encías",
     description: "Recomendaciones tras un injerto de encías",
     icon: Syringe,
-    pdfUrl: "/docs/Injerto_Encias.pdf",
+    pdfUrl: `${STORAGE_BASE}/docs/Injerto_Encias.pdf`,
     imageUrl: "https://www.lacertalonariodigital.com/archivos/recomendacion-injerto-p.jpg",
     gradient: "from-secondary to-secondary/80",
   },
@@ -78,8 +80,10 @@ export const SurgeryRecommendations = () => {
     window.open(pdfUrl, "_blank", "noopener,noreferrer");
   };
 
-  const getFullUrl = (path: string) => {
-    return `${window.location.origin}${path}`;
+  const getFullUrl = (url: string) => {
+    // If already absolute, return as-is; otherwise prepend origin
+    if (url.startsWith('http')) return url;
+    return `${window.location.origin}${url}`;
   };
 
   const formatPhoneNumber = (phone: string): string => {
