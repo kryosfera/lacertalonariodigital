@@ -1,37 +1,43 @@
 
 
-## Asegurar que los videos aparecen en las recetas para los pacientes
+## Corregir pantalla en blanco tras enviar receta por Email/WhatsApp/PDF
 
-### Problema detectado
+### Problema raiz
 
-He revisado todo el flujo de recetas y hay **dos problemas** por los que los videos no aparecen:
+La funcion `sendViaEmail` en `src/lib/recipeUtils.ts` utiliza `window.location.href` para abrir el enlace `mailto:`, lo que **navega la pagina actual fuera de la SPA**. En modo PWA esto es especialmente problematico porque al volver, la app pierde su estado y muestra una pantalla en blanco.
 
-1. **Recetas guardadas en base de datos (usuarios profesionales):** El codigo de `RecipeCreator.tsx` SI incluye `video_urls` al guardar nuevas recetas (esto funciona correctamente). Sin embargo, las recetas creadas antes de esta funcionalidad no tienen videos almacenados.
-
-2. **Recetas temporales / URLs cortas (usuarios basicos):** Las funciones de codificacion en `recipeUtils.ts` NO incluyen `video_urls` en la interfaz `Product` ni en las funciones `encodeRecipeData` / `decodeRecipeData`. Esto significa que al compartir recetas via URL corta, los videos se pierden completamente.
+Ademas, los handlers de envio no tienen proteccion robusta contra errores asincronos no capturados que puedan dejar la app en un estado inconsistente.
 
 ### Cambios necesarios
 
-**1. `src/lib/recipeUtils.ts` - Incluir video_urls en el modelo de datos**
+**1. `src/lib/recipeUtils.ts` - Corregir `sendViaEmail`**
 
-- Anadir `video_urls?: string[] | null` a la interfaz `Product`
-- Actualizar `encodeRecipeData` para incluir `video_urls` en los datos codificados
-- Actualizar `decodeRecipeData` para recuperar `video_urls` de los datos decodificados
+- Reemplazar `window.location.href = mailto:...` por un enlace temporal `<a>` con el atributo `target="_blank"` (igual que hace `downloadPDF`), evitando que la pagina actual navegue fuera de la SPA
+- Esto mantiene la app intacta mientras el sistema operativo abre el cliente de correo
 
-**2. `src/pages/ShortRecipe.tsx` - Pasar video_urls al redirigir**
+**2. `src/components/RecipeCreator.tsx` - Proteger handlers de envio**
 
-- Incluir `video_urls` en el objeto `minimalData` que se codifica al redirigir desde URLs cortas a la pagina de receta
+- Envolver los handlers `handleSendWhatsApp`, `handleSendEmail`, `handleDownloadPDF` y `handlePrint` con `try/catch` mas robustos
+- Asegurar que `setIsSending(false)` y `setShowSendDialog(false)` siempre se ejecuten en el bloque `finally`, incluso si hay errores inesperados
+- Anadir `resetForm()` tambien para usuarios basicos tras enviar exitosamente, para que puedan crear nuevas recetas inmediatamente
 
-**3. `src/pages/Recipe.tsx` - Asegurar decodificacion de video_urls**
+### Detalle tecnico
 
-- Verificar que al decodificar datos temporales (parametro `d`), se recuperen tambien los `video_urls` del producto
+Cambio principal en `sendViaEmail`:
 
-### Detalles tecnicos
+```text
+// ANTES (navega fuera de la SPA):
+window.location.href = url;
 
-Los cambios son minimos y quirurgicos:
+// DESPUES (abre en nueva ventana/pestaña sin afectar la SPA):
+const link = document.createElement("a");
+link.href = url;
+link.target = "_blank";
+link.rel = "noopener noreferrer";
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+```
 
-- En `recipeUtils.ts`: anadir el campo `v` (video_urls) al formato compacto usado para codificar/decodificar
-- En `ShortRecipe.tsx`: mapear `video_urls` al campo compacto `v` en la redireccion
-- En `Recipe.tsx`: leer el campo `video_urls` desde los datos decodificados (el renderizado de videos ya funciona correctamente)
-- El flujo de recetas profesionales (guardadas en BD) ya funciona para recetas nuevas, no requiere cambios
+Este patron es el mismo que ya se usa en `downloadPDF` y funciona correctamente en PWA, Safari iOS y navegadores de escritorio.
 
