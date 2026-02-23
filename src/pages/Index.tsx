@@ -29,6 +29,14 @@ const Index = () => {
   const isMobile = useIsMobile();
   const { userMode, isLoading, showProfileSelector, setUserMode } = useUserMode();
   const { user } = useAuth();
+  const isProfessional = userMode === 'professional';
+
+  // Reset to home when switching to basic mode
+  useEffect(() => {
+    if (!isProfessional && activeTab !== "home" && activeTab !== "nueva-receta" && activeTab !== "recomendaciones") {
+      setActiveTab("home");
+    }
+  }, [isProfessional, activeTab]);
 
   const handleNavigate = (tab: string) => {
     // For basic users, "seleccionar-categoria" opens RecipeCreator directly in category mode
