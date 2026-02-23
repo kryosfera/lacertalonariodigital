@@ -13,12 +13,22 @@ interface Product {
   video_urls?: string[] | null;
 }
 
+interface ProfileInfo {
+  logo_url?: string | null;
+  clinic_name?: string | null;
+  clinic_address?: string | null;
+  professional_name?: string | null;
+  registration_number?: string | null;
+  signature_url?: string | null;
+}
+
 interface RecipeData {
   patientName: string;
   date: string;
   products: Product[];
   notes: string;
   doctorName?: string;
+  profile?: ProfileInfo | null;
 }
 
 // Create a short URL and return the code

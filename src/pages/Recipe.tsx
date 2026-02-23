@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Home, AlertCircle, Clock, Barcode, Play } from "lucide-react";
+import { Home, AlertCircle, Clock, Barcode, Play, MapPin, Award } from "lucide-react";
 import lacerLogo from "@/assets/lacer-logo-color.png";
 import { decodeRecipeData } from "@/lib/recipeUtils";
 import { BarcodeDisplay } from "@/components/BarcodeDisplay";
@@ -20,6 +20,15 @@ interface RecipeProduct {
   video_urls?: string[] | null;
 }
 
+interface ProfileData {
+  clinic_name: string | null;
+  clinic_address: string | null;
+  professional_name: string | null;
+  registration_number: string | null;
+  signature_url: string | null;
+  logo_url: string | null;
+}
+
 interface RecipeData {
   id?: string;
   recipe_code?: string;
@@ -28,19 +37,20 @@ interface RecipeData {
   notes: string | null;
   created_at: string;
   isTemporary?: boolean;
+  user_id?: string;
+  profile?: ProfileData | null;
 }
 
 export default function Recipe() {
   const [searchParams] = useSearchParams();
-  const code = searchParams.get("n"); // Database recipe code
-  const encodedData = searchParams.get("d"); // Encoded temporary data
+  const code = searchParams.get("n");
+  const encodedData = searchParams.get("d");
   const [recipe, setRecipe] = useState<RecipeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadRecipe = async () => {
-      // Check for encoded temporary data first (basic users)
       if (encodedData) {
         const decoded = decodeRecipeData(encodedData);
         if (decoded) {
@@ -68,7 +78,6 @@ export default function Recipe() {
         }
       }
 
-      // Otherwise, fetch from database using recipe code
       if (!code) {
         setError("Código de receta no proporcionado");
         setLoading(false);
@@ -78,7 +87,7 @@ export default function Recipe() {
       try {
         const { data, error: fetchError } = await supabase
           .from("recipes")
-          .select("id, recipe_code, patient_name, products, notes, created_at")
+          .select("id, recipe_code, patient_name, products, notes, created_at, user_id")
           .eq("recipe_code", code)
           .single();
 
@@ -105,6 +114,18 @@ export default function Recipe() {
             })
           : [];
 
+        // Fetch professional profile
+        let profile: ProfileData | null = null;
+        if (data.user_id) {
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("clinic_name, clinic_address, professional_name, registration_number, signature_url, logo_url")
+            .eq("user_id", data.user_id)
+            .maybeSingle();
+          
+          profile = profileData;
+        }
+
         setRecipe({
           id: data.id,
           recipe_code: data.recipe_code || undefined,
@@ -112,7 +133,9 @@ export default function Recipe() {
           products,
           notes: data.notes,
           created_at: data.created_at,
-          isTemporary: false
+          isTemporary: false,
+          user_id: data.user_id,
+          profile
         });
       } catch (err) {
         setError("Error al cargar la receta");
@@ -125,16 +148,16 @@ export default function Recipe() {
   }, [code, encodedData]);
 
   const formatDate = (dateString: string) => {
-    // Handle both date strings and formatted dates
-    if (dateString.includes("/")) {
-      return dateString; // Already formatted
-    }
+    if (dateString.includes("/")) return dateString;
     return new Date(dateString).toLocaleDateString("es-ES", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric"
     });
   };
+
+  const profile = recipe?.profile;
+  const hasProfileData = profile && (profile.clinic_name || profile.professional_name || profile.logo_url);
 
   if (loading) {
     return (
@@ -176,9 +199,15 @@ export default function Recipe() {
       {/* Header */}
       <header className="bg-secondary text-secondary-foreground py-4 px-4">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center">
-            <img src={lacerLogo} alt="Lacer" className="w-8 h-8 object-contain" />
-          </div>
+          {hasProfileData && profile?.logo_url ? (
+            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center overflow-hidden">
+              <img src={profile.logo_url} alt={profile.clinic_name || "Clínica"} className="w-full h-full object-contain" />
+            </div>
+          ) : (
+            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center">
+              <img src={lacerLogo} alt="Lacer" className="w-8 h-8 object-contain" />
+            </div>
+          )}
           <div>
             <h1 className="text-xl font-bold">TALONARIO</h1>
             <p className="text-sm text-secondary-foreground/80">DIGITAL</p>
@@ -204,6 +233,32 @@ export default function Recipe() {
                 Fecha: {formatDate(recipe.created_at)}
               </p>
             </div>
+
+            {/* Professional info */}
+            {hasProfileData && (
+              <div className="mt-3 pt-3 border-t border-dashed space-y-1">
+                {profile?.professional_name && (
+                  <p className="font-semibold text-sm text-foreground">
+                    {profile.professional_name}
+                    {profile?.registration_number && (
+                      <span className="font-normal text-muted-foreground ml-2 inline-flex items-center gap-1">
+                        <Award className="w-3 h-3" />
+                        Nº Col. {profile.registration_number}
+                      </span>
+                    )}
+                  </p>
+                )}
+                {profile?.clinic_name && (
+                  <p className="text-sm text-muted-foreground">{profile.clinic_name}</p>
+                )}
+                {profile?.clinic_address && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {profile.clinic_address}
+                  </p>
+                )}
+              </div>
+            )}
           </CardHeader>
           
           <CardContent className="pt-6 space-y-6">
@@ -252,7 +307,6 @@ export default function Recipe() {
                   </div>
                 </div>
                 
-                {/* Barcode for pharmacy scanning */}
                 {product.ean && (
                   <div className="bg-white rounded-lg p-3 flex flex-col items-center border">
                     <BarcodeDisplay 
@@ -264,7 +318,6 @@ export default function Recipe() {
                   </div>
                 )}
 
-                {/* Product video */}
                 {product.video_urls && product.video_urls.length > 0 && (
                   <div className="space-y-2">
                     {product.video_urls.map((videoUrl, vIdx) => (
@@ -306,23 +359,39 @@ export default function Recipe() {
                 <p className="text-foreground">{recipe.notes}</p>
               </div>
             )}
+
+            {/* Professional signature */}
+            {profile?.signature_url && (
+              <div className="border-t pt-4">
+                <p className="text-xs text-muted-foreground mb-2">Firma del profesional</p>
+                <div className="flex justify-center">
+                  <img 
+                    src={profile.signature_url} 
+                    alt="Firma" 
+                    className="max-h-20 object-contain"
+                  />
+                </div>
+                {profile?.professional_name && (
+                  <p className="text-center text-sm text-muted-foreground mt-1">
+                    {profile.professional_name}
+                  </p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
-        {/* Temporary recipe notice */}
         {recipe.isTemporary && (
           <p className="text-center text-xs text-muted-foreground mt-4 px-4">
             Esta es una receta temporal. El enlace dejará de funcionar si se borra el historial del navegador del remitente.
           </p>
         )}
 
-        {/* Footer */}
         <p className="text-center text-xs text-muted-foreground mt-6">
           Generado con Talonario Digital Lacer
         </p>
       </main>
 
-      {/* Footer bar */}
       <footer className="fixed bottom-0 left-0 right-0 bg-secondary text-secondary-foreground py-3 text-center text-xs">
         © {new Date().getFullYear()} Lacer - Talonario Digital
       </footer>
