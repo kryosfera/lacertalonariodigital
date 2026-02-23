@@ -355,6 +355,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       
       sendViaWhatsApp(recipeData, phone, recipeUrl, preOpenedWindow);
       toast.success("Abriendo WhatsApp...");
+      if (!isProfessional) resetForm();
     } catch (error) {
       // Si algo falla, cerrar la ventana pre-abierta para no dejar una pestaña en blanco
       if (preOpenedWindow) preOpenedWindow.close();
@@ -396,6 +397,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       
       sendViaEmail(recipeData, email, recipeUrl);
       toast.success("Abriendo cliente de correo...");
+      if (!isProfessional) resetForm();
     } catch (error) {
       toast.error("Error al generar el enlace");
     } finally {
@@ -433,10 +435,12 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       
       await downloadPDF(recipeData, recipeUrl);
       toast.success("PDF descargado con código QR");
+      if (!isProfessional) resetForm();
     } catch (error) {
       toast.error("Error al generar el PDF");
     } finally {
       setIsSending(false);
+      setShowSendDialog(false);
     }
   };
 
@@ -476,10 +480,12 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
           printWindow.print();
         };
       }
+      if (!isProfessional) resetForm();
     } catch (error) {
       toast.error("Error al preparar la impresión");
     } finally {
       setIsSending(false);
+      setShowSendDialog(false);
     }
   };
 
