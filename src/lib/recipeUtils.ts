@@ -420,8 +420,16 @@ export const sendViaEmail = (data: RecipeData, email?: string, recipeUrl?: strin
   const encodedSubject = encodeURIComponent(subject);
   const encodedBody = encodeURIComponent(body);
   
-  let url = `mailto:${email || ""}?subject=${encodedSubject}&body=${encodedBody}`;
-  window.location.href = url;
+  const url = `mailto:${email || ""}?subject=${encodedSubject}&body=${encodedBody}`;
+  
+  // Use a temporary <a> with target="_blank" to avoid navigating the SPA away
+  const link = document.createElement("a");
+  link.href = url;
+  link.target = "_blank";
+  link.rel = "noopener noreferrer";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
 // Descarga el PDF
