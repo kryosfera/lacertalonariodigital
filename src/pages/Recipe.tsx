@@ -269,19 +269,25 @@ export default function Recipe() {
                   <div className="space-y-2">
                     {product.video_urls.map((videoUrl, vIdx) => (
                       <div key={vIdx} className="rounded-lg overflow-hidden border bg-black">
-                        <div className="relative w-full" style={{ paddingBottom: '100%' }}>
+                        <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                           <iframe
                             src={`${videoUrl}?autoplay=0&title=0&byline=0&portrait=0`}
                             className="absolute inset-0 w-full h-full"
-                            allow="fullscreen; picture-in-picture"
+                            allow="fullscreen; picture-in-picture; autoplay"
                             allowFullScreen
+                            style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
                             title={`Vídeo de ${product.name}`}
                           />
                         </div>
-                        <div className="px-3 py-2 bg-muted/50 flex items-center gap-2">
-                          <Play className="w-3.5 h-3.5 text-secondary" />
-                          <span className="text-xs text-muted-foreground">
-                            Vídeo explicativo de uso
+                        <div className="px-3 py-2 bg-muted/50 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Play className="w-3.5 h-3.5 text-secondary" />
+                            <span className="text-xs text-muted-foreground">
+                              Vídeo explicativo de uso
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-muted-foreground/60">
+                            Toca ⛶ para pantalla completa
                           </span>
                         </div>
                       </div>
