@@ -188,9 +188,10 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
   doc.setFillColor(220, 38, 38);
   doc.rect(0, 42, pageWidth, 3, "F");
 
-  // Cargar logo como base64
+  // Load clinic logo or default Lacer logo
+  const logoToLoad = data.profile?.logo_url || (window.location.origin + '/lacer-logo-bocas_sanas.jpg');
   try {
-    const logoResponse = await fetch(window.location.origin + '/lacer-logo-bocas_sanas.jpg');
+    const logoResponse = await fetch(logoToLoad);
     if (logoResponse.ok) {
       const logoBlob = await logoResponse.blob();
       const logoDataUrl = await new Promise<string>((resolve, reject) => {
@@ -199,10 +200,10 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
         reader.onerror = reject;
         reader.readAsDataURL(logoBlob);
       });
-      doc.addImage(logoDataUrl, 'JPEG', 8, 5, 90, 33);
+      const imgFormat = logoToLoad.endsWith('.png') ? 'PNG' : 'JPEG';
+      doc.addImage(logoDataUrl, imgFormat, 8, 5, 90, 33);
     }
   } catch {
-    // Fallback: texto si no carga el logo
     doc.setTextColor(220, 38, 38);
     doc.setFontSize(22);
     doc.setFont("helvetica", "bold");
@@ -213,7 +214,6 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
   if (recipeUrl) {
     const qrDataUrl = await generateQRCode(recipeUrl);
     if (qrDataUrl) {
-      // Add light background for QR
       doc.setFillColor(248, 248, 248);
       doc.roundedRect(pageWidth - 45, 4, 32, 32, 2, 2, "F");
       doc.addImage(qrDataUrl, "PNG", pageWidth - 43, 6, 28, 28);
