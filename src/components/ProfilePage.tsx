@@ -4,12 +4,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Building2, User, Upload, Loader2, Check, 
-  Image as ImageIcon, Signature
+  Image as ImageIcon, Signature, PenTool
 } from "lucide-react";
 import { useProfile, useUpsertProfile, useUploadProfileImage } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
+import { SignaturePad } from "@/components/SignaturePad";
 
 export const ProfilePage = () => {
   const { user, signOut } = useAuth();
