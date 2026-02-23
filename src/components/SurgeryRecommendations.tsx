@@ -106,7 +106,7 @@ export const SurgeryRecommendations = () => {
   };
 
   const handleShareWhatsApp = (rec: typeof recommendations[0]) => {
-    const message = `📋 *${rec.title}*\n\n${rec.description}\n\n📎 Documento: ${getFullUrl(rec.pdfUrl)}\n\n_Enviado desde Lacer Talonario Digital_`;
+    const message = `📋 *Lacer Talonario Digital*\n\n*${rec.title}*\n${rec.description}\n\n📎 Documento: ${getFullUrl(rec.pdfUrl)}\n\n_Enviado desde Lacer Talonario Digital_`;
     openWhatsAppDialog({
       type: 'pdf',
       title: rec.title,
@@ -115,7 +115,7 @@ export const SurgeryRecommendations = () => {
   };
 
   const handleShareVideoWhatsApp = () => {
-    const message = `🎬 *Recomendaciones Post-Cirugía Oral*\n\nVídeo explicativo con los cuidados necesarios tras una cirugía oral.\n\n▶️ Ver video: ${videoRecommendation.vimeoUrl}\n\n_Enviado desde Lacer Talonario Digital_`;
+    const message = `🎬 *Lacer Talonario Digital*\n\n*Recomendaciones Post-Cirugía Oral*\nVídeo explicativo con los cuidados necesarios tras una cirugía oral.\n\n▶️ Ver video: ${videoRecommendation.vimeoUrl}\n\n_Enviado desde Lacer Talonario Digital_`;
     openWhatsAppDialog({
       type: 'video',
       title: 'Video Recomendaciones',
@@ -144,15 +144,15 @@ export const SurgeryRecommendations = () => {
   };
 
   const handleShareEmail = (rec: typeof recommendations[0]) => {
-    const subject = `Recomendaciones: ${rec.title}`;
-    const body = `Estimado/a paciente,\n\nAdjunto le comparto las recomendaciones de ${rec.title}.\n\n${rec.description}\n\nPuede consultar el documento en el siguiente enlace:\n${getFullUrl(rec.pdfUrl)}\n\nAtentamente,\nSu equipo dental`;
+    const subject = `Lacer Talonario Digital - Recomendaciones: ${rec.title}`;
+    const body = `Estimado/a paciente,\n\nDesde Lacer Talonario Digital le compartimos las recomendaciones de ${rec.title}.\n\n${rec.description}\n\nPuede consultar el documento en el siguiente enlace:\n${getFullUrl(rec.pdfUrl)}\n\nAtentamente,\nSu equipo dental\n\n---\nLacer Talonario Digital`;
     const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = mailtoUrl;
   };
 
   const handleShareVideoEmail = () => {
-    const subject = "Recomendaciones Post-Cirugía Oral - Vídeo explicativo";
-    const body = `Estimado/a paciente,\n\nLe comparto el vídeo con las recomendaciones post-cirugía oral.\n\nPuede verlo en el siguiente enlace:\n${videoRecommendation.vimeoUrl}\n\nAtentamente,\nSu equipo dental`;
+    const subject = "Lacer Talonario Digital - Recomendaciones Post-Cirugía Oral";
+    const body = `Estimado/a paciente,\n\nDesde Lacer Talonario Digital le compartimos el vídeo con las recomendaciones post-cirugía oral.\n\nPuede verlo en el siguiente enlace:\n${videoRecommendation.vimeoUrl}\n\nAtentamente,\nSu equipo dental\n\n---\nLacer Talonario Digital`;
     const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.location.href = mailtoUrl;
   };
