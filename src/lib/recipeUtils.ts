@@ -346,6 +346,40 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
     doc.text(splitNotes, 20, yPos);
     yPos += splitNotes.length * 6;
   }
+
+  // Professional signature
+  if (data.profile?.signature_url) {
+    yPos += 10;
+    if (yPos + 40 > 260) {
+      doc.addPage();
+      yPos = 20;
+    }
+    try {
+      const sigResponse = await fetch(data.profile.signature_url);
+      if (sigResponse.ok) {
+        const sigBlob = await sigResponse.blob();
+        const sigDataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(sigBlob);
+        });
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text("Firma del profesional", 20, yPos);
+        yPos += 3;
+        doc.addImage(sigDataUrl, 'PNG', 20, yPos, 50, 20);
+        yPos += 22;
+        if (data.profile.professional_name) {
+          doc.setFontSize(9);
+          doc.text(data.profile.professional_name, 20, yPos);
+          yPos += 6;
+        }
+      }
+    } catch {
+      // Skip signature if it can't be loaded
+    }
+  }
   
   // QR Code at bottom if URL is provided
   if (recipeUrl) {
