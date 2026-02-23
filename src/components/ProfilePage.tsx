@@ -121,7 +121,7 @@ export const ProfilePage = () => {
           </div>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
-          <Button variant="outline" onClick={() => { switchToBasic(); signOut(); }}>
+          <Button variant="outline" onClick={async () => { switchToBasic(); await signOut(); }}>
             Cerrar sesión
           </Button>
           <Button 

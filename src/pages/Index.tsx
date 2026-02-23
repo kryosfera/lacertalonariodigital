@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Users, User, Settings, LayoutGrid, AlignCenter } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,14 @@ const Index = () => {
   const isMobile = useIsMobile();
   const { userMode, isLoading, showProfileSelector, setUserMode } = useUserMode();
   const { user } = useAuth();
+  const isProfessional = userMode === 'professional';
+
+  // Reset to home when switching to basic mode
+  useEffect(() => {
+    if (!isProfessional && activeTab !== "home" && activeTab !== "nueva-receta" && activeTab !== "recomendaciones") {
+      setActiveTab("home");
+    }
+  }, [isProfessional, activeTab]);
 
   const handleNavigate = (tab: string) => {
     // For basic users, "seleccionar-categoria" opens RecipeCreator directly in category mode
@@ -55,7 +63,8 @@ const Index = () => {
     return <ProfileSelector onSelectMode={setUserMode} />;
   }
 
-  const isProfessional = userMode === 'professional';
+
+
 
   // Render content based on active tab
   const renderHomeScreen = () => {
