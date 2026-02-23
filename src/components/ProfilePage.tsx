@@ -243,42 +243,58 @@ export const ProfilePage = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <input
-            ref={signatureInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => handleFileChange(e, 'signature')}
-          />
-          
-          <div className="flex items-center gap-4">
-            {signaturePreview ? (
+        <CardContent className="space-y-4">
+          {signaturePreview && (
+            <div className="flex items-center gap-4">
               <div className="w-48 h-24 rounded-lg border bg-white flex items-center justify-center overflow-hidden">
                 <img src={signaturePreview} alt="Firma" className="max-w-full max-h-full object-contain" />
               </div>
-            ) : (
-              <div className="w-48 h-24 rounded-lg border border-dashed bg-muted/20 flex items-center justify-center">
-                <Signature className="w-8 h-8 text-muted-foreground/50" />
-              </div>
-            )}
-            
-            <Button 
-              variant="outline" 
-              onClick={() => signatureInputRef.current?.click()}
-              disabled={uploadImage.isPending}
-            >
-              {uploadImage.isPending ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Upload className="w-4 h-4 mr-2" />
-              )}
-              Subir firma
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground mt-3">
-            Tip: Firma en papel blanco, hazle una foto y súbela aquí
-          </p>
+              <span className="text-xs text-muted-foreground">Firma actual</span>
+            </div>
+          )}
+
+          <Tabs defaultValue="draw" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="draw">
+                <PenTool className="w-4 h-4 mr-1" />
+                Dibujar
+              </TabsTrigger>
+              <TabsTrigger value="upload">
+                <Upload className="w-4 h-4 mr-1" />
+                Subir archivo
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="draw" className="mt-3">
+              <SignaturePad onSave={handleSignaturePadSave} />
+              <p className="text-xs text-muted-foreground mt-2">
+                Usa el dedo, un stylus o el ratón para dibujar tu firma
+              </p>
+            </TabsContent>
+            <TabsContent value="upload" className="mt-3">
+              <input
+                ref={signatureInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleFileChange(e, 'signature')}
+              />
+              <Button 
+                variant="outline" 
+                onClick={() => signatureInputRef.current?.click()}
+                disabled={uploadImage.isPending}
+              >
+                {uploadImage.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Upload className="w-4 h-4 mr-2" />
+                )}
+                Subir imagen de firma
+              </Button>
+              <p className="text-xs text-muted-foreground mt-2">
+                Tip: Firma en papel blanco, hazle una foto y súbela aquí
+              </p>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
 
