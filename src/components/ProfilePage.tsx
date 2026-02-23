@@ -11,10 +11,12 @@ import {
 } from "lucide-react";
 import { useProfile, useUpsertProfile, useUploadProfileImage } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserMode } from "@/hooks/useUserMode";
 import { SignaturePad } from "@/components/SignaturePad";
 
 export const ProfilePage = () => {
   const { user, signOut } = useAuth();
+  const { switchToBasic } = useUserMode();
   const { data: profile, isLoading } = useProfile();
   const upsertProfile = useUpsertProfile();
   const uploadImage = useUploadProfileImage();
@@ -118,9 +120,16 @@ export const ProfilePage = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <Button variant="outline" onClick={signOut}>
+        <CardContent className="flex flex-wrap gap-3">
+          <Button variant="outline" onClick={() => { switchToBasic(); signOut(); }}>
             Cerrar sesión
+          </Button>
+          <Button 
+            variant="ghost" 
+            className="text-muted-foreground"
+            onClick={switchToBasic}
+          >
+            Cambiar a modo rápido
           </Button>
         </CardContent>
       </Card>

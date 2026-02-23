@@ -8,6 +8,7 @@ interface UserModeContextType {
   isLoading: boolean;
   setUserMode: (mode: 'basic' | 'professional') => void;
   upgradeToProfessional: () => void;
+  switchToBasic: () => void;
   showProfileSelector: boolean;
   setShowProfileSelector: (show: boolean) => void;
 }
@@ -53,9 +54,12 @@ export function UserModeProvider({ children }: { children: ReactNode }) {
   };
 
   const upgradeToProfessional = () => {
-    // This will be called when basic user wants to upgrade
-    // They'll be redirected to auth page
     localStorage.setItem(USER_MODE_KEY, 'professional');
+  };
+
+  const switchToBasic = () => {
+    setUserModeState('basic');
+    localStorage.setItem(USER_MODE_KEY, 'basic');
   };
 
   return (
@@ -64,6 +68,7 @@ export function UserModeProvider({ children }: { children: ReactNode }) {
       isLoading,
       setUserMode,
       upgradeToProfessional,
+      switchToBasic,
       showProfileSelector,
       setShowProfileSelector
     }}>
