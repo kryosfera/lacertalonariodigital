@@ -103,6 +103,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
   // Professional mode hooks
   const { data: patients = [] } = usePatients();
   const createRecipe = useCreateRecipe();
+  const { data: profileData } = useProfile();
 
   // Fetch templates - available for all users to load saved templates
   const { data: templates = [], refetch: refetchTemplates } = useQuery({
