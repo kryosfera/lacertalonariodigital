@@ -22,6 +22,7 @@ import { usePatients, Patient } from "@/hooks/usePatients";
 import { useCreateRecipe, RecipeProduct } from "@/hooks/useRecipes";
 import { cn } from "@/lib/utils";
 import { VoiceDictation } from "./VoiceDictation";
+import { useProfile } from "@/hooks/useProfile";
 
 interface Product {
   id: string;
