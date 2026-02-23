@@ -8,6 +8,7 @@ interface UserModeContextType {
   isLoading: boolean;
   setUserMode: (mode: 'basic' | 'professional') => void;
   upgradeToProfessional: () => void;
+  switchToBasic: () => void;
   showProfileSelector: boolean;
   setShowProfileSelector: (show: boolean) => void;
 }
