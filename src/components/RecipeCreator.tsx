@@ -397,6 +397,16 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       }
       
       sendViaWhatsApp(recipeData, phone, recipeUrl, preOpenedWindow);
+      
+      // Auto-cerrar la ventana pre-abierta tras un breve retraso
+      // (suficiente para que el navegador procese la redirección a wa.me)
+      if (preOpenedWindow) {
+        setTimeout(() => {
+          try { preOpenedWindow.close(); } catch {}
+          setPreOpenedWindowRef(null);
+        }, 1500);
+      }
+      
       showSuccess("WhatsApp");
     } catch (error) {
       if (preOpenedWindow) preOpenedWindow.close();
