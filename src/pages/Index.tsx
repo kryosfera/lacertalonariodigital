@@ -63,14 +63,8 @@ const Index = () => {
     return <ProfileSelector onSelectMode={setUserMode} />;
   }
 
-  const isProfessional = userMode === 'professional';
 
-  // Reset to home when switching to basic mode
-  useEffect(() => {
-    if (!isProfessional && activeTab !== "home" && activeTab !== "nueva-receta" && activeTab !== "recomendaciones") {
-      setActiveTab("home");
-    }
-  }, [isProfessional, activeTab]);
+
 
   // Render content based on active tab
   const renderHomeScreen = () => {
