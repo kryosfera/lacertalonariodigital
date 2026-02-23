@@ -63,6 +63,14 @@ export const ProfilePage = () => {
     }
   };
 
+  const handleSignaturePadSave = async (dataUrl: string) => {
+    // Convert data URL to File
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    const file = new File([blob], 'signature.png', { type: 'image/png' });
+    await handleImageUpload(file, 'signature');
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'signature') => {
     const file = e.target.files?.[0];
     if (file) {
