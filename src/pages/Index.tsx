@@ -92,11 +92,18 @@ const Index = () => {
       case "nueva-receta":
         return (
           <div className="space-y-3 pb-20 md:pb-0 px-4">
-            <div className="text-center py-2">
-              <h2 className="text-lg md:text-2xl font-semibold text-foreground">Nueva Receta</h2>
-              <p className="text-sm text-muted-foreground hidden md:block">
-                Crea y envía recetas a tus pacientes de forma rápida
-              </p>
+            <div className="text-center py-2 space-y-2">
+              <img 
+                src={lacerLogo} 
+                alt="Lacer" 
+                className="h-8 md:h-10 mx-auto object-contain"
+              />
+              <div>
+                <h2 className="text-lg md:text-2xl font-semibold text-foreground">Nueva Receta</h2>
+                <p className="text-sm text-muted-foreground hidden md:block">
+                  Crea y envía recetas a tus pacientes de forma rápida
+                </p>
+              </div>
             </div>
             <RecipeCreator 
               startWithCategories={startWithCategories} 
