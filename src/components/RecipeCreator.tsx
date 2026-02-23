@@ -22,6 +22,7 @@ import { usePatients, Patient } from "@/hooks/usePatients";
 import { useCreateRecipe, RecipeProduct } from "@/hooks/useRecipes";
 import { cn } from "@/lib/utils";
 import { VoiceDictation } from "./VoiceDictation";
+import { useProfile } from "@/hooks/useProfile";
 
 interface Product {
   id: string;
@@ -102,6 +103,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
   // Professional mode hooks
   const { data: patients = [] } = usePatients();
   const createRecipe = useCreateRecipe();
+  const { data: profileData } = useProfile();
 
   // Fetch templates - available for all users to load saved templates
   const { data: templates = [], refetch: refetchTemplates } = useQuery({
@@ -244,6 +246,14 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     date: new Date().toLocaleDateString("es-ES"),
     products: selectedProductsData,
     notes,
+    profile: isProfessional && profileData ? {
+      logo_url: profileData.logo_url,
+      clinic_name: profileData.clinic_name,
+      clinic_address: profileData.clinic_address,
+      professional_name: profileData.professional_name,
+      registration_number: profileData.registration_number,
+      signature_url: profileData.signature_url,
+    } : null,
   });
 
   // Template functions

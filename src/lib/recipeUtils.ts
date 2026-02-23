@@ -13,12 +13,22 @@ interface Product {
   video_urls?: string[] | null;
 }
 
+interface ProfileInfo {
+  logo_url?: string | null;
+  clinic_name?: string | null;
+  clinic_address?: string | null;
+  professional_name?: string | null;
+  registration_number?: string | null;
+  signature_url?: string | null;
+}
+
 interface RecipeData {
   patientName: string;
   date: string;
   products: Product[];
   notes: string;
   doctorName?: string;
+  profile?: ProfileInfo | null;
 }
 
 // Create a short URL and return the code
@@ -178,9 +188,10 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
   doc.setFillColor(220, 38, 38);
   doc.rect(0, 42, pageWidth, 3, "F");
 
-  // Cargar logo como base64
+  // Load clinic logo or default Lacer logo
+  const logoToLoad = data.profile?.logo_url || (window.location.origin + '/lacer-logo-bocas_sanas.jpg');
   try {
-    const logoResponse = await fetch(window.location.origin + '/lacer-logo-bocas_sanas.jpg');
+    const logoResponse = await fetch(logoToLoad);
     if (logoResponse.ok) {
       const logoBlob = await logoResponse.blob();
       const logoDataUrl = await new Promise<string>((resolve, reject) => {
@@ -189,10 +200,10 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
         reader.onerror = reject;
         reader.readAsDataURL(logoBlob);
       });
-      doc.addImage(logoDataUrl, 'JPEG', 8, 5, 90, 33);
+      const imgFormat = logoToLoad.endsWith('.png') ? 'PNG' : 'JPEG';
+      doc.addImage(logoDataUrl, imgFormat, 8, 5, 90, 33);
     }
   } catch {
-    // Fallback: texto si no carga el logo
     doc.setTextColor(220, 38, 38);
     doc.setFontSize(22);
     doc.setFont("helvetica", "bold");
@@ -203,7 +214,6 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
   if (recipeUrl) {
     const qrDataUrl = await generateQRCode(recipeUrl);
     if (qrDataUrl) {
-      // Add light background for QR
       doc.setFillColor(248, 248, 248);
       doc.roundedRect(pageWidth - 45, 4, 32, 32, 2, 2, "F");
       doc.addImage(qrDataUrl, "PNG", pageWidth - 43, 6, 28, 28);
@@ -213,9 +223,34 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
   // Reset color
   doc.setTextColor(0, 0, 0);
   
+  let yPos = 50;
+
+  // Professional info block
+  if (data.profile?.professional_name || data.profile?.clinic_name) {
+    yPos = 50;
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    if (data.profile.professional_name) {
+      let profLine = data.profile.professional_name;
+      if (data.profile.registration_number) profLine += `  ·  Nº Col. ${data.profile.registration_number}`;
+      doc.text(profLine, 20, yPos);
+      yPos += 5;
+    }
+    if (data.profile.clinic_name) {
+      doc.text(data.profile.clinic_name, 20, yPos);
+      yPos += 5;
+    }
+    if (data.profile.clinic_address) {
+      doc.setFontSize(8);
+      doc.text(data.profile.clinic_address, 20, yPos);
+      yPos += 5;
+    }
+    yPos += 5;
+  } else {
+    yPos = 60;
+  }
+
   // Info del paciente
-  let yPos = 60;
-  
   doc.setFontSize(10);
   doc.setTextColor(100, 100, 100);
   doc.text("INFORMACIÓN DEL PACIENTE", 20, yPos);
@@ -310,6 +345,40 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
     const splitNotes = doc.splitTextToSize(data.notes, pageWidth - 40);
     doc.text(splitNotes, 20, yPos);
     yPos += splitNotes.length * 6;
+  }
+
+  // Professional signature
+  if (data.profile?.signature_url) {
+    yPos += 10;
+    if (yPos + 40 > 260) {
+      doc.addPage();
+      yPos = 20;
+    }
+    try {
+      const sigResponse = await fetch(data.profile.signature_url);
+      if (sigResponse.ok) {
+        const sigBlob = await sigResponse.blob();
+        const sigDataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(sigBlob);
+        });
+        doc.setFontSize(8);
+        doc.setTextColor(100, 100, 100);
+        doc.text("Firma del profesional", 20, yPos);
+        yPos += 3;
+        doc.addImage(sigDataUrl, 'PNG', 20, yPos, 50, 20);
+        yPos += 22;
+        if (data.profile.professional_name) {
+          doc.setFontSize(9);
+          doc.text(data.profile.professional_name, 20, yPos);
+          yPos += 6;
+        }
+      }
+    } catch {
+      // Skip signature if it can't be loaded
+    }
   }
   
   // QR Code at bottom if URL is provided
