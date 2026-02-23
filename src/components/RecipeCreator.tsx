@@ -246,6 +246,14 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     date: new Date().toLocaleDateString("es-ES"),
     products: selectedProductsData,
     notes,
+    profile: isProfessional && profileData ? {
+      logo_url: profileData.logo_url,
+      clinic_name: profileData.clinic_name,
+      clinic_address: profileData.clinic_address,
+      professional_name: profileData.professional_name,
+      registration_number: profileData.registration_number,
+      signature_url: profileData.signature_url,
+    } : null,
   });
 
   // Template functions
