@@ -16,6 +16,7 @@ import { SignaturePad } from "@/components/SignaturePad";
 
 export const ProfilePage = () => {
   const { user, signOut } = useAuth();
+  const { switchToBasic } = useUserMode();
   const { data: profile, isLoading } = useProfile();
   const upsertProfile = useUpsertProfile();
   const uploadImage = useUploadProfileImage();
