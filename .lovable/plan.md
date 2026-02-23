@@ -1,43 +1,41 @@
 
 
-## Corregir pantalla en blanco tras enviar receta por Email/WhatsApp/PDF
+## Fix: Auto-cerrar ventana WhatsApp y mostrar "RECETA ENVIADA" automaticamente
 
-### Problema raiz
+### Problema
 
-La funcion `sendViaEmail` en `src/lib/recipeUtils.ts` utiliza `window.location.href` para abrir el enlace `mailto:`, lo que **navega la pagina actual fuera de la SPA**. En modo PWA esto es especialmente problematico porque al volver, la app pierde su estado y muestra una pantalla en blanco.
+Cuando se envia por WhatsApp, se pre-abre una ventana `about:blank` (necesaria para evitar el popup blocker de iOS). Despues de redirigirla a WhatsApp, el mecanismo actual usa `visibilitychange` para cerrarla cuando el usuario vuelve a la app. Pero este evento no siempre se dispara (especialmente en escritorio o cuando el navegador no pierde el foco), asi que la ventana queda abierta y bloquea la vista del bottom sheet de exito.
 
-Ademas, los handlers de envio no tienen proteccion robusta contra errores asincronos no capturados que puedan dejar la app en un estado inconsistente.
+### Solucion
 
-### Cambios necesarios
+Reemplazar el enfoque de `visibilitychange` por un cierre directo con temporizador justo despues de enviar, combinado con `visibilitychange` como respaldo:
 
-**1. `src/lib/recipeUtils.ts` - Corregir `sendViaEmail`**
+1. **Cerrar la ventana con timeout inmediato** (1-2 segundos despues del envio), sin depender de ningun evento del navegador
+2. **Mantener `visibilitychange` como respaldo** por si el timeout no funciona en algun caso edge
+3. **Mostrar el success drawer inmediatamente**, ya que `showSuccess()` se llama justo despues del envio
 
-- Reemplazar `window.location.href = mailto:...` por un enlace temporal `<a>` con el atributo `target="_blank"` (igual que hace `downloadPDF`), evitando que la pagina actual navegue fuera de la SPA
-- Esto mantiene la app intacta mientras el sistema operativo abre el cliente de correo
+### Cambios tecnicos
 
-**2. `src/components/RecipeCreator.tsx` - Proteger handlers de envio**
+**Archivo: `src/components/RecipeCreator.tsx`**
 
-- Envolver los handlers `handleSendWhatsApp`, `handleSendEmail`, `handleDownloadPDF` y `handlePrint` con `try/catch` mas robustos
-- Asegurar que `setIsSending(false)` y `setShowSendDialog(false)` siempre se ejecuten en el bloque `finally`, incluso si hay errores inesperados
-- Anadir `resetForm()` tambien para usuarios basicos tras enviar exitosamente, para que puedan crear nuevas recetas inmediatamente
-
-### Detalle tecnico
-
-Cambio principal en `sendViaEmail`:
+En `handleSendWhatsApp`, despues de llamar a `sendViaWhatsApp()`, anadir cierre directo con timeout:
 
 ```text
-// ANTES (navega fuera de la SPA):
-window.location.href = url;
+sendViaWhatsApp(recipeData, phone, recipeUrl, preOpenedWindow);
 
-// DESPUES (abre en nueva ventana/pestaña sin afectar la SPA):
-const link = document.createElement("a");
-link.href = url;
-link.target = "_blank";
-link.rel = "noopener noreferrer";
-document.body.appendChild(link);
-link.click();
-document.body.removeChild(link);
+// Cerrar la ventana pre-abierta tras un breve retraso
+// (suficiente para que el navegador procese la redireccion a wa.me)
+if (preOpenedWindow) {
+  setTimeout(() => {
+    try { preOpenedWindow.close(); } catch {}
+    setPreOpenedWindowRef(null);
+  }, 1500);
+}
+
+showSuccess("WhatsApp");
 ```
 
-Este patron es el mismo que ya se usa en `downloadPDF` y funciona correctamente en PWA, Safari iOS y navegadores de escritorio.
+Mantener el `useEffect` de `visibilitychange` (lineas 83-96) como mecanismo de respaldo, pero el cierre principal sera el timeout directo.
+
+Esto garantiza que la ventana se cierre en todos los casos y el bottom sheet de exito sea visible inmediatamente.
 
