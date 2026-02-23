@@ -223,9 +223,34 @@ export const generateRecipePDF = async (data: RecipeData, recipeUrl?: string): P
   // Reset color
   doc.setTextColor(0, 0, 0);
   
+  let yPos = 50;
+
+  // Professional info block
+  if (data.profile?.professional_name || data.profile?.clinic_name) {
+    yPos = 50;
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    if (data.profile.professional_name) {
+      let profLine = data.profile.professional_name;
+      if (data.profile.registration_number) profLine += `  ·  Nº Col. ${data.profile.registration_number}`;
+      doc.text(profLine, 20, yPos);
+      yPos += 5;
+    }
+    if (data.profile.clinic_name) {
+      doc.text(data.profile.clinic_name, 20, yPos);
+      yPos += 5;
+    }
+    if (data.profile.clinic_address) {
+      doc.setFontSize(8);
+      doc.text(data.profile.clinic_address, 20, yPos);
+      yPos += 5;
+    }
+    yPos += 5;
+  } else {
+    yPos = 60;
+  }
+
   // Info del paciente
-  let yPos = 60;
-  
   doc.setFontSize(10);
   doc.setTextColor(100, 100, 100);
   doc.text("INFORMACIÓN DEL PACIENTE", 20, yPos);
