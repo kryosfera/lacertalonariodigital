@@ -279,7 +279,7 @@ export const CategorySelector = ({
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
               </div>
             ) : (
-              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                 {categoriesWithProducts.map((category, index) => (
                   <button
                     key={category.id}
