@@ -154,13 +154,13 @@ export const CategorySelector = ({
           </div>
 
           {/* Fullscreen grid - fills remaining space */}
-          <div className="flex-1 p-2 overflow-auto">
+          <div className="flex-1 p-3 overflow-auto">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2 h-full auto-rows-fr">
+              <div className="grid grid-cols-2 gap-3">
                 {categoriesWithProducts.map((category, index) => (
                   <button
                     key={category.id}
