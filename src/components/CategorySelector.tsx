@@ -154,26 +154,26 @@ export const CategorySelector = ({
           </div>
 
           {/* Fullscreen grid - fills remaining space */}
-          <div className="flex-1 p-2 overflow-auto">
+          <div className="flex-1 p-3 overflow-auto">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-2 h-full auto-rows-fr">
+              <div className="grid grid-cols-2 gap-3">
                 {categoriesWithProducts.map((category, index) => (
-                  <button
-                    key={category.id}
-                    onClick={() => onSelectCategory(category.id, category.name)}
-                    className="relative flex items-center justify-center bg-white rounded-lg border border-border/10 hover:border-secondary/50 hover:shadow-lg active:scale-[0.97] transition-all duration-200 overflow-hidden card-scale-in"
-                    style={{ animationDelay: `${index * 25}ms` }}
-                  >
-                    {category.image_url ? (
-                      <img
-                        src={category.image_url}
-                        alt={category.name}
-                        className="w-full h-full object-contain p-0.5"
-                      />
+                    <button
+                      key={category.id}
+                      onClick={() => onSelectCategory(category.id, category.name)}
+                      className="relative flex items-center justify-center bg-white rounded-xl border border-border/10 hover:border-secondary/50 hover:shadow-lg active:scale-[0.97] transition-all duration-200 overflow-hidden card-scale-in aspect-square"
+                      style={{ animationDelay: `${index * 25}ms` }}
+                    >
+                      {category.image_url ? (
+                        <img
+                          src={category.image_url}
+                          alt={category.name}
+                          className="w-full h-full object-contain p-2"
+                        />
                     ) : (
                       <span className="text-sm font-bold text-foreground text-center leading-tight px-2">
                         {category.name}
