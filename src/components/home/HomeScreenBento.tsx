@@ -1,8 +1,7 @@
-import { FileText, Clock, Users, Scissors, CalendarDays, TrendingUp, UserCheck } from "lucide-react";
+import { FileText, Clock, Users, Scissors, TrendingUp, ChevronRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import lacerLogo from "@/assets/lacer-logo-color.png";
-import homeBanner from "@/assets/home-banner.jpg";
 import { UserMode } from "@/hooks/useUserMode";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LegalFooter } from "@/components/LegalFooter";
@@ -22,21 +21,21 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.1
+      staggerChildren: 0.06,
+      delayChildren: 0.15
     }
   }
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
+  hidden: { opacity: 0, y: 16 },
   visible: {
     opacity: 1,
     y: 0,
     transition: {
       type: "spring" as const,
-      stiffness: 300,
-      damping: 24
+      stiffness: 400,
+      damping: 30
     }
   }
 };
@@ -49,210 +48,142 @@ export const HomeScreenBento = ({
   const isProfessional = userMode === 'professional';
 
   return (
-    <motion.div 
-      className="h-[calc(100vh-80px)] flex flex-col px-4 lg:px-8"
+    <motion.div
+      className="min-h-[calc(100vh-80px)] flex flex-col items-center justify-center px-5 lg:px-8 py-8"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
-      {/* Theme Toggle - Top right corner (mobile only) */}
+      {/* Theme Toggle - Mobile */}
       <div className="absolute top-2 right-2 z-10 md:hidden">
         <ThemeToggle />
       </div>
 
-      {/* Main Bento Grid - Full Height */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6 py-4">
-        
-        {/* Hero Banner - Large Left Card */}
-        <motion.div 
-          className="lg:col-span-7 relative rounded-3xl overflow-hidden group cursor-pointer min-h-[200px] lg:min-h-0"
-          variants={itemVariants}
-        >
-          <img 
-            src={homeBanner} 
-            alt="Talonario Digital" 
-            className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 ease-out group-hover:scale-105"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-          
-          {/* Content Overlay */}
-          <div className="absolute inset-0 flex flex-col justify-end p-6 lg:p-8">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-xl">
-                <img src={lacerLogo} alt="Lacer" className="w-10 h-10 lg:w-12 lg:h-12 object-contain" />
-              </div>
-              <div>
-                <h1 className="text-2xl lg:text-4xl font-bold text-white tracking-tight">
-                  Talonario Digital
-                </h1>
-                <p className="text-sm lg:text-base text-white/80">
-                  {isProfessional ? 'Modo Profesional' : 'Modo Rápido'}
-                </p>
-              </div>
-            </div>
-            <p className="text-sm lg:text-base text-white/70 max-w-md leading-relaxed hidden lg:block">
-              Un talonario de recetas en formato digital que permite gestionar electrónicamente las recetas para sus pacientes, de forma simplificada, mediante envío directo por WhatsApp o email.
-            </p>
+      <div className="w-full max-w-xl flex flex-col items-center text-center">
+
+        {/* Logo pill */}
+        <motion.div variants={itemVariants}>
+          <div className="w-16 h-16 lg:w-20 lg:h-20 rounded-[20px] bg-card border border-border/60 shadow-sm flex items-center justify-center mb-6">
+            <img src={lacerLogo} alt="Lacer" className="w-10 h-10 lg:w-12 lg:h-12 object-contain" />
           </div>
         </motion.div>
 
-        {/* Right Column - Actions Grid */}
-        <div className="lg:col-span-5 grid grid-cols-2 gap-3 lg:gap-4">
-          {/* Primary Action - Nueva Receta */}
-          <motion.button 
-            onClick={() => onNavigate(isProfessional ? "nueva-receta" : "seleccionar-categoria")} 
-            className="col-span-2 lg:col-span-2 group flex items-center gap-4 p-5 lg:p-6 rounded-2xl lg:rounded-3xl bg-secondary text-secondary-foreground shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1"
-            variants={itemVariants}
-            whileHover={{ y: -4 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl lg:rounded-2xl bg-white/20 flex items-center justify-center">
-              <FileText className="w-6 h-6 lg:w-7 lg:h-7" />
-            </div>
-            <div className="text-left">
-              <p className="text-lg lg:text-xl font-semibold">Nueva Receta</p>
-              <p className="text-sm text-secondary-foreground/70">Crear y enviar</p>
-            </div>
-          </motion.button>
-
-          {/* Post-Cirugía */}
-          <motion.button 
-            onClick={() => onNavigate("recomendaciones")} 
-            className="group flex flex-col items-center justify-center gap-3 p-4 lg:p-5 rounded-2xl lg:rounded-3xl bg-card border border-border shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-secondary/50"
-            variants={itemVariants}
-            whileHover={{ y: -4 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div className="w-11 h-11 lg:w-12 lg:h-12 rounded-xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
-              <Scissors className="w-5 h-5 lg:w-6 lg:h-6 text-secondary" />
-            </div>
-            <div className="text-center">
-              <p className="text-sm lg:text-base font-medium text-foreground">Post-Cirugía</p>
-              <p className="text-xs text-muted-foreground hidden lg:block">Recomendaciones</p>
-            </div>
-          </motion.button>
-
-          {/* Historial - Only Professional */}
-          {isProfessional ? (
-            <motion.button 
-              onClick={() => onNavigate("historial")} 
-              className="group flex flex-col items-center justify-center gap-3 p-4 lg:p-5 rounded-2xl lg:rounded-3xl bg-card border border-border shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-secondary/50"
-              variants={itemVariants}
-              whileHover={{ y: -4 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="w-11 h-11 lg:w-12 lg:h-12 rounded-xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
-                <Clock className="w-5 h-5 lg:w-6 lg:h-6 text-secondary" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm lg:text-base font-medium text-foreground">Historial</p>
-                <p className="text-xs text-muted-foreground hidden lg:block">Ver recetas</p>
-              </div>
-            </motion.button>
-          ) : (
-            <Link 
-              to="/auth"
-              className="group flex flex-col items-center justify-center gap-3 p-4 lg:p-5 rounded-2xl lg:rounded-3xl bg-muted/50 border border-dashed border-border shadow-sm transition-all duration-300 hover:border-secondary/50"
-            >
-              <div className="w-11 h-11 lg:w-12 lg:h-12 rounded-xl bg-muted flex items-center justify-center">
-                <Users className="w-5 h-5 lg:w-6 lg:h-6 text-muted-foreground" />
-              </div>
-              <div className="text-center">
-                <p className="text-xs text-muted-foreground">¿Profesional?</p>
-              </div>
-            </Link>
-          )}
-
-          {/* Professional Only Actions */}
-          {isProfessional && (
-            <>
-              <motion.button 
-                onClick={() => onNavigate("pacientes")} 
-                className="group flex flex-col items-center justify-center gap-3 p-4 lg:p-5 rounded-2xl lg:rounded-3xl bg-card border border-border shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-secondary/50"
-                variants={itemVariants}
-                whileHover={{ y: -4 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <div className="w-11 h-11 lg:w-12 lg:h-12 rounded-xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
-                  <Users className="w-5 h-5 lg:w-6 lg:h-6 text-secondary" />
-                </div>
-                <div className="text-center">
-                  <p className="text-sm lg:text-base font-medium text-foreground">Pacientes</p>
-                  <p className="text-xs text-muted-foreground hidden lg:block">Gestionar</p>
-                </div>
-              </motion.button>
-
-              <motion.button 
-                onClick={() => onNavigate("dashboard")} 
-                className="group flex flex-col items-center justify-center gap-3 p-4 lg:p-5 rounded-2xl lg:rounded-3xl bg-card border border-border shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-secondary/50"
-                variants={itemVariants}
-                whileHover={{ y: -4 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <div className="w-11 h-11 lg:w-12 lg:h-12 rounded-xl bg-secondary/10 flex items-center justify-center group-hover:bg-secondary/20 transition-colors">
-                  <TrendingUp className="w-5 h-5 lg:w-6 lg:h-6 text-secondary" />
-                </div>
-                <div className="text-center">
-                  <p className="text-sm lg:text-base font-medium text-foreground">Dashboard</p>
-                  <p className="text-xs text-muted-foreground hidden lg:block">Estadísticas</p>
-                </div>
-              </motion.button>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* Stats Row - Professional Only */}
-      {isProfessional && (
-        <motion.div 
-          className="grid grid-cols-3 gap-3 lg:gap-4 pb-4"
-          variants={containerVariants}
+        {/* Headline */}
+        <motion.h1
+          className="text-[2rem] sm:text-4xl lg:text-5xl font-bold text-foreground tracking-tight leading-[1.1] mb-3"
+          variants={itemVariants}
         >
-          <motion.div 
-            className="flex items-center gap-3 p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-card border border-border"
-            variants={itemVariants}
-          >
-            <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
-              <CalendarDays className="w-4 h-4 lg:w-5 lg:h-5 text-secondary" />
-            </div>
-            <div>
-              <p className="text-lg lg:text-xl font-bold text-foreground">{stats.thisMonth}</p>
-              <p className="text-[10px] lg:text-xs text-muted-foreground uppercase tracking-wide">Este mes</p>
-            </div>
-          </motion.div>
-          <motion.div 
-            className="flex items-center gap-3 p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-card border border-border"
-            variants={itemVariants}
-          >
-            <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 lg:w-5 lg:h-5 text-secondary" />
-            </div>
-            <div>
-              <p className="text-lg lg:text-xl font-bold text-foreground">{stats.totalRecipes}</p>
-              <p className="text-[10px] lg:text-xs text-muted-foreground uppercase tracking-wide">Recetas</p>
-            </div>
-          </motion.div>
-          <motion.div 
-            className="flex items-center gap-3 p-3 lg:p-4 rounded-xl lg:rounded-2xl bg-card border border-border"
-            variants={itemVariants}
-          >
-            <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-lg bg-secondary/10 flex items-center justify-center">
-              <UserCheck className="w-4 h-4 lg:w-5 lg:h-5 text-secondary" />
-            </div>
-            <div>
-              <p className="text-lg lg:text-xl font-bold text-foreground">{stats.totalPatients}</p>
-              <p className="text-[10px] lg:text-xs text-muted-foreground uppercase tracking-wide">Pacientes</p>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
+          Talonario Digital
+        </motion.h1>
 
-      {/* Footer */}
-      <div className="py-2 text-center">
-        <p className="text-[10px] text-muted-foreground/50 tracking-wide">
-          v2.0 • {isProfessional ? 'PROFESIONAL' : 'MODO RÁPIDO'}
-        </p>
+        <motion.p
+          className="text-base lg:text-lg text-muted-foreground max-w-sm mx-auto leading-relaxed mb-10"
+          variants={itemVariants}
+        >
+          Recetas digitales para tus pacientes. Rápido, simple y directo por WhatsApp o email.
+        </motion.p>
+
+        {/* Primary CTA */}
+        <motion.div className="w-full max-w-xs mb-4" variants={itemVariants}>
+          <motion.button
+            onClick={() => onNavigate(isProfessional ? "nueva-receta" : "seleccionar-categoria")}
+            className="w-full group flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-full bg-secondary text-secondary-foreground font-semibold text-base shadow-md transition-shadow hover:shadow-lg"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <FileText className="w-[18px] h-[18px]" />
+            Nueva Receta
+            <ChevronRight className="w-4 h-4 opacity-60 -mr-1 group-hover:translate-x-0.5 transition-transform" />
+          </motion.button>
+        </motion.div>
+
+        {/* Secondary CTA */}
+        <motion.div className="w-full max-w-xs mb-10" variants={itemVariants}>
+          <motion.button
+            onClick={() => onNavigate("recomendaciones")}
+            className="w-full flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-full bg-card border border-border text-foreground font-medium text-base transition-colors hover:bg-muted"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <Scissors className="w-[18px] h-[18px] text-secondary" />
+            Recomendaciones Post-Cirugía
+          </motion.button>
+        </motion.div>
+
+        {/* Professional quick links */}
+        {isProfessional && (
+          <motion.div
+            className="flex items-center justify-center gap-6 mb-10"
+            variants={itemVariants}
+          >
+            {[
+              { id: "historial", label: "Historial", icon: Clock },
+              { id: "pacientes", label: "Pacientes", icon: Users },
+              { id: "dashboard", label: "Dashboard", icon: TrendingUp },
+            ].map((item) => {
+              const Icon = item.icon;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onNavigate(item.id)}
+                  className="flex flex-col items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <div className="w-11 h-11 rounded-2xl bg-muted/60 flex items-center justify-center transition-colors hover:bg-muted">
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs font-medium">{item.label}</span>
+                </button>
+              );
+            })}
+          </motion.div>
+        )}
+
+        {/* Stats row – professional */}
+        {isProfessional && (
+          <motion.div
+            className="flex items-center justify-center gap-8 text-center mb-8"
+            variants={itemVariants}
+          >
+            <div>
+              <p className="text-2xl font-bold text-foreground">{stats.thisMonth}</p>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider">este mes</p>
+            </div>
+            <div className="w-px h-8 bg-border" />
+            <div>
+              <p className="text-2xl font-bold text-foreground">{stats.totalRecipes}</p>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider">recetas</p>
+            </div>
+            <div className="w-px h-8 bg-border" />
+            <div>
+              <p className="text-2xl font-bold text-foreground">{stats.totalPatients}</p>
+              <p className="text-[11px] text-muted-foreground uppercase tracking-wider">pacientes</p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Basic mode upgrade hint */}
+        {!isProfessional && (
+          <motion.div variants={itemVariants}>
+            <Link
+              to="/auth"
+              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground/70 hover:text-secondary transition-colors"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              ¿Eres profesional? Activa todas las funciones
+            </Link>
+          </motion.div>
+        )}
       </div>
+
+      {/* Version tag */}
+      <motion.p
+        className="mt-auto pt-6 text-[10px] text-muted-foreground/40 tracking-widest uppercase"
+        variants={itemVariants}
+      >
+        v2.0 · {isProfessional ? 'profesional' : 'modo rápido'}
+      </motion.p>
+
+      <LegalFooter className="mt-2" />
     </motion.div>
   );
 };
