@@ -67,15 +67,7 @@ export const CategorySelector = ({
 
   const uncategorizedCount = productCountByCategory.get("uncategorized") || 0;
 
-  // Calculate grid layout based on category count
   const totalItems = categoriesWithProducts.length + (uncategorizedCount > 0 ? 1 : 0);
-  const getGridConfig = () => {
-    if (totalItems <= 4) return { cols: 2, rows: 2 };
-    if (totalItems <= 6) return { cols: 2, rows: 3 };
-    if (totalItems <= 9) return { cols: 3, rows: 3 };
-    return { cols: 3, rows: Math.ceil(totalItems / 3) };
-  };
-  const gridConfig = getGridConfig();
 
   const handleLoadTemplate = (template: Template) => {
     onLoadTemplate?.(template);
