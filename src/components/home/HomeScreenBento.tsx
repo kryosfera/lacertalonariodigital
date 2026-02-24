@@ -64,7 +64,9 @@ export const HomeScreenBento = ({
       <motion.div
         className="relative -mx-5 lg:-mx-8 px-6 pt-14 pb-10 md:pt-16 md:pb-12 overflow-hidden rounded-b-[2.5rem] md:rounded-b-[3rem]"
         style={{ background: 'linear-gradient(160deg, hsl(0 72% 51%) 0%, hsl(0 72% 38%) 100%)' }}
-        variants={itemVariants}
+        initial={{ opacity: 0, y: -80, scaleY: 0.6, originY: 0 }}
+        animate={{ opacity: 1, y: 0, scaleY: 1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 22, delay: 0.05 }}
       >
         {/* Subtle radial glow */}
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-20"
