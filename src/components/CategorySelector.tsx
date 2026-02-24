@@ -67,15 +67,7 @@ export const CategorySelector = ({
 
   const uncategorizedCount = productCountByCategory.get("uncategorized") || 0;
 
-  // Calculate grid layout based on category count
   const totalItems = categoriesWithProducts.length + (uncategorizedCount > 0 ? 1 : 0);
-  const getGridConfig = () => {
-    if (totalItems <= 4) return { cols: 2, rows: 2 };
-    if (totalItems <= 6) return { cols: 2, rows: 3 };
-    if (totalItems <= 9) return { cols: 3, rows: 3 };
-    return { cols: 3, rows: Math.ceil(totalItems / 3) };
-  };
-  const gridConfig = getGridConfig();
 
   const handleLoadTemplate = (template: Template) => {
     onLoadTemplate?.(template);
@@ -162,19 +154,13 @@ export const CategorySelector = ({
           </div>
 
           {/* Fullscreen grid - fills remaining space */}
-          <div className="flex-1 p-1.5 overflow-hidden">
+          <div className="flex-1 p-2 overflow-auto">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
               </div>
             ) : (
-              <div 
-                className="grid gap-1.5 h-full"
-                style={{ 
-                  gridTemplateColumns: `repeat(${gridConfig.cols}, 1fr)`,
-                  gridTemplateRows: `repeat(${Math.min(gridConfig.rows, Math.ceil(totalItems / gridConfig.cols))}, 1fr)`
-                }}
-              >
+              <div className="grid grid-cols-2 gap-2 h-full auto-rows-fr">
                 {categoriesWithProducts.map((category, index) => (
                   <button
                     key={category.id}
@@ -293,7 +279,7 @@ export const CategorySelector = ({
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
               </div>
             ) : (
-              <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                 {categoriesWithProducts.map((category, index) => (
                   <button
                     key={category.id}
