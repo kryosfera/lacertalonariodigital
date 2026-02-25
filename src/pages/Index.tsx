@@ -19,6 +19,7 @@ import { useUserMode } from "@/hooks/useUserMode";
 import { useAuth } from "@/hooks/useAuth";
 import { LegalFooter } from "@/components/LegalFooter";
 import lacerLogo from "@/assets/lacer-logo.png";
+import { cn } from "@/lib/utils";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
@@ -174,7 +175,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pt-safe">
+    <div className={cn("min-h-screen pt-safe", homeStyle === 'glass' && activeTab === 'home' ? "bg-transparent" : "bg-background")}>
       {/* Header - Desktop/Tablet only */}
       {!isMobile && (
         <header className="bg-card/80 backdrop-blur-lg border-b border-border/50 sticky top-0 z-50">

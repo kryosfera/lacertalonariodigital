@@ -46,7 +46,7 @@ export const HomeScreenGlass = ({
   return (
     <>
       {/* Full-width animated gradient background */}
-      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+      <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
         <div
           className="absolute inset-0"
           style={{
@@ -98,7 +98,7 @@ export const HomeScreenGlass = ({
       </div>
 
       <motion.div
-        className="min-h-[calc(100vh-80px)] flex flex-col relative"
+        className="min-h-[calc(100vh-80px)] flex flex-col relative z-10"
         initial="hidden"
         animate="visible"
         variants={containerVariants}
