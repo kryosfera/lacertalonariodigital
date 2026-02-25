@@ -1,7 +1,6 @@
 import { FileText, Clock, Users, Scissors, Sparkles, TrendingUp, CalendarDays, UserCheck, ChevronRight, Palette } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import lacerLogo from "@/assets/lacer-logo-color.png";
 import lacerProducts from "@/assets/lacer-products.png";
 import { UserMode } from "@/hooks/useUserMode";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -65,32 +64,11 @@ export const HomeScreenPhoto = ({
         className="relative overflow-hidden"
         variants={itemVariants}
       >
-        <div className="relative pb-0 pt-12 md:pt-14 bg-background">
-          {/* Logo + Title */}
-          <div className="px-5 md:px-8 mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-card border border-border/50 flex items-center justify-center shadow-sm flex-shrink-0">
-                <img src={lacerLogo} alt="Lacer" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
-              </div>
-              <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight leading-tight">
-                  Talonario Digital
-                </h1>
-                <p className="text-sm text-muted-foreground">
-                  Recetas digitales para profesionales
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Thin red accent line */}
-          <div className="mx-5 md:mx-8 h-0.5 bg-secondary/20 rounded-full mb-3" />
-
-          {/* Products image — on clean white/background */}
-          <div className="relative px-2 md:px-6">
+        <div className="relative pb-0 pt-0 bg-background overflow-hidden">
+          <div className="w-full">
             <img
               src={lacerProducts}
-              alt="Gama de productos Lacer"
+              alt="Lacer"
               className="w-full h-auto object-contain"
             />
           </div>
