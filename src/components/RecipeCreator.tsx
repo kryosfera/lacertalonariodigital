@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,14 @@ interface RecipeCreatorProps {
 export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, onGoHome }: RecipeCreatorProps) => {
   const { userMode } = useUserMode();
   const isProfessional = userMode === 'professional';
+  const queryClient = useQueryClient();
+
+  // Invalidate patients cache on mount to ensure fresh data
+  useEffect(() => {
+    if (isProfessional) {
+      queryClient.invalidateQueries({ queryKey: ['patients'] });
+    }
+  }, [isProfessional, queryClient]);
   
   const [selectedProducts, setSelectedProducts] = useState<Map<string, number>>(new Map());
   const [searchTerm, setSearchTerm] = useState("");

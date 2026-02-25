@@ -61,7 +61,7 @@ export function usePatients() {
       }));
     },
     enabled: !!user,
-    staleTime: 2 * 60 * 1000, // 2 minutes — patients change more often than products
+    staleTime: 30 * 1000, // 30 seconds — ensure fresh data when navigating to recipe creator
   });
 }
 
