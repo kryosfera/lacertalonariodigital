@@ -283,10 +283,10 @@ export const SurgeryRecommendations = () => {
           className="group overflow-hidden border-border/50 hover:border-secondary/20 transition-all duration-200 hover:shadow-lg"
         >
           <CardContent className="p-0">
-            <div className="flex items-center gap-4">
+            <div className="flex items-stretch gap-0 min-w-0">
               {/* Video Thumbnail */}
               <div 
-                className="relative w-24 h-24 md:w-32 md:h-32 overflow-hidden bg-muted flex-shrink-0 cursor-pointer"
+                className="relative w-24 h-auto min-h-[96px] md:w-32 overflow-hidden bg-muted flex-shrink-0 cursor-pointer"
                 onClick={() => setShowVideoModal(true)}
               >
                 <img 
@@ -302,22 +302,22 @@ export const SurgeryRecommendations = () => {
               </div>
               
               {/* Content */}
-              <div className="flex-1 py-4 pr-4">
-                <h4 className="font-semibold text-foreground text-sm leading-tight">
+              <div className="flex-1 min-w-0 py-3 px-3 md:py-4 md:px-4 flex flex-col justify-center">
+                <h4 className="font-semibold text-foreground text-sm leading-tight truncate">
                   {videoRecommendation.title}
                 </h4>
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                   {videoRecommendation.description}
                 </p>
-                <div className="flex items-center gap-2 mt-3">
+                <div className="flex items-center gap-1 mt-2 flex-wrap">
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-7 px-2 gap-1.5 text-xs text-secondary"
+                    className="h-7 px-2 gap-1 text-xs text-secondary"
                     onClick={() => setShowVideoModal(true)}
                   >
-                    <Play className="w-3.5 h-3.5" />
-                    Ver video
+                    <Play className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span className="truncate">Ver video</span>
                   </Button>
                   
                   <DropdownMenu>
@@ -325,10 +325,10 @@ export const SurgeryRecommendations = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-7 px-2 gap-1.5 text-xs"
+                        className="h-7 px-2 gap-1 text-xs"
                       >
-                        <Share2 className="w-3.5 h-3.5" />
-                        Compartir
+                        <Share2 className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span className="hidden sm:inline">Compartir</span>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-48">
