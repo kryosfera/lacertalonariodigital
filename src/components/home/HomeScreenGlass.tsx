@@ -45,23 +45,19 @@ export const HomeScreenGlass = ({
 
   return (
     <motion.div
-      className="min-h-[calc(100vh-80px)] flex flex-col relative overflow-hidden"
+      className="min-h-[calc(100vh-80px)] flex flex-col relative"
+      style={{
+        background: 'linear-gradient(145deg, hsl(0 72% 51% / 0.30) 0%, hsl(0 72% 45% / 0.15) 50%, hsl(var(--background)) 100%)'
+      }}
       initial="hidden"
       animate="visible"
       variants={containerVariants}
     >
-      {/* Red gradient background */}
-      <div
-        className="absolute inset-0 -z-10"
-        style={{
-          background: 'linear-gradient(145deg, hsl(0 72% 51% / 0.30) 0%, hsl(0 72% 45% / 0.15) 50%, hsl(var(--background)) 100%)'
-        }}
-      />
       {/* Glow orbs */}
-      <div className="absolute top-20 -right-20 w-80 h-80 rounded-full opacity-20 -z-10"
+      <div className="absolute top-20 -right-20 w-80 h-80 rounded-full opacity-20 pointer-events-none"
         style={{ background: 'radial-gradient(circle, hsl(0 72% 55%) 0%, transparent 70%)' }}
       />
-      <div className="absolute bottom-40 -left-20 w-60 h-60 rounded-full opacity-10 -z-10"
+      <div className="absolute bottom-40 -left-20 w-60 h-60 rounded-full opacity-10 pointer-events-none"
         style={{ background: 'radial-gradient(circle, hsl(0 72% 50%) 0%, transparent 70%)' }}
       />
 
