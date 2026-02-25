@@ -2,7 +2,7 @@ import { FileText, Clock, Users, Scissors, Sparkles, TrendingUp, CalendarDays, U
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import lacerLogo from "@/assets/lacer-logo-color.png";
-import dentalHero from "@/assets/dental-hero.jpg";
+import lacerProducts from "@/assets/lacer-products.png";
 import { UserMode } from "@/hooks/useUserMode";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LegalFooter } from "@/components/LegalFooter";
@@ -60,36 +60,38 @@ export const HomeScreenPhoto = ({
         <ThemeToggle />
       </div>
 
-      {/* Hero photo section */}
+      {/* Hero section with gradient background + products photo */}
       <motion.div
         className="relative overflow-hidden"
         variants={itemVariants}
       >
-        <div className="relative h-56 md:h-72 lg:h-80 xl:h-96">
-          <img
-            src={dentalHero}
-            alt="Salud dental profesional"
-            className="w-full h-full object-cover"
-          />
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-secondary/30 to-transparent" />
-
-          {/* Logo + Title overlaying the photo */}
-          <div className="absolute bottom-0 left-0 right-0 p-5 md:p-8">
-            <div className="flex items-end gap-4">
-              <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-lg flex-shrink-0">
-                <img src={lacerLogo} alt="Lacer" className="w-10 h-10 md:w-11 md:h-11 object-contain" />
+        <div className="relative pb-4 pt-12 md:pt-14"
+          style={{ background: 'linear-gradient(180deg, hsl(0 72% 51%) 0%, hsl(0 72% 42%) 50%, hsl(0 0% 95%) 100%)' }}
+        >
+          {/* Logo + Title */}
+          <div className="px-5 md:px-8 mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-lg flex-shrink-0">
+                <img src={lacerLogo} alt="Lacer" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight leading-tight">
+                <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight leading-tight">
                   Talonario Digital
                 </h1>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-sm text-white/80">
                   Recetas digitales para profesionales
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Products image */}
+          <div className="px-4 md:px-8">
+            <img
+              src={lacerProducts}
+              alt="Gama de productos Lacer"
+              className="w-full h-auto object-contain max-h-40 md:max-h-52 lg:max-h-64"
+            />
           </div>
         </div>
       </motion.div>
