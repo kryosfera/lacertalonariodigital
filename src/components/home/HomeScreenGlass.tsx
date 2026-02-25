@@ -54,7 +54,7 @@ export const HomeScreenGlass = ({
       <div
         className="absolute inset-0 -z-10"
         style={{
-          background: 'linear-gradient(145deg, hsl(0 72% 51% / 0.06) 0%, hsl(0 72% 45% / 0.03) 50%, hsl(var(--background)) 100%)'
+          background: 'linear-gradient(145deg, hsl(0 72% 51% / 0.30) 0%, hsl(0 72% 45% / 0.15) 50%, hsl(var(--background)) 100%)'
         }}
       />
       {/* Glow orbs */}
