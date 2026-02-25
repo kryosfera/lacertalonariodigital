@@ -100,7 +100,7 @@ export const HomeScreenCentered = ({
             whileTap={{ scale: 0.98 }}
           >
             <Scissors className="w-5 h-5 text-secondary" />
-            Post-Cirugía
+            Recomendaciones
           </motion.button>
         </motion.div>
 

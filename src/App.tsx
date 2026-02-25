@@ -11,6 +11,7 @@ import { CookieConsentProvider } from "@/hooks/useCookieConsent";
 import { SplashScreen } from "@/components/SplashScreen";
 import { CookieBanner } from "@/components/CookieBanner";
 import { CookiePreferences } from "@/components/CookiePreferences";
+import { StylePicker, type HomeStyle } from "@/components/home";
 
 // Lazy-loaded route pages for code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -27,6 +28,14 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(true);
+  const [showStylePicker, setShowStylePicker] = useState(() => {
+    return !localStorage.getItem('home-style');
+  });
+
+  const handleStyleSelect = (style: HomeStyle) => {
+    localStorage.setItem('home-style', style);
+    setShowStylePicker(false);
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -37,6 +46,9 @@ const App = () => {
               <TooltipProvider>
                 {showSplash && (
                   <SplashScreen onFinish={() => setShowSplash(false)} />
+                )}
+                {!showSplash && showStylePicker && (
+                  <StylePicker onSelectStyle={handleStyleSelect} />
                 )}
                 <Toaster />
                 <Sonner />
