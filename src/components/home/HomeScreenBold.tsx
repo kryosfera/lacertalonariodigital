@@ -1,4 +1,4 @@
-import { FileText, Clock, Users, Scissors, Sparkles, TrendingUp, ArrowRight } from "lucide-react";
+import { FileText, Clock, Users, Scissors, Sparkles, TrendingUp, ArrowRight, Palette } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import lacerLogo from "@/assets/lacer-logo.png";
@@ -9,6 +9,7 @@ import { LegalFooter } from "@/components/LegalFooter";
 interface HomeScreenBoldProps {
   onNavigate: (tab: string) => void;
   userMode?: UserMode;
+  onChangeStyle?: () => void;
   stats?: {
     totalRecipes: number;
     totalPatients: number;
@@ -36,6 +37,7 @@ const itemVariants = {
 export const HomeScreenBold = ({
   onNavigate,
   userMode = 'basic',
+  onChangeStyle,
   stats = { totalRecipes: 0, totalPatients: 0, thisMonth: 0 }
 }: HomeScreenBoldProps) => {
   const isProfessional = userMode === 'professional';
@@ -47,8 +49,13 @@ export const HomeScreenBold = ({
       animate="visible"
       variants={containerVariants}
     >
-      {/* Theme Toggle - Mobile */}
-      <div className="absolute top-3 right-3 z-10 md:hidden">
+      {/* Theme Toggle + Style - Mobile */}
+      <div className="absolute top-3 right-3 z-10 md:hidden flex items-center gap-1">
+        {onChangeStyle && (
+          <button onClick={onChangeStyle} className="w-9 h-9 flex items-center justify-center rounded-full bg-card/80 backdrop-blur border border-border/50 shadow-sm">
+            <Palette className="w-4 h-4 text-muted-foreground" />
+          </button>
+        )}
         <ThemeToggle />
       </div>
 

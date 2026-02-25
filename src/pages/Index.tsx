@@ -72,16 +72,17 @@ const Index = () => {
   }
 
   const renderHomeScreen = () => {
+    const styleProps = { onNavigate: handleNavigate, userMode, onChangeStyle: () => setShowStylePicker(true) };
     switch (homeStyle) {
       case 'minimal':
-        return <HomeScreenMinimal onNavigate={handleNavigate} userMode={userMode} />;
+        return <HomeScreenMinimal {...styleProps} />;
       case 'glass':
-        return <HomeScreenGlass onNavigate={handleNavigate} userMode={userMode} />;
+        return <HomeScreenGlass {...styleProps} />;
       case 'bold':
-        return <HomeScreenBold onNavigate={handleNavigate} userMode={userMode} />;
+        return <HomeScreenBold {...styleProps} />;
       case 'bento':
       default:
-        return <HomeScreenBento onNavigate={handleNavigate} userMode={userMode} />;
+        return <HomeScreenBento {...styleProps} />;
     }
   };
 
