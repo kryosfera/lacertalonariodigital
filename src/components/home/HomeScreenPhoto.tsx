@@ -69,7 +69,7 @@ export const HomeScreenPhoto = ({
           {/* Logo + Title */}
           <div className="px-5 md:px-8 mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-secondary flex items-center justify-center shadow-lg flex-shrink-0">
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-card border border-border/50 flex items-center justify-center shadow-sm flex-shrink-0">
                 <img src={lacerLogo} alt="Lacer" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
               </div>
               <div>
