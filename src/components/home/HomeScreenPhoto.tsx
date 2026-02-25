@@ -65,8 +65,8 @@ export const HomeScreenPhoto = ({
         className="relative overflow-hidden"
         variants={itemVariants}
       >
-        <div className="relative pb-4 pt-12 md:pt-14"
-          style={{ background: 'linear-gradient(180deg, hsl(0 72% 51%) 0%, hsl(0 72% 42%) 50%, hsl(0 0% 95%) 100%)' }}
+        <div className="relative pb-0 pt-12 md:pt-14"
+          style={{ background: 'linear-gradient(180deg, hsl(0 72% 51%) 0%, hsl(0 72% 42%) 60%, hsl(0 0% 93%) 100%)' }}
         >
           {/* Logo + Title */}
           <div className="px-5 md:px-8 mb-4">
@@ -85,12 +85,14 @@ export const HomeScreenPhoto = ({
             </div>
           </div>
 
-          {/* Products image */}
-          <div className="px-4 md:px-8">
+          {/* Products image — maximized, white background blended out */}
+          <div className="relative px-0 md:px-4 -mb-1"
+            style={{ maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)' }}
+          >
             <img
               src={lacerProducts}
               alt="Gama de productos Lacer"
-              className="w-full h-auto object-contain max-h-40 md:max-h-52 lg:max-h-64"
+              className="w-full h-auto object-contain mix-blend-multiply"
             />
           </div>
         </div>
