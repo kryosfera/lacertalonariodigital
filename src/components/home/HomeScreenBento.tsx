@@ -138,8 +138,8 @@ export const HomeScreenBento = ({
               <Scissors className="w-5 h-5 text-secondary" />
             </div>
             <div className="text-left">
-              <span className="block text-[15px] font-semibold">Post-Cirugía</span>
-              <span className="block text-[11px] text-muted-foreground font-normal">Recomendaciones por tipo</span>
+              <span className="block text-[15px] font-semibold">Recomendaciones</span>
+              <span className="block text-[11px] text-muted-foreground font-normal">Post-cirugía por tipo</span>
             </div>
           </div>
           <ChevronRight className="w-5 h-5 opacity-40 group-hover:translate-x-0.5 transition-transform" />

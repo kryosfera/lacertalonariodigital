@@ -27,8 +27,8 @@ const basicQuickActions = [
   },
   {
     id: "recomendaciones",
-    title: "Post-Cirugía",
-    subtitle: "Recomendaciones",
+    title: "Recomendaciones",
+    subtitle: "Post-cirugía",
     icon: Scissors
   }
 ];
@@ -42,8 +42,8 @@ const professionalQuickActions = [
   },
   {
     id: "recomendaciones",
-    title: "Post-Cirugía",
-    subtitle: "Recomendaciones",
+    title: "Recomendaciones",
+    subtitle: "Post-cirugía",
     icon: Scissors
   },
   {
