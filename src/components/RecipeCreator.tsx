@@ -808,11 +808,9 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                         onChange={(e) => {
                           setPatientName(e.target.value);
                           setSelectedPatient(null);
-                          if (e.target.value.length > 0) {
-                            setPatientSearchOpen(true);
-                          }
+                          setPatientSearchOpen(true);
                         }}
-                        onFocus={() => patients.length > 0 && setPatientSearchOpen(true)}
+                        onFocus={() => setPatientSearchOpen(true)}
                         className="pl-10 h-10"
                       />
                       {selectedPatient && (
