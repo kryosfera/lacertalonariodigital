@@ -32,10 +32,10 @@ const styles: { id: HomeStyle; name: string; description: string; icon: typeof L
   },
   {
     id: 'bold',
-    name: 'Bold',
-    description: 'Brutalista moderno, sombras duras, tipografía XL',
+    name: 'Lacer',
+    description: 'Estilo corporativo Lacer, limpio y profesional',
     icon: Square,
-    preview: 'hsl(0 0% 100%)'
+    preview: 'linear-gradient(180deg, hsl(0 72% 51%) 0%, hsl(0 72% 51%) 35%, hsl(0 0% 100%) 35%)'
   }
 ];
 

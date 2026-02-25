@@ -11,12 +11,12 @@ interface BottomNavigationProps {
 const basicNavItems = [
   { id: "home", label: "Inicio", icon: Home },
   { id: "nueva-receta", label: "Nueva", icon: Plus, isCenter: true },
-  { id: "recomendaciones", label: "Cirugía", icon: Scissors },
+  { id: "recomendaciones", label: "Recomendaciones", icon: Scissors },
 ];
 
 const professionalNavItems = [
   { id: "home", label: "Inicio", icon: Home },
-  { id: "recomendaciones", label: "Cirugía", icon: Scissors },
+  { id: "recomendaciones", label: "Recomendaciones", icon: Scissors },
   { id: "nueva-receta", label: "Crear", icon: Plus, isCenter: true },
   { id: "historial", label: "Historial", icon: Clock },
   { id: "perfil", label: "Perfil", icon: User },

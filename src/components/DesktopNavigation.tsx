@@ -39,13 +39,13 @@ export const DesktopNavigation = ({
   const basicNavItems = [
     { id: "home", label: "Inicio" },
     { id: "nueva-receta", label: "Nueva Receta" },
-    { id: "recomendaciones", label: "Post-Cirugía" },
+    { id: "recomendaciones", label: "Recomendaciones" },
   ];
 
   const professionalNavItems = [
     { id: "home", label: "Inicio" },
     { id: "nueva-receta", label: "Nueva Receta" },
-    { id: "recomendaciones", label: "Post-Cirugía" },
+    { id: "recomendaciones", label: "Recomendaciones" },
     { id: "historial", label: "Historial" },
     { id: "pacientes", label: "Pacientes" },
     { id: "perfil", label: "Perfil" },
