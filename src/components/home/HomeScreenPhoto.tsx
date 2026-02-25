@@ -65,34 +65,33 @@ export const HomeScreenPhoto = ({
         className="relative overflow-hidden"
         variants={itemVariants}
       >
-        <div className="relative pb-0 pt-12 md:pt-14"
-          style={{ background: 'linear-gradient(180deg, hsl(0 72% 51%) 0%, hsl(0 72% 42%) 60%, hsl(0 0% 93%) 100%)' }}
-        >
+        <div className="relative pb-0 pt-12 md:pt-14 bg-background">
           {/* Logo + Title */}
           <div className="px-5 md:px-8 mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-white/95 backdrop-blur-sm flex items-center justify-center shadow-lg flex-shrink-0">
-                <img src={lacerLogo} alt="Lacer" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
+              <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-secondary flex items-center justify-center shadow-lg flex-shrink-0">
+                <img src={lacerLogo} alt="Lacer" className="w-8 h-8 md:w-10 md:h-10 object-contain" style={{ filter: 'brightness(0) invert(1)' }} />
               </div>
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-white tracking-tight leading-tight">
+                <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight leading-tight">
                   Talonario Digital
                 </h1>
-                <p className="text-sm text-white/80">
+                <p className="text-sm text-muted-foreground">
                   Recetas digitales para profesionales
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Products image — maximized, white background blended out */}
-          <div className="relative px-0 md:px-4 -mb-1"
-            style={{ maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)' }}
-          >
+          {/* Thin red accent line */}
+          <div className="mx-5 md:mx-8 h-0.5 bg-secondary/20 rounded-full mb-3" />
+
+          {/* Products image — on clean white/background */}
+          <div className="relative px-2 md:px-6">
             <img
               src={lacerProducts}
               alt="Gama de productos Lacer"
-              className="w-full h-auto object-contain mix-blend-multiply"
+              className="w-full h-auto object-contain"
             />
           </div>
         </div>
