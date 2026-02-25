@@ -280,75 +280,79 @@ export const SurgeryRecommendations = () => {
         </h3>
         
         <Card 
-          className="group overflow-hidden border-border/50 hover:border-secondary/20 transition-all duration-200 hover:shadow-lg"
+          className="group overflow-hidden border-border/50 hover:border-secondary/20 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5 max-w-sm"
         >
           <CardContent className="p-0">
-            <div className="flex items-stretch gap-0 min-w-0">
-              {/* Video Thumbnail */}
-              <div 
-                className="relative w-24 h-auto min-h-[96px] md:w-32 overflow-hidden bg-muted flex-shrink-0 cursor-pointer"
-                onClick={() => setShowVideoModal(true)}
-              >
-                <img 
-                  src={videoRecommendation.imageUrl} 
-                  alt={videoRecommendation.title}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                  <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                    <Play className="w-5 h-5 text-secondary ml-0.5" fill="currentColor" />
-                  </div>
+            {/* Image */}
+            <div 
+              className="relative h-32 overflow-hidden bg-muted cursor-pointer"
+              onClick={() => setShowVideoModal(true)}
+            >
+              <img 
+                src={videoRecommendation.imageUrl} 
+                alt={videoRecommendation.title}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                  <Play className="w-6 h-6 text-secondary ml-0.5" fill="currentColor" />
                 </div>
               </div>
-              
-              {/* Content */}
-              <div className="flex-1 min-w-0 py-3 px-3 md:py-4 md:px-4 flex flex-col justify-center">
-                <h4 className="font-semibold text-foreground text-sm leading-tight truncate">
+              <div className={`absolute bottom-3 left-3 w-10 h-10 rounded-xl bg-gradient-to-br ${videoRecommendation.gradient} flex items-center justify-center shadow-lg`}>
+                <Play className="w-5 h-5 text-white" />
+              </div>
+            </div>
+            
+            {/* Content */}
+            <div className="p-4 space-y-3">
+              <div>
+                <h4 className="font-semibold text-foreground text-sm leading-tight">
                   {videoRecommendation.title}
                 </h4>
-                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                <p className="text-xs text-muted-foreground mt-1">
                   {videoRecommendation.description}
                 </p>
-                <div className="flex items-center gap-1 mt-2 flex-wrap">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 px-2 gap-1 text-xs text-secondary"
-                    onClick={() => setShowVideoModal(true)}
-                  >
-                    <Play className="w-3.5 h-3.5 flex-shrink-0" />
-                    <span className="truncate">Ver video</span>
-                  </Button>
-                  
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-7 px-2 gap-1 text-xs"
-                      >
-                        <Share2 className="w-3.5 h-3.5 flex-shrink-0" />
-                        <span className="hidden sm:inline">Compartir</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start" className="w-48">
-                      <DropdownMenuItem 
-                        onClick={handleShareVideoWhatsApp}
-                        className="gap-2 cursor-pointer"
-                      >
-                        <MessageCircle className="w-4 h-4 text-green-600" />
-                        Compartir por WhatsApp
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        onClick={handleShareVideoEmail}
-                        className="gap-2 cursor-pointer"
-                      >
-                        <Mail className="w-4 h-4 text-secondary" />
-                        Enviar por Email
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+              </div>
+              
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 gap-2 text-xs"
+                  onClick={() => setShowVideoModal(true)}
+                >
+                  <Play className="w-3.5 h-3.5" />
+                  Ver video
+                </Button>
+                
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5 text-xs"
+                    >
+                      <Share2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem 
+                      onClick={handleShareVideoWhatsApp}
+                      className="gap-2 cursor-pointer"
+                    >
+                      <MessageCircle className="w-4 h-4 text-green-600" />
+                      Compartir por WhatsApp
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={handleShareVideoEmail}
+                      className="gap-2 cursor-pointer"
+                    >
+                      <Mail className="w-4 h-4 text-secondary" />
+                      Enviar por Email
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </CardContent>
