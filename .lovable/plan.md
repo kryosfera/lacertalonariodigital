@@ -1,20 +1,34 @@
 
+# Diagnostico y correccion del selector de pacientes
 
-## Limpiar la cabecera de la variante Photo
+## Problema detectado
 
-La imagen del bodegon ya incluye el logo Lacer, por lo que el logo y titulo superpuestos son redundantes. Se eliminaran para dejar la imagen como unico elemento hero.
+Tras investigar la base de datos y el codigo, he encontrado lo siguiente:
 
-### Cambios en `src/components/home/HomeScreenPhoto.tsx`
+- Tu usuario tiene **1 paciente** ("Joaquin") en la base de datos -- este se creo el 19 de febrero.
+- Si has creado un paciente nuevo **hace un momento**, es posible que se haya creado con un usuario diferente (por ejemplo, si tienes otra sesion abierta). He encontrado otro paciente "Joaquin Fernandez" pero pertenece a un `user_id` distinto al tuyo actual.
 
-1. **Eliminar el import de `lacerLogo`** (linea 4) -- ya no se usa.
+Ademas, hay **dos problemas tecnicos** que pueden causar que los pacientes no aparezcan en el selector:
 
-2. **Eliminar el bloque Logo + Titulo** (lineas 70-84): el `div` con el logo, "Talonario Digital" y el subtitulo "Recetas digitales para profesionales".
+### 1. Cache de React Query demasiado largo
+El hook `usePatients` tiene un `staleTime` de 2 minutos. Si creas un paciente y luego vas al creador de recetas, la lista de pacientes puede seguir mostrando datos antiguos.
 
-3. **Eliminar la linea decorativa roja** (linea 87): el separador `h-0.5 bg-secondary/20` que estaba entre el titulo y la imagen.
+### 2. El selector de pacientes no se abre automaticamente
+El autocomplete de pacientes requiere que el usuario escriba en el campo de nombre para que aparezcan sugerencias. Si no se escribe nada, muestra solo los primeros 5, pero el popover puede no abrirse correctamente.
 
-4. **Ajustar el padding superior** del contenedor hero: cambiar `pt-12 md:pt-14` a `pt-0` para que la imagen empiece desde arriba, ya que no hay cabecera de texto.
+## Cambios propuestos
 
-5. **Eliminar el padding horizontal de la imagen** (`px-2 md:px-6`) para que ocupe todo el ancho, dando un aspecto mas limpio e inmersivo.
+### Archivo: `src/hooks/usePatients.tsx`
+- Reducir el `staleTime` de 2 minutos a 30 segundos para que los pacientes recien creados aparezcan mas rapido al navegar al creador de recetas.
 
-El resultado sera que la seccion hero muestra unicamente la imagen del bodegon a ancho completo, seguida directamente por los botones de accion.
+### Archivo: `src/components/RecipeCreator.tsx`
+- Asegurar que el popover de pacientes se abra al hacer focus en el campo de nombre del paciente (evento `onFocus`), mostrando la lista incluso cuando el campo esta vacio.
+- Invalidar la cache de pacientes al montar el componente RecipeCreator para garantizar datos frescos.
 
+### Verificacion de la base de datos
+- Confirmar que la vista `patients_with_stats` es accesible correctamente via la API REST (actualmente funciona, pero sin `security_invoker` -- la seguridad se aplica via filtro `user_id` en el codigo).
+
+## Secuencia de implementacion
+1. Reducir staleTime en `usePatients`
+2. Mejorar la interaccion del popover de pacientes en `RecipeCreator`
+3. Verificar el flujo completo: crear paciente, ir a receta, seleccionarlo
