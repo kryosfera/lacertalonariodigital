@@ -1,34 +1,40 @@
 
-# Diagnostico y correccion del selector de pacientes
+# Fix: Degradado Glass oculto por capas opacas
 
-## Problema detectado
+## Problema raiz
 
-Tras investigar la base de datos y el codigo, he encontrado lo siguiente:
+El degradado rojo del estilo Glass usa `position: fixed` con `z-index: -10`, lo que lo coloca **detras** de estas capas opacas:
 
-- Tu usuario tiene **1 paciente** ("Joaquin") en la base de datos -- este se creo el 19 de febrero.
-- Si has creado un paciente nuevo **hace un momento**, es posible que se haya creado con un usuario diferente (por ejemplo, si tienes otra sesion abierta). He encontrado otro paciente "Joaquin Fernandez" pero pertenece a un `user_id` distinto al tuyo actual.
+```text
+Capa visual (de arriba a abajo):
+  [header]         z-50, bg-card/80 (semi-transparente, OK)
+  [main content]   bg-background (OPACO - tapa el degradado)
+  [root div]       bg-background (OPACO - tapa el degradado)
+  [body]           bg-background (OPACO - tapa el degradado)
+  [gradient]       z: -10 (NUNCA se ve)
+```
 
-Ademas, hay **dos problemas tecnicos** que pueden causar que los pacientes no aparezcan en el selector:
+El degradado queda enterrado bajo 3 capas opacas. Se ve brevemente en el primer frame antes de que React monte el DOM completo.
 
-### 1. Cache de React Query demasiado largo
-El hook `usePatients` tiene un `staleTime` de 2 minutos. Si creas un paciente y luego vas al creador de recetas, la lista de pacientes puede seguir mostrando datos antiguos.
+## Solucion
 
-### 2. El selector de pacientes no se abre automaticamente
-El autocomplete de pacientes requiere que el usuario escriba en el campo de nombre para que aparezcan sugerencias. Si no se escribe nada, muestra solo los primeros 5, pero el popover puede no abrirse correctamente.
+Hacer que el root `div` y `main` sean **transparentes** cuando el estilo Glass esta activo, para que el fondo fijo se vea a traves de ellos.
 
-## Cambios propuestos
+### Archivo: `src/pages/Index.tsx`
 
-### Archivo: `src/hooks/usePatients.tsx`
-- Reducir el `staleTime` de 2 minutos a 30 segundos para que los pacientes recien creados aparezcan mas rapido al navegar al creador de recetas.
+1. Pasar la informacion de que estamos en modo "glass" al layout:
+   - Cuando `homeStyle === 'glass'` y `activeTab === 'home'`, el div raiz usara `bg-transparent` en lugar de `bg-background`
+   - El `header` ya es semi-transparente (`bg-card/80`), asi que no necesita cambios
 
-### Archivo: `src/components/RecipeCreator.tsx`
-- Asegurar que el popover de pacientes se abra al hacer focus en el campo de nombre del paciente (evento `onFocus`), mostrando la lista incluso cuando el campo esta vacio.
-- Invalidar la cache de pacientes al montar el componente RecipeCreator para garantizar datos frescos.
+2. Cambio concreto en la linea 177:
+   - De: `className="min-h-screen bg-background pt-safe"`
+   - A: `className={cn("min-h-screen pt-safe", isGlassHome ? "bg-transparent" : "bg-background")}`
+   - Donde `isGlassHome = homeStyle === 'glass' && activeTab === 'home'`
 
-### Verificacion de la base de datos
-- Confirmar que la vista `patients_with_stats` es accesible correctamente via la API REST (actualmente funciona, pero sin `security_invoker` -- la seguridad se aplica via filtro `user_id` en el codigo).
+### Archivo: `src/components/home/HomeScreenGlass.tsx`
 
-## Secuencia de implementacion
-1. Reducir staleTime en `usePatients`
-2. Mejorar la interaccion del popover de pacientes en `RecipeCreator`
-3. Verificar el flujo completo: crear paciente, ir a receta, seleccionarlo
+3. Mantener el fondo `fixed inset-0` pero subir su z-index a `z-0` en lugar de `-z-10`, y asegurar que el contenido tenga `z-10` relativo para quedar por encima de los orbes animados.
+
+## Resultado esperado
+
+El degradado rojo animado sera visible en todo momento ocupando toda la pantalla, con las tarjetas glass flotando por encima. Al navegar a otra seccion (recetas, pacientes, etc.), el fondo volvera a ser opaco normal.
