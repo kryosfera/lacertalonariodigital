@@ -198,7 +198,7 @@ export const SurgeryRecommendations = () => {
 
       {/* Unified Grid */}
       <div className="px-4">
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
           {/* PDF Cards */}
           {showPdfs && recommendations.map((rec) => {
             const Icon = rec.icon;
@@ -228,10 +228,10 @@ export const SurgeryRecommendations = () => {
 
                   {/* Content */}
                   <div className="p-3 space-y-2">
-                    <h4 className="font-semibold text-foreground text-xs leading-tight line-clamp-2">
+                    <h4 className="font-semibold text-foreground text-sm leading-tight">
                       {rec.title}
                     </h4>
-                    <p className="text-[10px] text-muted-foreground line-clamp-2 hidden sm:block">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       {rec.description}
                     </p>
                     <div className="flex gap-1.5">
@@ -300,10 +300,10 @@ export const SurgeryRecommendations = () => {
 
                 {/* Content */}
                 <div className="p-3 space-y-2">
-                  <h4 className="font-semibold text-foreground text-xs leading-tight line-clamp-2">
+                  <h4 className="font-semibold text-foreground text-sm leading-tight">
                     {videoRecommendation.title}
                   </h4>
-                  <p className="text-[10px] text-muted-foreground line-clamp-2 hidden sm:block">
+                  <p className="text-xs text-muted-foreground mt-0.5">
                     {videoRecommendation.description}
                   </p>
                   <div className="flex gap-1.5">
