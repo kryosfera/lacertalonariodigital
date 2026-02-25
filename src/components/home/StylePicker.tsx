@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
-import { LayoutGrid, Minus, Sparkles, Square, Palette } from "lucide-react";
+import { LayoutGrid, Minus, Sparkles, Square, Image, Palette } from "lucide-react";
 import lacerLogo from "@/assets/lacer-logo.png";
 
-export type HomeStyle = 'bento' | 'minimal' | 'glass' | 'bold';
+export type HomeStyle = 'bento' | 'minimal' | 'glass' | 'bold' | 'photo';
 
 interface StylePickerProps {
   onSelectStyle: (style: HomeStyle) => void;
@@ -36,6 +36,13 @@ const styles: { id: HomeStyle; name: string; description: string; icon: typeof L
     description: 'Estilo corporativo Lacer, limpio y profesional',
     icon: Square,
     preview: 'linear-gradient(180deg, hsl(0 72% 51%) 0%, hsl(0 72% 51%) 35%, hsl(0 0% 100%) 35%)'
+  },
+  {
+    id: 'photo',
+    name: 'Photo',
+    description: 'Fotografía dental grande, estilo editorial moderno',
+    icon: Image,
+    preview: 'linear-gradient(180deg, hsl(200 30% 85%) 0%, hsl(200 20% 70%) 55%, hsl(0 0% 100%) 55%)'
   }
 ];
 
@@ -114,7 +121,8 @@ export const StylePicker = ({ onSelectStyle }: StylePickerProps) => {
                     style.id === 'bento' ? 'bg-white/90 shadow-lg' :
                     style.id === 'minimal' ? 'bg-transparent' :
                     style.id === 'glass' ? 'bg-white/30 backdrop-blur border border-white/30' :
-                    'bg-secondary shadow-[3px_3px_0px_hsl(0_72%_35%)]'
+                    style.id === 'photo' ? 'bg-white/80 shadow-md' :
+                    'bg-white shadow-sm'
                   }`}>
                     <img src={lacerLogo} alt="" className="w-6 h-6 object-contain" />
                   </div>

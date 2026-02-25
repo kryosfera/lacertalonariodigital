@@ -7,7 +7,7 @@ import { PatientList } from "@/components/PatientList";
 import { RecipeHistory } from "@/components/RecipeHistory";
 import { DashboardStats } from "@/components/DashboardStats";
 import { HomeScreen } from "@/components/HomeScreen";
-import { HomeScreenBento, HomeScreenCentered, HomeScreenMinimal, HomeScreenGlass, HomeScreenBold, StylePicker, type HomeStyle } from "@/components/home";
+import { HomeScreenBento, HomeScreenCentered, HomeScreenMinimal, HomeScreenGlass, HomeScreenBold, HomeScreenPhoto, StylePicker, type HomeStyle } from "@/components/home";
 import { SurgeryRecommendations } from "@/components/SurgeryRecommendations";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { DesktopNavigation } from "@/components/DesktopNavigation";
@@ -80,6 +80,8 @@ const Index = () => {
         return <HomeScreenGlass {...styleProps} />;
       case 'bold':
         return <HomeScreenBold {...styleProps} />;
+      case 'photo':
+        return <HomeScreenPhoto {...styleProps} />;
       case 'bento':
       default:
         return <HomeScreenBento {...styleProps} />;
