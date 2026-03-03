@@ -134,7 +134,7 @@ export const ProductSelector = ({
         {/* Products grid - fills remaining space */}
         <div className="flex-1 overflow-auto p-2">
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-3 max-w-xs mx-auto w-full">
               {filteredProducts.map((product, index) => {
                 const isSelected = selectedProducts.has(product.id);
                 
