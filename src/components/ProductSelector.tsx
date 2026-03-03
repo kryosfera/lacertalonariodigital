@@ -170,8 +170,8 @@ export const ProductSelector = ({
                     </div>
 
                     {/* Product name */}
-                    <div className="px-2 pb-2 pt-1 border-t border-border/20">
-                      <span className="text-[10px] font-medium text-foreground text-center leading-tight line-clamp-2 block">
+                    <div className="px-3 pb-2.5 pt-1.5 border-t border-border/20">
+                      <span className="text-sm font-semibold text-foreground text-center leading-tight line-clamp-2 block">
                         {product.name}
                       </span>
                     </div>
