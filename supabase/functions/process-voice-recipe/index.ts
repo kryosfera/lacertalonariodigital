@@ -73,8 +73,7 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    // Fetch available products from database
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    // Fetch available products from database using service role
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
