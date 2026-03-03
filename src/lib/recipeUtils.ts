@@ -34,7 +34,16 @@ interface RecipeData {
 // Create a short URL and return the code
 export const createShortUrl = async (data: RecipeData): Promise<string | null> => {
   try {
-    // Direct fetch to avoid type issues with new table
+    // Use the supabase client to get the user's session token for authenticated insert
+    const { supabase } = await import('@/integrations/supabase/client');
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+    
+    if (!accessToken) {
+      console.error('No authenticated session for creating short URL');
+      return null;
+    }
+
     const response = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/short_urls`,
       {
@@ -42,7 +51,7 @@ export const createShortUrl = async (data: RecipeData): Promise<string | null> =
         headers: {
           'Content-Type': 'application/json',
           'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Prefer': 'return=representation'
         },
         body: JSON.stringify({ data })
