@@ -411,6 +411,10 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
         const shortCode = await createShortUrl(recipeData);
         if (shortCode) {
           recipeUrl = generateShortRecipeUrl(shortCode);
+        } else {
+          // Fallback to legacy base64 URL if short URL creation fails (e.g. not authenticated)
+          const { generateTemporaryRecipeUrl } = await import("@/lib/recipeUtils");
+          recipeUrl = generateTemporaryRecipeUrl(recipeData);
         }
       }
       
