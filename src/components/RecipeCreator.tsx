@@ -460,6 +460,9 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
         const shortCode = await createShortUrl(recipeData);
         if (shortCode) {
           recipeUrl = generateShortRecipeUrl(shortCode);
+        } else {
+          const { generateTemporaryRecipeUrl } = await import("@/lib/recipeUtils");
+          recipeUrl = generateTemporaryRecipeUrl(recipeData);
         }
       }
       
