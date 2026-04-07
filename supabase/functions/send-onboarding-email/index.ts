@@ -100,8 +100,7 @@ const generateOnboardingHTML = (recipientName: string) => `
           <td style="padding-left:16px;" valign="top">
             <h3 style="font-size:16px;color:#222;margin:0 0 4px 0;font-weight:600;">Personaliza la receta</h3>
             <p style="font-size:14px;color:#666;margin:0;line-height:1.5;">
-              Indica el nombre del paciente y añade notas o instrucciones específicas. 
-              También puedes usar el <strong>dictado por voz</strong> 🎤 para escribir las notas cómodamente.
+              Indica el nombre del paciente y añade notas o instrucciones específicas.
             </p>
           </td>
         </tr>

@@ -21,7 +21,7 @@ import { useUserMode } from "@/hooks/useUserMode";
 import { usePatients, Patient } from "@/hooks/usePatients";
 import { useCreateRecipe, RecipeProduct } from "@/hooks/useRecipes";
 import { cn } from "@/lib/utils";
-import { VoiceDictation } from "./VoiceDictation";
+
 import { useProfile } from "@/hooks/useProfile";
 
 interface Product {
@@ -223,31 +223,6 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     setSelectedProducts(new Map());
   };
 
-  // Handle voice dictation results
-  const handleVoiceProductsConfirmed = useCallback((
-    voiceProducts: { id: string; quantity: number }[], 
-    instructions: string
-  ) => {
-    // Add products from voice dictation
-    setSelectedProducts((prev) => {
-      const next = new Map(prev);
-      voiceProducts.forEach(({ id, quantity }) => {
-        const existingQty = next.get(id) || 0;
-        next.set(id, existingQty + quantity);
-      });
-      return next;
-    });
-
-    // Append instructions to notes
-    if (instructions.trim()) {
-      setNotes((prev) => {
-        if (prev.trim()) {
-          return prev + '\n\n' + instructions;
-        }
-        return instructions;
-      });
-    }
-  }, []);
 
   // Unified URL generation: DB recipe → short URL → base64 fallback
   const generateRecipeUrlWithFallback = async (recipeData: ReturnType<typeof getRecipeData>, sentVia: 'whatsapp' | 'email' | 'pdf' | 'print'): Promise<string | undefined> => {
@@ -598,10 +573,6 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                 <Plus className="w-5 h-5 mr-2" />
                 <span className="hidden sm:inline">Añadir </span>Productos
               </Button>
-              <VoiceDictation 
-                onProductsConfirmed={handleVoiceProductsConfirmed}
-                existingNotes={notes}
-              />
             </div>
           </div>
 
