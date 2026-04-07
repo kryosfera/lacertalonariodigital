@@ -249,6 +249,25 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     }
   }, []);
 
+  // Unified URL generation: DB recipe → short URL → base64 fallback
+  const generateRecipeUrlWithFallback = async (recipeData: ReturnType<typeof getRecipeData>, sentVia: 'whatsapp' | 'email' | 'pdf' | 'print'): Promise<string | undefined> => {
+    // 1. Professional: try saving to DB for shortest URL
+    if (isProfessional) {
+      const recipeCode = await saveRecipeToDb(sentVia);
+      if (recipeCode) {
+        return generateRecipeUrl(recipeCode);
+      }
+    }
+    // 2. Try short URL service (authenticated users)
+    const shortCode = await createShortUrl(recipeData);
+    if (shortCode) {
+      return generateShortRecipeUrl(shortCode);
+    }
+    // 3. Last resort: base64 encoded URL
+    const { generateTemporaryRecipeUrl } = await import("@/lib/recipeUtils");
+    return generateTemporaryRecipeUrl(recipeData);
+  };
+
   const getRecipeData = () => ({
     patientName,
     date: new Date().toLocaleDateString("es-ES"),
@@ -402,21 +421,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     let recipeUrl: string | undefined;
     
     try {
-      if (isProfessional) {
-        const recipeCode = await saveRecipeToDb('whatsapp');
-        if (recipeCode) {
-          recipeUrl = generateRecipeUrl(recipeCode);
-        }
-      } else {
-        const shortCode = await createShortUrl(recipeData);
-        if (shortCode) {
-          recipeUrl = generateShortRecipeUrl(shortCode);
-        } else {
-          // Fallback to legacy base64 URL if short URL creation fails (e.g. not authenticated)
-          const { generateTemporaryRecipeUrl } = await import("@/lib/recipeUtils");
-          recipeUrl = generateTemporaryRecipeUrl(recipeData);
-        }
-      }
+      recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'whatsapp');
       
       sendViaWhatsApp(recipeData, phone, recipeUrl, preOpenedWindow);
       
@@ -451,20 +456,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     let recipeUrl: string | undefined;
     
     try {
-      if (isProfessional) {
-        const recipeCode = await saveRecipeToDb('email');
-        if (recipeCode) {
-          recipeUrl = generateRecipeUrl(recipeCode);
-        }
-      } else {
-        const shortCode = await createShortUrl(recipeData);
-        if (shortCode) {
-          recipeUrl = generateShortRecipeUrl(shortCode);
-        } else {
-          const { generateTemporaryRecipeUrl } = await import("@/lib/recipeUtils");
-          recipeUrl = generateTemporaryRecipeUrl(recipeData);
-        }
-      }
+      recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'email');
       
       sendViaEmail(recipeData, email, recipeUrl);
       showSuccess("Email");
@@ -484,22 +476,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     const recipeData = getRecipeData();
     
     try {
-      let recipeUrl: string | undefined;
-      
-      if (isProfessional) {
-        const recipeCode = await saveRecipeToDb('pdf');
-        if (recipeCode) {
-          recipeUrl = generateRecipeUrl(recipeCode);
-        }
-      } else {
-        const shortCode = await createShortUrl(recipeData);
-        if (shortCode) {
-          recipeUrl = generateShortRecipeUrl(shortCode);
-        } else {
-          const { generateTemporaryRecipeUrl } = await import("@/lib/recipeUtils");
-          recipeUrl = generateTemporaryRecipeUrl(recipeData);
-        }
-      }
+      const recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'pdf');
       
       await downloadPDF(recipeData, recipeUrl);
       showSuccess("PDF");
@@ -519,22 +496,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     const recipeData = getRecipeData();
     
     try {
-      let recipeUrl: string | undefined;
-      
-      if (isProfessional) {
-        const recipeCode = await saveRecipeToDb('print');
-        if (recipeCode) {
-          recipeUrl = generateRecipeUrl(recipeCode);
-        }
-      } else {
-        const shortCode = await createShortUrl(recipeData);
-        if (shortCode) {
-          recipeUrl = generateShortRecipeUrl(shortCode);
-        } else {
-          const { generateTemporaryRecipeUrl } = await import("@/lib/recipeUtils");
-          recipeUrl = generateTemporaryRecipeUrl(recipeData);
-        }
-      }
+      const recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'print');
       
       const { generateRecipePDF } = await import("@/lib/recipeUtils");
       const blob = await generateRecipePDF(recipeData, recipeUrl);
