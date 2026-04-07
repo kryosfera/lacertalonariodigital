@@ -249,6 +249,25 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     }
   }, []);
 
+  // Unified URL generation: DB recipe → short URL → base64 fallback
+  const generateRecipeUrlWithFallback = async (recipeData: ReturnType<typeof getRecipeData>, sentVia: 'whatsapp' | 'email' | 'pdf' | 'print'): Promise<string | undefined> => {
+    // 1. Professional: try saving to DB for shortest URL
+    if (isProfessional) {
+      const recipeCode = await saveRecipeToDb(sentVia);
+      if (recipeCode) {
+        return generateRecipeUrl(recipeCode);
+      }
+    }
+    // 2. Try short URL service (authenticated users)
+    const shortCode = await createShortUrl(recipeData);
+    if (shortCode) {
+      return generateShortRecipeUrl(shortCode);
+    }
+    // 3. Last resort: base64 encoded URL
+    const { generateTemporaryRecipeUrl } = await import("@/lib/recipeUtils");
+    return generateTemporaryRecipeUrl(recipeData);
+  };
+
   const getRecipeData = () => ({
     patientName,
     date: new Date().toLocaleDateString("es-ES"),
