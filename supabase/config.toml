@@ -6,8 +6,6 @@ verify_jwt = false
 [functions.sync-category-images]
 verify_jwt = false
 
-[functions.process-voice-recipe]
-verify_jwt = false
 
 [functions.import-products-csv]
 verify_jwt = false
