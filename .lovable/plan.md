@@ -1,40 +1,38 @@
 
-# Fix: Degradado Glass oculto por capas opacas
 
-## Problema raiz
+# Fix: Acortar URLs en mensajes de WhatsApp
 
-El degradado rojo del estilo Glass usa `position: fixed` con `z-index: -10`, lo que lo coloca **detras** de estas capas opacas:
+## Problema
 
-```text
-Capa visual (de arriba a abajo):
-  [header]         z-50, bg-card/80 (semi-transparente, OK)
-  [main content]   bg-background (OPACO - tapa el degradado)
-  [root div]       bg-background (OPACO - tapa el degradado)
-  [body]           bg-background (OPACO - tapa el degradado)
-  [gradient]       z: -10 (NUNCA se ve)
-```
+Cuando se envía una receta por WhatsApp, la URL generada es extremadamente larga porque usa codificación base64 (`/receta?d=JTdCJTIycCUy...`). Esto ocurre porque `createShortUrl` falla (requiere autenticación) y cae al fallback base64.
 
-El degradado queda enterrado bajo 3 capas opacas. Se ve brevemente en el primer frame antes de que React monte el DOM completo.
+El flujo profesional (`isProfessional`) debería generar URLs cortas tipo `/receta?n=ABC123` vía `saveRecipeToDb`, pero si falla o si el usuario está en modo basico, se genera la URL larga.
 
 ## Solucion
 
-Hacer que el root `div` y `main` sean **transparentes** cuando el estilo Glass esta activo, para que el fondo fijo se vea a traves de ellos.
+Aplicar un **doble fallback** en todos los flujos de envío: siempre intentar primero el short URL de base de datos, y solo si falla usar base64. Ademas, en el flujo profesional, si `saveRecipeToDb` falla, también intentar `createShortUrl` antes de caer a base64.
 
-### Archivo: `src/pages/Index.tsx`
+### Cambios en `src/components/RecipeCreator.tsx`
 
-1. Pasar la informacion de que estamos en modo "glass" al layout:
-   - Cuando `homeStyle === 'glass'` y `activeTab === 'home'`, el div raiz usara `bg-transparent` en lugar de `bg-background`
-   - El `header` ya es semi-transparente (`bg-card/80`), asi que no necesita cambios
+En las 4 funciones de envío (WhatsApp, Email, PDF, Print), unificar la lógica de generación de URL:
 
-2. Cambio concreto en la linea 177:
-   - De: `className="min-h-screen bg-background pt-safe"`
-   - A: `className={cn("min-h-screen pt-safe", isGlassHome ? "bg-transparent" : "bg-background")}`
-   - Donde `isGlassHome = homeStyle === 'glass' && activeTab === 'home'`
+```text
+1. Si isProfessional → saveRecipeToDb → /receta?n=CODE (corta)
+2. Si falla o no es profesional → createShortUrl → /r/XXXXXX (corta)
+3. Si falla → generateTemporaryRecipeUrl → /receta?d=... (larga, ultimo recurso)
+```
 
-### Archivo: `src/components/home/HomeScreenGlass.tsx`
+Esto garantiza que los usuarios autenticados siempre obtengan URLs cortas, y solo se use base64 como ultimo recurso para usuarios no autenticados.
 
-3. Mantener el fondo `fixed inset-0` pero subir su z-index a `z-0` en lugar de `-z-10`, y asegurar que el contenido tenga `z-10` relativo para quedar por encima de los orbes animados.
+### Cambio en `src/lib/recipeUtils.ts`
+
+Tambien añadir un fallback en el flujo profesional: si `saveRecipeToDb` devuelve un `recipeCode`, usar la URL corta. Si no, intentar `createShortUrl` antes de rendirse.
 
 ## Resultado esperado
 
-El degradado rojo animado sera visible en todo momento ocupando toda la pantalla, con las tarjetas glass flotando por encima. Al navegar a otra seccion (recetas, pacientes, etc.), el fondo volvera a ser opaco normal.
+Los mensajes de WhatsApp mostraran URLs cortas tipo:
+- `lacertalonariodigital.lovable.app/receta?n=ABC123` (profesional)
+- `lacertalonariodigital.lovable.app/r/x7k9m2` (short URL)
+
+En vez de la URL base64 de cientos de caracteres.
+
