@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Users, User, Settings, Palette } from "lucide-react";
+import { Users, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RecipeCreator } from "@/components/RecipeCreator";
 import { PatientList } from "@/components/PatientList";
 import { RecipeHistory } from "@/components/RecipeHistory";
 import { DashboardStats } from "@/components/DashboardStats";
 import { HomeScreen } from "@/components/HomeScreen";
-import { HomeScreenBento, HomeScreenCentered, HomeScreenMinimal, HomeScreenGlass, HomeScreenBold, HomeScreenPhoto, StylePicker, type HomeStyle } from "@/components/home";
+import { HomeScreenBento } from "@/components/home";
 import { SurgeryRecommendations } from "@/components/SurgeryRecommendations";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { DesktopNavigation } from "@/components/DesktopNavigation";
@@ -19,21 +19,15 @@ import { useUserMode } from "@/hooks/useUserMode";
 import { useAuth } from "@/hooks/useAuth";
 import { LegalFooter } from "@/components/LegalFooter";
 import lacerLogo from "@/assets/lacer-logo.png";
-import { cn } from "@/lib/utils";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [startWithCategories, setStartWithCategories] = useState(false);
-  const [homeStyle, setHomeStyle] = useState<HomeStyle>(() => {
-    return (localStorage.getItem('home-style') as HomeStyle) || 'bento';
-  });
-  const [showStylePicker, setShowStylePicker] = useState(false);
   const isMobile = useIsMobile();
   const { userMode, isLoading, showProfileSelector, setUserMode } = useUserMode();
   const { user } = useAuth();
   const isProfessional = userMode === 'professional';
 
-  // Reset to home when switching to basic mode
   useEffect(() => {
     if (!isProfessional && activeTab !== "home" && activeTab !== "nueva-receta" && activeTab !== "recomendaciones") {
       setActiveTab("home");
@@ -50,12 +44,6 @@ const Index = () => {
     }
   };
 
-  const handleChangeStyle = (style: HomeStyle) => {
-    localStorage.setItem('home-style', style);
-    setHomeStyle(style);
-    setShowStylePicker(false);
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -68,31 +56,10 @@ const Index = () => {
     return <ProfileSelector onSelectMode={setUserMode} />;
   }
 
-  if (showStylePicker) {
-    return <StylePicker onSelectStyle={handleChangeStyle} />;
-  }
-
-  const renderHomeScreen = () => {
-    const styleProps = { onNavigate: handleNavigate, userMode, onChangeStyle: () => setShowStylePicker(true) };
-    switch (homeStyle) {
-      case 'minimal':
-        return <HomeScreenMinimal {...styleProps} />;
-      case 'glass':
-        return <HomeScreenGlass {...styleProps} />;
-      case 'bold':
-        return <HomeScreenBold {...styleProps} />;
-      case 'photo':
-        return <HomeScreenPhoto {...styleProps} />;
-      case 'bento':
-      default:
-        return <HomeScreenBento {...styleProps} />;
-    }
-  };
-
   const renderContent = () => {
     switch (activeTab) {
       case "home":
-        return renderHomeScreen();
+        return <HomeScreenBento onNavigate={handleNavigate} userMode={userMode} />;
       
       case "dashboard":
         if (!isProfessional) return null;
@@ -175,7 +142,7 @@ const Index = () => {
   };
 
   return (
-    <div className={cn("min-h-screen pt-safe", homeStyle === 'glass' && activeTab === 'home' ? "bg-transparent" : "bg-background")}>
+    <div className="min-h-screen pt-safe bg-background">
       {/* Header - Desktop/Tablet only */}
       {!isMobile && (
         <header className="bg-card/80 backdrop-blur-lg border-b border-border/50 sticky top-0 z-50">
@@ -192,17 +159,6 @@ const Index = () => {
               <DesktopNavigation activeTab={activeTab} onTabChange={setActiveTab} userMode={userMode} />
 
               <div className="flex items-center gap-2">
-                {activeTab === "home" && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="w-9 h-9 hidden md:inline-flex"
-                    onClick={() => setShowStylePicker(true)}
-                    title="Cambiar estilo"
-                  >
-                    <Palette className="w-4 h-4 text-muted-foreground" />
-                  </Button>
-                )}
                 <ThemeToggle />
                 <Link to="/admin" className="hidden lg:inline-flex">
                   <Button variant="ghost" size="icon" className="w-9 h-9">
