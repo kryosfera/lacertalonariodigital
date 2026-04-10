@@ -31,7 +31,11 @@ import { usePatients, useCreatePatient, useUpdatePatient, useDeletePatient, Pati
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-export const PatientList = () => {
+interface PatientListProps {
+  onViewPatient?: (patient: Patient) => void;
+}
+
+export const PatientList = ({ onViewPatient }: PatientListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -200,7 +204,12 @@ export const PatientList = () => {
                   </p>
                 )}
                 <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => onViewPatient?.(patient)}
+                  >
                     <FileText className="w-4 h-4 mr-2" />
                     Ver recetas
                   </Button>

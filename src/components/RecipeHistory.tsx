@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Download, Mail, MessageSquare, Calendar, Loader2, FileText, ChevronDown, Copy } from "lucide-react";
+import { Search, Download, Mail, MessageSquare, Calendar, Loader2, FileText, ChevronDown, Copy, CheckCircle2, Clock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRecipes, Recipe, PAGE_SIZE } from "@/hooks/useRecipes";
 import { format } from "date-fns";
@@ -175,6 +175,17 @@ export const RecipeHistory = ({ onDuplicate }: RecipeHistoryProps) => {
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-semibold text-foreground">{recipe.patient_name}</h3>
                           {getStatusBadge(recipe.sent_via)}
+                          {recipe.dispensed_at ? (
+                            <Badge className="bg-green-500/10 text-green-600 gap-1">
+                              <CheckCircle2 className="w-3 h-3" />
+                              Retirada
+                            </Badge>
+                          ) : (
+                            <Badge className="bg-orange-500/10 text-orange-600 gap-1">
+                              <Clock className="w-3 h-3" />
+                              Pendiente
+                            </Badge>
+                          )}
                         </div>
                         <p className="text-sm text-muted-foreground">
                           ID: {recipe.id.slice(0, 8)}...

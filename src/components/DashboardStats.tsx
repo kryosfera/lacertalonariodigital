@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Users, Send, TrendingUp } from "lucide-react";
+import { FileText, Users, Send, TrendingUp, CheckCircle2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,6 +25,7 @@ export const DashboardStats = () => {
         totalPatients,
         totalRecipes,
         sentRecipes,
+        dispensedRecipes,
       ] = await Promise.all([
         supabase
           .from('recipes')
@@ -50,6 +51,11 @@ export const DashboardStats = () => {
           .select('id', { count: 'exact', head: true })
           .eq('user_id', user.id)
           .not('sent_via', 'is', null),
+        supabase
+          .from('recipes')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .not('dispensed_at', 'is', null),
       ]);
 
       const thisMonth = recipesThisMonth.count || 0;
@@ -69,6 +75,7 @@ export const DashboardStats = () => {
         totalRecipes: total,
         sentRecipes: sent,
         responseRate,
+        dispensedCount: dispensedRecipes.count || 0,
       };
     },
     enabled: !!user,
@@ -107,6 +114,14 @@ export const DashboardStats = () => {
       icon: TrendingUp,
       color: "text-secondary",
       bgColor: "bg-secondary/10",
+    },
+    {
+      title: "Dispensadas",
+      value: stats?.dispensedCount ?? "—",
+      change: "",
+      icon: CheckCircle2,
+      color: "text-primary",
+      bgColor: "bg-primary/10",
     },
   ];
 

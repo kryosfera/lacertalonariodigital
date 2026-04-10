@@ -5,11 +5,13 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Home, AlertCircle, Clock, Barcode, Play, MapPin, Award } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Home, AlertCircle, Clock, Barcode, Play, MapPin, Award, CheckCircle2, ShieldCheck } from "lucide-react";
 import lacerLogo from "@/assets/lacer-logo-color.png";
 import { decodeRecipeData } from "@/lib/recipeUtils";
 import { BarcodeDisplay } from "@/components/BarcodeDisplay";
 import { RotatePhoneHint } from "@/components/RotatePhoneHint";
+import { toast } from "sonner";
 
 interface RecipeProduct {
   id: string;
@@ -40,6 +42,8 @@ interface RecipeData {
   isTemporary?: boolean;
   user_id?: string;
   profile?: ProfileData | null;
+  dispensed_at?: string | null;
+  dispensed_by?: string | null;
 }
 
 export default function Recipe() {
@@ -49,6 +53,8 @@ export default function Recipe() {
   const [recipe, setRecipe] = useState<RecipeData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [dispensing, setDispensing] = useState(false);
+  const [pharmacyName, setPharmacyName] = useState("");
 
   useEffect(() => {
     const loadRecipe = async () => {
@@ -88,7 +94,7 @@ export default function Recipe() {
       try {
         const { data, error: fetchError } = await supabase
           .from("recipes")
-          .select("id, recipe_code, patient_name, products, notes, created_at, user_id")
+          .select("id, recipe_code, patient_name, products, notes, created_at, user_id, dispensed_at, dispensed_by")
           .eq("recipe_code", code)
           .single();
 
@@ -136,7 +142,9 @@ export default function Recipe() {
           created_at: data.created_at,
           isTemporary: false,
           user_id: data.user_id,
-          profile
+          profile,
+          dispensed_at: data.dispensed_at,
+          dispensed_by: data.dispensed_by,
         });
       } catch (err) {
         setError("Error al cargar la receta");
@@ -147,6 +155,27 @@ export default function Recipe() {
 
     loadRecipe();
   }, [code, encodedData]);
+
+  const handleDispense = async () => {
+    if (!recipe?.id) return;
+    setDispensing(true);
+    try {
+      const { error } = await supabase
+        .from("recipes")
+        .update({
+          dispensed_at: new Date().toISOString(),
+          dispensed_by: pharmacyName.trim() || null,
+        })
+        .eq("id", recipe.id);
+      if (error) throw error;
+      setRecipe(prev => prev ? { ...prev, dispensed_at: new Date().toISOString(), dispensed_by: pharmacyName.trim() || null } : null);
+      toast.success("Dispensación confirmada");
+    } catch {
+      toast.error("Error al confirmar la dispensación");
+    } finally {
+      setDispensing(false);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     if (dateString.includes("/")) return dateString;
@@ -379,6 +408,46 @@ export default function Recipe() {
                   <p className="text-center text-sm text-muted-foreground mt-1">
                     {profile.professional_name}
                   </p>
+                )}
+              </div>
+            )}
+            {/* Dispensing section */}
+            {!recipe.isTemporary && recipe.id && (
+              <div className="border-t pt-4">
+                {recipe.dispensed_at ? (
+                  <div className="flex items-center gap-3 p-4 rounded-xl bg-green-500/10 border border-green-500/20">
+                    <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-green-700 dark:text-green-400">Receta dispensada</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(recipe.dispensed_at).toLocaleDateString("es-ES", { day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        {recipe.dispensed_by && ` — ${recipe.dispensed_by}`}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3 p-4 rounded-xl bg-orange-500/10 border border-orange-500/20">
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-5 h-5 text-orange-600" />
+                      <p className="font-semibold text-orange-700 dark:text-orange-400">Confirmar dispensación</p>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Si eres el farmacéutico, confirma que has entregado estos productos al paciente.
+                    </p>
+                    <Input
+                      placeholder="Nombre de la farmacia (opcional)"
+                      value={pharmacyName}
+                      onChange={(e) => setPharmacyName(e.target.value)}
+                    />
+                    <Button onClick={handleDispense} disabled={dispensing} className="w-full">
+                      {dispensing ? (
+                        <Clock className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                      )}
+                      {dispensing ? "Confirmando..." : "Confirmar dispensación"}
+                    </Button>
+                  </div>
                 )}
               </div>
             )}

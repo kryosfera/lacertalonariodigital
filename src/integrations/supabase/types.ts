@@ -240,6 +240,8 @@ export type Database = {
       recipes: {
         Row: {
           created_at: string
+          dispensed_at: string | null
+          dispensed_by: string | null
           id: string
           notes: string | null
           patient_id: string | null
@@ -251,6 +253,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          dispensed_at?: string | null
+          dispensed_by?: string | null
           id?: string
           notes?: string | null
           patient_id?: string | null
@@ -262,6 +266,8 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          dispensed_at?: string | null
+          dispensed_by?: string | null
           id?: string
           notes?: string | null
           patient_id?: string | null
