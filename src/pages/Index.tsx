@@ -4,6 +4,7 @@ import { Users, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RecipeCreator } from "@/components/RecipeCreator";
 import { PatientList } from "@/components/PatientList";
+import { PatientDetail } from "@/components/PatientDetail";
 import { RecipeHistory } from "@/components/RecipeHistory";
 import { DashboardStats } from "@/components/DashboardStats";
 import { HomeScreen } from "@/components/HomeScreen";
@@ -20,12 +21,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { LegalFooter } from "@/components/LegalFooter";
 import { Recipe } from "@/hooks/useRecipes";
+import { Patient } from "@/hooks/usePatients";
 import lacerLogo from "@/assets/lacer-logo.png";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [startWithCategories, setStartWithCategories] = useState(false);
-  const [duplicateRecipe, setDuplicateRecipe] = useState<{ products: Array<{ id: string; quantity: number }>; notes?: string | null; patient_name?: string } | null>(null);
+  const [duplicateRecipe, setDuplicateRecipe] = useState<{ products: Array<{ id: string; quantity: number }>; notes?: string | null; patient_name?: string; patient_id?: string | null } | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const isMobile = useIsMobile();
   const { userMode, isLoading, showProfileSelector, setUserMode } = useUserMode();
   const { user } = useAuth();
@@ -53,6 +56,21 @@ const Index = () => {
       products: recipe.products.map(p => ({ id: p.id, quantity: p.quantity })),
       notes: recipe.notes,
       patient_name: recipe.patient_name,
+      patient_id: recipe.patient_id,
+    });
+    setActiveTab("nueva-receta");
+  };
+
+  const handleViewPatient = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setActiveTab("paciente-detalle");
+  };
+
+  const handleNewRecipeForPatient = (patient: Patient) => {
+    setDuplicateRecipe({
+      products: [],
+      patient_name: patient.name,
+      patient_id: patient.id,
     });
     setActiveTab("nueva-receta");
   };
@@ -123,7 +141,20 @@ const Index = () => {
               <h2 className="text-xl md:text-2xl font-semibold text-foreground">Pacientes</h2>
               <p className="text-sm text-muted-foreground">Gestiona tu base de datos</p>
             </div>
-            <PatientList />
+            <PatientList onViewPatient={handleViewPatient} />
+          </div>
+        );
+      
+      case "paciente-detalle":
+        if (!isProfessional || !selectedPatient) return null;
+        return (
+          <div className="space-y-4 pb-20 md:pb-0 px-4">
+            <PatientDetail
+              patient={selectedPatient}
+              onBack={() => setActiveTab("pacientes")}
+              onNewRecipe={handleNewRecipeForPatient}
+              onDuplicate={handleDuplicateRecipe}
+            />
           </div>
         );
       
