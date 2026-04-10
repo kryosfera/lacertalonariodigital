@@ -38,13 +38,21 @@ interface ProductWithQuantity extends Product {
   quantity: number;
 }
 
+interface DuplicateRecipeData {
+  products: Array<{ id: string; quantity: number }>;
+  notes?: string | null;
+  patient_name?: string;
+}
+
 interface RecipeCreatorProps {
   startWithCategories?: boolean;
   onCategoriesShown?: () => void;
   onGoHome?: () => void;
+  initialRecipe?: DuplicateRecipeData | null;
+  onInitialRecipeLoaded?: () => void;
 }
 
-export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, onGoHome }: RecipeCreatorProps) => {
+export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, onGoHome, initialRecipe, onInitialRecipeLoaded }: RecipeCreatorProps) => {
   const { userMode } = useUserMode();
   const isProfessional = userMode === 'professional';
   const queryClient = useQueryClient();
