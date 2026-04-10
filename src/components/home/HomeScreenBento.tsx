@@ -81,28 +81,61 @@ export const HomeScreenBento = ({
         />
 
         <div className="relative flex flex-col items-center text-center">
-          {/* Logo - big and proud */}
+          {/* Logo */}
           <motion.div
             className="w-20 h-20 md:w-24 md:h-24 rounded-[1.5rem] bg-white/95 backdrop-blur-sm shadow-xl flex items-center justify-center mb-5"
             variants={itemVariants}
             whileHover={{ scale: 1.05, rotate: -2 }}
           >
-            <img src={lacerLogo} alt="Lacer" className="w-14 h-14 md:w-16 md:h-16 object-contain" />
+            {hasClinicInfo && profile?.logo_url ? (
+              <img src={profile.logo_url} alt={profile.clinic_name || "Clínica"} className="w-14 h-14 md:w-16 md:h-16 object-contain rounded-lg" />
+            ) : (
+              <img src={lacerLogo} alt="Lacer" className="w-14 h-14 md:w-16 md:h-16 object-contain" />
+            )}
           </motion.div>
 
-          <motion.h1
-            className="text-[1.75rem] sm:text-3xl md:text-4xl font-bold text-white tracking-tight leading-[1.1] mb-2"
-            variants={itemVariants}
-          >
-            Talonario Digital
-          </motion.h1>
+          {hasClinicInfo ? (
+            <>
+              <motion.h1
+                className="text-[1.75rem] sm:text-3xl md:text-4xl font-bold text-white tracking-tight leading-[1.1] mb-1"
+                variants={itemVariants}
+              >
+                {profile?.clinic_name || 'Talonario Digital'}
+              </motion.h1>
 
-          <motion.p
-            className="text-sm md:text-base text-white/80 max-w-xs leading-relaxed"
-            variants={itemVariants}
-          >
-            Recetas digitales para tus pacientes, directo a su móvil.
-          </motion.p>
+              {profile?.professional_name && (
+                <motion.p
+                  className="text-sm md:text-base text-white/90 font-medium mb-1"
+                  variants={itemVariants}
+                >
+                  Dr/Dra. {profile.professional_name}
+                </motion.p>
+              )}
+
+              <motion.p
+                className="text-xs text-white/60 max-w-xs leading-relaxed"
+                variants={itemVariants}
+              >
+                Talonario Digital · Powered by Lacer
+              </motion.p>
+            </>
+          ) : (
+            <>
+              <motion.h1
+                className="text-[1.75rem] sm:text-3xl md:text-4xl font-bold text-white tracking-tight leading-[1.1] mb-2"
+                variants={itemVariants}
+              >
+                Talonario Digital
+              </motion.h1>
+
+              <motion.p
+                className="text-sm md:text-base text-white/80 max-w-xs leading-relaxed"
+                variants={itemVariants}
+              >
+                Recetas digitales para tus pacientes, directo a su móvil.
+              </motion.p>
+            </>
+          )}
         </div>
       </motion.div>
 
