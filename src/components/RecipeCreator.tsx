@@ -153,7 +153,22 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     staleTime: 5 * 60 * 1000, // 5 minutes — products change rarely
   });
 
-  // Count products per category
+  // Load initial recipe data (duplicate)
+  useEffect(() => {
+    if (initialRecipe && products.length > 0) {
+      const newSelection = new Map<string, number>();
+      initialRecipe.products.forEach((p) => {
+        newSelection.set(p.id, p.quantity || 1);
+      });
+      setSelectedProducts(newSelection);
+      if (initialRecipe.notes) setNotes(initialRecipe.notes);
+      if (initialRecipe.patient_name) setPatientName(initialRecipe.patient_name);
+      onInitialRecipeLoaded?.();
+      toast.success("Receta duplicada — edita y envía");
+    }
+  }, [initialRecipe, products]);
+
+
   const productCountByCategory = useMemo(() => {
     const counts = new Map<string, number>();
     products.forEach((product) => {
