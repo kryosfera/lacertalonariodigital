@@ -55,10 +55,6 @@ export const HomeScreenBento = ({
       animate="visible"
       variants={containerVariants}
     >
-      {/* Theme Toggle + Style - Mobile */}
-      <div className="absolute top-3 right-3 z-10 md:hidden">
-        <ThemeToggle />
-      </div>
 
       {/* Hero Red Section */}
       <motion.div
