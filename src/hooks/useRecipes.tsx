@@ -23,6 +23,8 @@ export interface Recipe {
   sent_via: string | null;
   created_at: string;
   recipe_code: string | null;
+  dispensed_at: string | null;
+  dispensed_by: string | null;
 }
 
 export interface CreateRecipeData {
@@ -63,6 +65,8 @@ export function useRecipes(page = 0) {
         sent_via: recipe.sent_via,
         created_at: recipe.created_at,
         recipe_code: recipe.recipe_code,
+        dispensed_at: recipe.dispensed_at ?? null,
+        dispensed_by: recipe.dispensed_by ?? null,
         products: (recipe.products as unknown as RecipeProduct[]) || []
       }));
 
