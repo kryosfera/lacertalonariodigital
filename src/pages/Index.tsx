@@ -17,15 +17,19 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUserMode } from "@/hooks/useUserMode";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { LegalFooter } from "@/components/LegalFooter";
+import { Recipe } from "@/hooks/useRecipes";
 import lacerLogo from "@/assets/lacer-logo.png";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [startWithCategories, setStartWithCategories] = useState(false);
+  const [duplicateRecipe, setDuplicateRecipe] = useState<{ products: Array<{ id: string; quantity: number }>; notes?: string | null; patient_name?: string } | null>(null);
   const isMobile = useIsMobile();
   const { userMode, isLoading, showProfileSelector, setUserMode } = useUserMode();
   const { user } = useAuth();
+  const { data: profileData } = useProfile();
   const isProfessional = userMode === 'professional';
 
   useEffect(() => {
