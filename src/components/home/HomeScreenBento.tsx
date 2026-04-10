@@ -5,10 +5,12 @@ import lacerLogo from "@/assets/lacer-logo.png";
 import { UserMode } from "@/hooks/useUserMode";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LegalFooter } from "@/components/LegalFooter";
+import type { Profile } from "@/hooks/useProfile";
 
 interface HomeScreenBentoProps {
   onNavigate: (tab: string) => void;
   userMode?: UserMode;
+  profile?: Profile | null;
   stats?: {
     totalRecipes: number;
     totalPatients: number;
@@ -44,9 +46,11 @@ const itemVariants = {
 export const HomeScreenBento = ({
   onNavigate,
   userMode = 'basic',
+  profile,
   stats = { totalRecipes: 0, totalPatients: 0, thisMonth: 0 }
 }: HomeScreenBentoProps) => {
   const isProfessional = userMode === 'professional';
+  const hasClinicInfo = isProfessional && profile && (profile.clinic_name || profile.professional_name);
 
   return (
     <motion.div
