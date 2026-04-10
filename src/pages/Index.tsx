@@ -19,6 +19,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useUserMode } from "@/hooks/useUserMode";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
+import { useOnboardingTour } from "@/hooks/useOnboardingTour";
+import { OnboardingTour } from "@/components/OnboardingTour";
 import { LegalFooter } from "@/components/LegalFooter";
 import { Recipe } from "@/hooks/useRecipes";
 import { Patient } from "@/hooks/usePatients";
@@ -34,6 +36,7 @@ const Index = () => {
   const { user } = useAuth();
   const { data: profileData } = useProfile();
   const isProfessional = userMode === 'professional';
+  const tour = useOnboardingTour(userMode);
 
   useEffect(() => {
     if (!isProfessional && activeTab !== "home" && activeTab !== "nueva-receta" && activeTab !== "recomendaciones") {
@@ -237,6 +240,17 @@ const Index = () => {
       {isMobile && (
         <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} userMode={userMode} />
       )}
+
+      <OnboardingTour
+        isActive={tour.isActive}
+        step={tour.step}
+        currentStep={tour.currentStep}
+        totalSteps={tour.totalSteps}
+        onNext={tour.nextStep}
+        onPrev={tour.prevStep}
+        onSkip={tour.skipTour}
+        onNavigate={setActiveTab}
+      />
     </div>
   );
 };
