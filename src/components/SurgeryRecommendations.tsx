@@ -406,8 +406,8 @@ export const SurgeryRecommendations = () => {
               <X className="w-5 h-5" />
             </button>
 
-            {/* Rotate hint - only portrait mobile */}
-            <div className="md:hidden portrait:flex hidden items-center justify-center gap-2 px-4 py-2.5 bg-secondary/10 border-b border-secondary/20">
+            {/* Rotate hint - only mobile */}
+            <div className="flex md:hidden items-center justify-center gap-2 px-4 py-2.5 bg-secondary/10 border-b border-secondary/20 landscape:hidden">
               <div className="animate-rotate-phone">
                 <Smartphone className="w-5 h-5 text-secondary" />
               </div>
