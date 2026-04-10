@@ -64,6 +64,10 @@ export const HomeScreenBento = ({
         animate={{ opacity: 1, y: 0, scaleY: 1 }}
         transition={{ type: "spring", stiffness: 200, damping: 22, delay: 0.05 }}
       >
+        {/* Theme Toggle - Mobile */}
+        <div className="absolute top-3 right-3 z-10 md:hidden">
+          <ThemeToggle />
+        </div>
         {/* Subtle radial glow */}
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-20"
           style={{ background: 'radial-gradient(circle, hsl(0 72% 70%) 0%, transparent 70%)' }}
