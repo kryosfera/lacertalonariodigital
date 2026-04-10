@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Download, Mail, MessageSquare, Calendar, Loader2, FileText, ChevronDown } from "lucide-react";
+import { Search, Download, Mail, MessageSquare, Calendar, Loader2, FileText, ChevronDown, Copy } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useRecipes, Recipe, PAGE_SIZE } from "@/hooks/useRecipes";
 import { format } from "date-fns";
@@ -11,7 +11,11 @@ import { es } from "date-fns/locale";
 import { downloadPDF } from "@/lib/recipeUtils";
 import { toast } from "sonner";
 
-export const RecipeHistory = () => {
+interface RecipeHistoryProps {
+  onDuplicate?: (recipe: Recipe) => void;
+}
+
+export const RecipeHistory = ({ onDuplicate }: RecipeHistoryProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterSentVia, setFilterSentVia] = useState("all");
   const [page, setPage] = useState(0);
@@ -201,6 +205,16 @@ export const RecipeHistory = () => {
                   </div>
 
                   <div className="flex gap-2">
+                    {onDuplicate && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onDuplicate(recipe)}
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Duplicar
+                      </Button>
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
