@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FileText, Play, Scissors, Syringe, BookOpen, X, Share2, Mail, MessageCircle, ExternalLink, Phone, Filter } from "lucide-react";
+import { FileText, Play, Scissors, Syringe, BookOpen, X, Share2, Mail, MessageCircle, ExternalLink, Phone, Filter, Smartphone } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -405,6 +405,17 @@ export const SurgeryRecommendations = () => {
             >
               <X className="w-5 h-5" />
             </button>
+
+            {/* Rotate hint - only mobile */}
+            <div className="flex md:hidden items-center justify-center gap-2 px-4 py-2.5 bg-secondary/10 border-b border-secondary/20 landscape:hidden">
+              <div className="animate-rotate-phone">
+                <Smartphone className="w-5 h-5 text-secondary" />
+              </div>
+              <span className="text-xs text-secondary font-medium">
+                Gira el móvil para una mejor experiencia
+              </span>
+            </div>
+
             <div style={{ padding: "56.25% 0 0 0", position: "relative" }}>
               <iframe
                 src={`https://player.vimeo.com/video/${videoRecommendation.vimeoId}?h=${videoRecommendation.vimeoHash}&badge=0&autopause=0&player_id=0&app_id=58479&autoplay=1`}
