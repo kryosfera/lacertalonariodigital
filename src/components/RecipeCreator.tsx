@@ -96,21 +96,6 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     }
   }, [startWithCategories, onCategoriesShown, showCategorySelector]);
 
-  // Load initial recipe data (duplicate)
-  useEffect(() => {
-    if (initialRecipe && products.length > 0) {
-      const newSelection = new Map<string, number>();
-      initialRecipe.products.forEach((p) => {
-        newSelection.set(p.id, p.quantity || 1);
-      });
-      setSelectedProducts(newSelection);
-      if (initialRecipe.notes) setNotes(initialRecipe.notes);
-      if (initialRecipe.patient_name) setPatientName(initialRecipe.patient_name);
-      onInitialRecipeLoaded?.();
-      toast.success("Receta duplicada — edita y envía");
-    }
-  }, [initialRecipe, products]);
-
   // Auto-close pre-opened WhatsApp window when user returns to the app
   useEffect(() => {
     if (!preOpenedWindowRef) return;
