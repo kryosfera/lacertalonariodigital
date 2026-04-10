@@ -48,6 +48,15 @@ const Index = () => {
     }
   };
 
+  const handleDuplicateRecipe = (recipe: Recipe) => {
+    setDuplicateRecipe({
+      products: recipe.products.map(p => ({ id: p.id, quantity: p.quantity })),
+      notes: recipe.notes,
+      patient_name: recipe.patient_name,
+    });
+    setActiveTab("nueva-receta");
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -63,7 +72,7 @@ const Index = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "home":
-        return <HomeScreenBento onNavigate={handleNavigate} userMode={userMode} />;
+        return <HomeScreenBento onNavigate={handleNavigate} userMode={userMode} profile={profileData} />;
       
       case "dashboard":
         if (!isProfessional) return null;
@@ -93,6 +102,8 @@ const Index = () => {
               startWithCategories={startWithCategories} 
               onCategoriesShown={() => setStartWithCategories(false)}
               onGoHome={() => setActiveTab("home")}
+              initialRecipe={duplicateRecipe}
+              onInitialRecipeLoaded={() => setDuplicateRecipe(null)}
             />
           </div>
         );
@@ -124,7 +135,7 @@ const Index = () => {
               <h2 className="text-xl md:text-2xl font-semibold text-foreground">Historial</h2>
               <p className="text-sm text-muted-foreground">Consulta las recetas enviadas</p>
             </div>
-            <RecipeHistory />
+            <RecipeHistory onDuplicate={handleDuplicateRecipe} />
           </div>
         );
       
