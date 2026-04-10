@@ -156,6 +156,27 @@ export default function Recipe() {
     loadRecipe();
   }, [code, encodedData]);
 
+  const handleDispense = async () => {
+    if (!recipe?.id) return;
+    setDispensing(true);
+    try {
+      const { error } = await supabase
+        .from("recipes")
+        .update({
+          dispensed_at: new Date().toISOString(),
+          dispensed_by: pharmacyName.trim() || null,
+        })
+        .eq("id", recipe.id);
+      if (error) throw error;
+      setRecipe(prev => prev ? { ...prev, dispensed_at: new Date().toISOString(), dispensed_by: pharmacyName.trim() || null } : null);
+      toast.success("Dispensación confirmada");
+    } catch {
+      toast.error("Error al confirmar la dispensación");
+    } finally {
+      setDispensing(false);
+    }
+  };
+
   const formatDate = (dateString: string) => {
     if (dateString.includes("/")) return dateString;
     return new Date(dateString).toLocaleDateString("es-ES", {
