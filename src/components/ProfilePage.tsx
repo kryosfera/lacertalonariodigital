@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Building2, User, Upload, Loader2, Check, 
-  Image as ImageIcon, Signature, PenTool
+  Image as ImageIcon, Signature, PenTool, RotateCcw
 } from "lucide-react";
 import { useProfile, useUpsertProfile, useUploadProfileImage } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
@@ -120,9 +120,20 @@ export const ProfilePage = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex gap-2">
           <Button variant="outline" onClick={async () => { switchToBasic(); await signOut(); }}>
             Cerrar sesión
+          </Button>
+          <Button 
+            variant="ghost" 
+            onClick={() => {
+              localStorage.removeItem("onboarding_pro_done");
+              localStorage.removeItem("onboarding_basic_done");
+              window.location.reload();
+            }}
+          >
+            <RotateCcw className="w-4 h-4 mr-2" />
+            Repetir tutorial
           </Button>
         </CardContent>
       </Card>
