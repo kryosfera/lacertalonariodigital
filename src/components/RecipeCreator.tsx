@@ -38,13 +38,21 @@ interface ProductWithQuantity extends Product {
   quantity: number;
 }
 
+interface DuplicateRecipeData {
+  products: Array<{ id: string; quantity: number }>;
+  notes?: string | null;
+  patient_name?: string;
+}
+
 interface RecipeCreatorProps {
   startWithCategories?: boolean;
   onCategoriesShown?: () => void;
   onGoHome?: () => void;
+  initialRecipe?: DuplicateRecipeData | null;
+  onInitialRecipeLoaded?: () => void;
 }
 
-export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, onGoHome }: RecipeCreatorProps) => {
+export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, onGoHome, initialRecipe, onInitialRecipeLoaded }: RecipeCreatorProps) => {
   const { userMode } = useUserMode();
   const isProfessional = userMode === 'professional';
   const queryClient = useQueryClient();
@@ -145,7 +153,22 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     staleTime: 5 * 60 * 1000, // 5 minutes — products change rarely
   });
 
-  // Count products per category
+  // Load initial recipe data (duplicate)
+  useEffect(() => {
+    if (initialRecipe && products.length > 0) {
+      const newSelection = new Map<string, number>();
+      initialRecipe.products.forEach((p) => {
+        newSelection.set(p.id, p.quantity || 1);
+      });
+      setSelectedProducts(newSelection);
+      if (initialRecipe.notes) setNotes(initialRecipe.notes);
+      if (initialRecipe.patient_name) setPatientName(initialRecipe.patient_name);
+      onInitialRecipeLoaded?.();
+      toast.success("Receta duplicada — edita y envía");
+    }
+  }, [initialRecipe, products]);
+
+
   const productCountByCategory = useMemo(() => {
     const counts = new Map<string, number>();
     products.forEach((product) => {

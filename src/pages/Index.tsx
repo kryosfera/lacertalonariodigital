@@ -17,15 +17,19 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useUserMode } from "@/hooks/useUserMode";
 import { useAuth } from "@/hooks/useAuth";
+import { useProfile } from "@/hooks/useProfile";
 import { LegalFooter } from "@/components/LegalFooter";
+import { Recipe } from "@/hooks/useRecipes";
 import lacerLogo from "@/assets/lacer-logo.png";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [startWithCategories, setStartWithCategories] = useState(false);
+  const [duplicateRecipe, setDuplicateRecipe] = useState<{ products: Array<{ id: string; quantity: number }>; notes?: string | null; patient_name?: string } | null>(null);
   const isMobile = useIsMobile();
   const { userMode, isLoading, showProfileSelector, setUserMode } = useUserMode();
   const { user } = useAuth();
+  const { data: profileData } = useProfile();
   const isProfessional = userMode === 'professional';
 
   useEffect(() => {
@@ -44,6 +48,15 @@ const Index = () => {
     }
   };
 
+  const handleDuplicateRecipe = (recipe: Recipe) => {
+    setDuplicateRecipe({
+      products: recipe.products.map(p => ({ id: p.id, quantity: p.quantity })),
+      notes: recipe.notes,
+      patient_name: recipe.patient_name,
+    });
+    setActiveTab("nueva-receta");
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -59,7 +72,7 @@ const Index = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "home":
-        return <HomeScreenBento onNavigate={handleNavigate} userMode={userMode} />;
+        return <HomeScreenBento onNavigate={handleNavigate} userMode={userMode} profile={profileData} />;
       
       case "dashboard":
         if (!isProfessional) return null;
@@ -89,6 +102,8 @@ const Index = () => {
               startWithCategories={startWithCategories} 
               onCategoriesShown={() => setStartWithCategories(false)}
               onGoHome={() => setActiveTab("home")}
+              initialRecipe={duplicateRecipe}
+              onInitialRecipeLoaded={() => setDuplicateRecipe(null)}
             />
           </div>
         );
@@ -120,7 +135,7 @@ const Index = () => {
               <h2 className="text-xl md:text-2xl font-semibold text-foreground">Historial</h2>
               <p className="text-sm text-muted-foreground">Consulta las recetas enviadas</p>
             </div>
-            <RecipeHistory />
+            <RecipeHistory onDuplicate={handleDuplicateRecipe} />
           </div>
         );
       
