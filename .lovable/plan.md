@@ -1,38 +1,50 @@
 
 
-# Fix: Acortar URLs en mensajes de WhatsApp
+# Verificación y mejora de funcionalidades Pro + Hero personalizado
 
-## Problema
+## Estado actual de funcionalidades Pro
 
-Cuando se envía una receta por WhatsApp, la URL generada es extremadamente larga porque usa codificación base64 (`/receta?d=JTdCJTIycCUy...`). Esto ocurre porque `createShortUrl` falla (requiere autenticación) y cae al fallback base64.
+| Funcionalidad | Estado | Notas |
+|---|---|---|
+| Crear pacientes | Completa | CRUD completo en PatientList |
+| Ver historial | Completa | Paginación, filtros, descarga PDF |
+| Guardar templates | Completa | Guardar, cargar y eliminar plantillas |
+| Duplicar recetas | **Falta** | No hay botón de duplicar/reutilizar en historial |
+| Visualizar datos | Completa | DashboardStats con métricas en tiempo real |
+| Hero con logo clínica | **Falta** | Siempre muestra logo Lacer genérico |
 
-El flujo profesional (`isProfessional`) debería generar URLs cortas tipo `/receta?n=ABC123` vía `saveRecipeToDb`, pero si falla o si el usuario está en modo basico, se genera la URL larga.
+## Plan de implementación
 
-## Solucion
+### 1. Añadir botón "Duplicar receta" en RecipeHistory
 
-Aplicar un **doble fallback** en todos los flujos de envío: siempre intentar primero el short URL de base de datos, y solo si falla usar base64. Ademas, en el flujo profesional, si `saveRecipeToDb` falla, también intentar `createShortUrl` antes de caer a base64.
+En cada tarjeta del historial, junto al botón PDF, añadir un botón "Duplicar" que:
+- Copie los productos y notas de la receta seleccionada
+- Navegue a "nueva-receta" con esos datos pre-cargados
+- Requiere pasar un callback `onDuplicate(recipe)` desde `Index.tsx`
 
-### Cambios en `src/components/RecipeCreator.tsx`
+**Archivos:** `RecipeHistory.tsx`, `Index.tsx`, `RecipeCreator.tsx`
 
-En las 4 funciones de envío (WhatsApp, Email, PDF, Print), unificar la lógica de generación de URL:
+### 2. Personalizar Hero para usuarios Pro autenticados
 
-```text
-1. Si isProfessional → saveRecipeToDb → /receta?n=CODE (corta)
-2. Si falla o no es profesional → createShortUrl → /r/XXXXXX (corta)
-3. Si falla → generateTemporaryRecipeUrl → /receta?d=... (larga, ultimo recurso)
-```
+En `HomeScreenBento.tsx`:
+- Recibir datos de perfil como prop (logo_url, clinic_name, professional_name)
+- Cuando el usuario es Pro y tiene perfil:
+  - Mostrar el logo de la clínica (si existe) en lugar del logo Lacer genérico, o ambos lado a lado
+  - Reemplazar "Talonario Digital" por el nombre de la clínica
+  - Añadir subtítulo "Dr./Dra. [nombre profesional]"
+- Si no tiene perfil completado, mantener el diseño genérico actual
 
-Esto garantiza que los usuarios autenticados siempre obtengan URLs cortas, y solo se use base64 como ultimo recurso para usuarios no autenticados.
+**Archivos:** `HomeScreenBento.tsx`, `Index.tsx` (pasar profileData como prop)
 
-### Cambio en `src/lib/recipeUtils.ts`
+### Detalle técnico
 
-Tambien añadir un fallback en el flujo profesional: si `saveRecipeToDb` devuelve un `recipeCode`, usar la URL corta. Si no, intentar `createShortUrl` antes de rendirse.
+**Duplicar receta:**
+- `RecipeHistory` recibe `onDuplicate?: (recipe: Recipe) => void`
+- `Index.tsx` define handler que setea estado `duplicateRecipe` y cambia a tab "nueva-receta"
+- `RecipeCreator` recibe prop `initialRecipe?` y lo carga en `useEffect`
 
-## Resultado esperado
-
-Los mensajes de WhatsApp mostraran URLs cortas tipo:
-- `lacertalonariodigital.lovable.app/receta?n=ABC123` (profesional)
-- `lacertalonariodigital.lovable.app/r/x7k9m2` (short URL)
-
-En vez de la URL base64 de cientos de caracteres.
+**Hero personalizado:**
+- `HomeScreenBento` recibe `profile?: { logo_url, clinic_name, professional_name } | null`
+- Renderizado condicional: si `profile?.clinic_name` existe, mostrar nombre de clínica como título principal y "Talonario Digital" como subtítulo más pequeño
+- Si `profile?.logo_url` existe, mostrar logo clínica en el cuadrado blanco (manteniendo Lacer como badge pequeño debajo)
 
