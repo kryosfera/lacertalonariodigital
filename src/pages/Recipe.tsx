@@ -9,6 +9,7 @@ import { Home, AlertCircle, Clock, Barcode, Play, MapPin, Award } from "lucide-r
 import lacerLogo from "@/assets/lacer-logo-color.png";
 import { decodeRecipeData } from "@/lib/recipeUtils";
 import { BarcodeDisplay } from "@/components/BarcodeDisplay";
+import { RotatePhoneHint } from "@/components/RotatePhoneHint";
 
 interface RecipeProduct {
   id: string;
@@ -320,6 +321,9 @@ export default function Recipe() {
 
                 {product.video_urls && product.video_urls.length > 0 && (
                   <div className="space-y-2">
+                    <div className="md:hidden">
+                      <RotatePhoneHint />
+                    </div>
                     {product.video_urls.map((videoUrl, vIdx) => (
                       <div key={vIdx} className="rounded-lg overflow-hidden border bg-black">
                         <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
