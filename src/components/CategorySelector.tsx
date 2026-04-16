@@ -205,7 +205,7 @@ export const CategorySelector = ({
             <div className="p-3 border-t border-border/30 bg-background">
               <Button
                 onClick={onClose}
-                className="w-full bg-secondary hover:bg-secondary/90 gap-2"
+                className="w-full btn-gradient-red gap-2"
               >
                 <ShoppingCart className="w-4 h-4" />
                 Continuar con la receta ({selectedProductsCount})
