@@ -1,11 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, FileText, Users, Package, TrendingUp, CheckCircle } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Loader2, FileText, Users, Package, TrendingUp, CheckCircle, Send } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const COLORS = ['hsl(0, 72%, 51%)', 'hsl(0, 72%, 38%)', 'hsl(0, 60%, 60%)', 'hsl(0, 50%, 70%)', 'hsl(0, 40%, 45%)', 'hsl(20, 60%, 50%)', 'hsl(10, 55%, 55%)', 'hsl(350, 65%, 50%)'];
+const SEND_COLORS: Record<string, string> = {
+  'WhatsApp': 'hsl(142, 70%, 45%)',
+  'Email': 'hsl(210, 70%, 50%)',
+  'PDF': 'hsl(0, 72%, 51%)',
+  'Impresión': 'hsl(35, 80%, 50%)',
+  'Email + WhatsApp': 'hsl(270, 60%, 55%)',
+  'Sin envío': 'hsl(0, 0%, 60%)',
+};
 
 export function AdminDashboard() {
   const { data: totalRecipes, isLoading: loadingRecipes } = useQuery({
@@ -101,6 +109,30 @@ export function AdminDashboard() {
     },
   });
 
+  const { data: sendMethodStats } = useQuery({
+    queryKey: ['admin-send-method-stats'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('recipes').select('sent_via');
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      (data || []).forEach(r => {
+        const method = r.sent_via || 'sin_envio';
+        counts[method] = (counts[method] || 0) + 1;
+      });
+      const labels: Record<string, string> = {
+        whatsapp: 'WhatsApp',
+        email: 'Email',
+        pdf: 'PDF',
+        print: 'Impresión',
+        both: 'Email + WhatsApp',
+        sin_envio: 'Sin envío',
+      };
+      return Object.entries(counts)
+        .map(([key, value]) => ({ name: labels[key] || key, value }))
+        .sort((a, b) => b.value - a.value);
+    },
+  });
+
   const dispensingRate = totalRecipes && dispensedCount != null
     ? Math.round((dispensedCount / totalRecipes) * 100)
     : 0;
@@ -192,6 +224,65 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Send Method Distribution */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Send className="h-4 w-4 text-primary" />
+            Método de envío de recetas
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {sendMethodStats && sendMethodStats.length > 0 ? (
+            <div className="grid md:grid-cols-2 gap-4 items-center">
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={sendMethodStats}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={90}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {sendMethodStats.map((entry) => (
+                        <Cell key={entry.name} fill={SEND_COLORS[entry.name] || 'hsl(0,0%,70%)'} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => [value, 'Recetas']} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="space-y-3">
+                {sendMethodStats.map((entry) => {
+                  const total = sendMethodStats.reduce((s, e) => s + e.value, 0);
+                  const pct = total > 0 ? Math.round((entry.value / total) * 100) : 0;
+                  return (
+                    <div key={entry.name} className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: SEND_COLORS[entry.name] || 'hsl(0,0%,70%)' }} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-baseline">
+                          <span className="text-sm font-medium text-foreground">{entry.name}</span>
+                          <span className="text-sm tabular-nums text-muted-foreground">{entry.value} ({pct}%)</span>
+                        </div>
+                        <div className="h-1.5 mt-1 rounded-full bg-muted overflow-hidden">
+                          <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: SEND_COLORS[entry.name] || 'hsl(0,0%,70%)' }} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm text-center py-10">Sin datos de envío</p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Top Products + Province Table */}
       <div className="grid lg:grid-cols-2 gap-6">
