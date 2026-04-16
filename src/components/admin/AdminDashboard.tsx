@@ -66,7 +66,7 @@ export function AdminDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('admin_top_products', { lim: 10 });
       if (error) throw error;
-      return data as { product_name: string; reference: string | null; times_prescribed: number }[];
+      return data as { product_name: string; reference: string | null; times_prescribed: number; thumbnail_url: string | null }[];
     },
   });
 
