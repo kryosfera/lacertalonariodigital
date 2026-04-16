@@ -6,6 +6,14 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const COLORS = ['hsl(0, 72%, 51%)', 'hsl(0, 72%, 38%)', 'hsl(0, 60%, 60%)', 'hsl(0, 50%, 70%)', 'hsl(0, 40%, 45%)', 'hsl(20, 60%, 50%)', 'hsl(10, 55%, 55%)', 'hsl(350, 65%, 50%)'];
+const SEND_COLORS: Record<string, string> = {
+  'WhatsApp': 'hsl(142, 70%, 45%)',
+  'Email': 'hsl(210, 70%, 50%)',
+  'PDF': 'hsl(0, 72%, 51%)',
+  'Impresión': 'hsl(35, 80%, 50%)',
+  'Email + WhatsApp': 'hsl(270, 60%, 55%)',
+  'Sin envío': 'hsl(0, 0%, 60%)',
+};
 
 export function AdminDashboard() {
   const { data: totalRecipes, isLoading: loadingRecipes } = useQuery({
