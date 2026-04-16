@@ -177,8 +177,10 @@ export type Database = {
           clinic_name: string | null
           created_at: string
           id: string
+          locality: string | null
           logo_url: string | null
           professional_name: string | null
+          province: string | null
           registration_number: string | null
           signature_url: string | null
           updated_at: string
@@ -189,8 +191,10 @@ export type Database = {
           clinic_name?: string | null
           created_at?: string
           id?: string
+          locality?: string | null
           logo_url?: string | null
           professional_name?: string | null
+          province?: string | null
           registration_number?: string | null
           signature_url?: string | null
           updated_at?: string
@@ -201,8 +205,10 @@ export type Database = {
           clinic_name?: string | null
           created_at?: string
           id?: string
+          locality?: string | null
           logo_url?: string | null
           professional_name?: string | null
+          province?: string | null
           registration_number?: string | null
           signature_url?: string | null
           updated_at?: string
