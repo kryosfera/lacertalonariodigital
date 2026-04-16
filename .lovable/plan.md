@@ -1,36 +1,38 @@
 
 
-# Simplificar flujo de entrada + mejoras UX
+# Unificar botones con el degradado rojo del Hero
+
+## Problema
+
+Los botones de acción principales (login, registro, cookies, selectores) usan `bg-secondary hover:bg-secondary/90` — un rojo plano que al hacer hover simplemente baja la opacidad. El usuario quiere que todos los botones CTA usen el mismo degradado rojo definido en el Hero:
+
+```
+linear-gradient(160deg, hsl(0 72% 51%) 0%, hsl(0 72% 38%) 100%)
+```
 
 ## Cambios
 
-### 1. Eliminar pantalla de selección de perfil inicial
-En `useUserMode.tsx`, cuando no hay modo guardado en `localStorage`, en lugar de mostrar `showProfileSelector = true`, establecer directamente `userMode = 'basic'`. El usuario nuevo entra directo a la home con el banner de "¿Eres profesional?".
+### 1. Crear una clase CSS reutilizable para el degradado
 
-### 2. Eliminar componente ProfileSelector
-Ya no se necesita `ProfileSelector.tsx` ni su uso en `Index.tsx` (líneas 89-91).
+En `src/index.css`, añadir una clase utilitaria `.btn-gradient-red` que aplique el degradado del hero con un hover más intenso (sin azules).
 
-### 3. Mejorar banner "¿Eres profesional?" en HomeScreenBento
-- Añadir animación de pulso/glow sutil al banner para darle protagonismo
-- Ajustar espaciado del layout para que en tablet/portátil (768px+) todo quepa sin scroll: reducir padding del hero, comprimir gaps
-- Cambiar el `<Link to="/auth">` por `<Link to="/auth?tab=signup">` para abrir directamente la pestaña de registro
+### 2. Aplicar el degradado en los siguientes archivos
 
-### 4. Auth.tsx: abrir en tab "signup" cuando viene del banner
-- Leer `?tab=signup` de la URL y establecer `activeTab` inicial a `'signup'` si está presente
+| Archivo | Botón afectado |
+|---------|---------------|
+| `src/pages/Auth.tsx` | "Iniciar sesión" y "Crear cuenta" |
+| `src/components/CookieBanner.tsx` | "Aceptar todas" |
+| `src/components/CookiePreferences.tsx` | "Guardar preferencias" |
+| `src/components/CategorySelector.tsx` | Botón de confirmar selección |
+| `src/components/ProductSelector.tsx` | Botón de confirmar productos |
 
-### 5. Renombrar campo "Clínica" a "Clínica / Profesional"
-- En `Auth.tsx`, cambiar el label de "Clínica" a "Clínica / Profesional" y el placeholder a "Nombre de clínica o profesional"
+Cada botón pasará de `bg-secondary hover:bg-secondary/90` a usar el degradado inline style (como ya se hace en el botón "Nueva Receta" del Bento), manteniendo `text-white` y un hover que oscurece ligeramente el degradado.
 
-### 6. Post-registro: activar modo profesional automáticamente
-Ya funciona: en `useUserMode.tsx`, cuando `user` existe se establece `professional` automáticamente. No requiere cambios.
+### 3. Actualizar el variant "secondary" del Button component
 
-## Archivos a modificar
+En `src/components/ui/button.tsx`, cambiar el variant `secondary` para que no interfiera cuando se sobreescribe con clases inline.
 
-| Archivo | Cambio |
-|---------|--------|
-| `src/hooks/useUserMode.tsx` | Default a `'basic'` en vez de mostrar selector |
-| `src/pages/Index.tsx` | Eliminar import y uso de `ProfileSelector` |
-| `src/components/home/HomeScreenBento.tsx` | Animación banner + link a `/auth?tab=signup` + ajuste espaciado |
-| `src/pages/Auth.tsx` | Leer query param `tab`, renombrar campo clínica |
-| `src/components/ProfileSelector.tsx` | Eliminar archivo |
+## Resultado
+
+Todos los botones de acción principal tendrán el mismo degradado rojo corporativo del hero, sin transiciones a azul ni colores inconsistentes.
 
