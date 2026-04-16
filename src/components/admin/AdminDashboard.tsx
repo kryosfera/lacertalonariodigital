@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, FileText, Users, Package, TrendingUp, CheckCircle, Send } from 'lucide-react';
@@ -66,7 +67,7 @@ export function AdminDashboard() {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('admin_top_products', { lim: 10 });
       if (error) throw error;
-      return data as { product_name: string; reference: string | null; times_prescribed: number }[];
+      return data as { product_name: string; reference: string | null; times_prescribed: number; thumbnail_url: string | null }[];
     },
   });
 
@@ -295,16 +296,33 @@ export function AdminDashboard() {
             {loadingTop ? (
               <Loader2 className="w-6 h-6 animate-spin mx-auto" />
             ) : topProducts && topProducts.length > 0 ? (
-              <div className="h-72">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={topProducts.map(p => ({ name: p.product_name?.substring(0, 20) + (p.product_name && p.product_name.length > 20 ? '…' : ''), total: Number(p.times_prescribed) }))} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                    <XAxis type="number" className="text-xs" />
-                    <YAxis type="category" dataKey="name" width={150} className="text-xs" />
-                    <Tooltip />
-                    <Bar dataKey="total" fill="hsl(0, 72%, 38%)" radius={[0, 4, 4, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="max-h-[420px] overflow-auto space-y-2">
+                {(() => {
+                  const maxVal = Math.max(...topProducts.map(p => Number(p.times_prescribed)));
+                  return topProducts.map((p, i) => {
+                    const pct = maxVal > 0 ? (Number(p.times_prescribed) / maxVal) * 100 : 0;
+                    return (
+                      <div key={`${p.product_name}-${i}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                        <span className="text-sm font-bold text-primary w-5 text-right shrink-0">{i + 1}</span>
+                        <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                          {p.thumbnail_url ? (
+                            <img src={p.thumbnail_url} alt={p.product_name} className="w-10 h-10 object-contain" />
+                          ) : (
+                            <Package className="w-5 h-5 text-muted-foreground/50" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{p.product_name}</p>
+                          {p.reference && <p className="text-[10px] text-muted-foreground">C.N. {p.reference?.replace('.', '')}</p>}
+                          <div className="h-1.5 mt-1 rounded-full bg-muted overflow-hidden">
+                            <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                        <span className="text-sm font-semibold tabular-nums text-foreground shrink-0">{p.times_prescribed}</span>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             ) : (
               <p className="text-muted-foreground text-sm text-center py-10">Sin datos</p>

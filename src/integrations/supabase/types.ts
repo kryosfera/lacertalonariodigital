@@ -384,6 +384,7 @@ export type Database = {
         Returns: {
           product_name: string
           reference: string
+          thumbnail_url: string
           times_prescribed: number
         }[]
       }
