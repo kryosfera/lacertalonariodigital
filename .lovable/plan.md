@@ -1,49 +1,30 @@
 
 
-# Tarjetón A5 promocional — Talonario Digital (PDF)
+# Cambios estéticos en Home + Registro con datos de clínica
 
-## Concepto
+## Cambios
 
-Crear un tarjetón A5 de 2 caras (similar al adjunto) pero actualizado para la versión actual de la app, enfocado en la simplicidad de uso. Se generará como PDF descargable listo para imprenta.
+### 1. Unificar color rojo del botón "Nueva Receta" con el Hero
+En `HomeScreenBento.tsx`, el botón usa `bg-secondary` mientras el hero usa `hsl(0 72% 51%)`. Cambiar el botón "Nueva Receta" para usar el mismo gradiente rojo del hero en lugar de `bg-secondary`, asegurando coherencia visual.
 
-## Cara 1 — Portada
+### 2. Maximizar el CTA "¿Eres profesional?"
+Transformar el enlace discreto actual (texto pequeño gris, `text-xs text-muted-foreground/70`) en un banner llamativo:
+- Card con borde rojo y fondo degradado sutil
+- Icono Sparkles más grande
+- Texto principal en negrita: "¿Eres profesional?"
+- Subtítulo: "Regístrate gratis y activa gestión de pacientes, historial y más"
+- Botón CTA visible "Activar cuenta profesional"
 
-- Logo Lacer + "TALONARIO DIGITAL" (mismo estilo del original)
-- Mensaje principal: **"Tu recetario digital en 3 simples pasos"**
-- Tres iconos grandes con texto mínimo:
-  1. **Selecciona** — "Elige los productos por categoría"
-  2. **Personaliza** — "Añade comentarios y datos del paciente"
-  3. **Envía** — "WhatsApp, Email o PDF al instante"
-- QR code apuntando a `lacertalonariodigital.lovable.app`
-- URL debajo: `www.lacertalonariodigital.lovable.app`
-- Franja roja inferior (como el original)
+### 3. Añadir campos Localidad, Clínica y Provincia al registro
+- **Migración SQL**: Añadir columnas `locality` y `province` a la tabla `profiles` (ya tiene `clinic_name`)
+- **Formulario de registro** (`Auth.tsx`): Crear un schema separado para signup que incluya `email`, `password`, `clinic_name`, `locality` y `province`
+- **Post-registro**: Tras el `signUp` exitoso, insertar/actualizar el perfil con los datos adicionales usando `supabase.from('profiles').upsert()`
 
-## Cara 2 — Instrucciones rápidas
+### Archivos a modificar/crear
 
-- Título: **"SIN DESCARGA. SIN REGISTRO. SIN COMPLICACIONES."**
-- Sección "Modo Rápido" (3 pasos con bullets rojos, estilo del original pero simplificado):
-  1. Entra en la web
-  2. Selecciona productos y envía
-  3. Tu paciente recibe la receta al instante
-- Sección "Modo Profesional" (para quien quiera más):
-  - Gestión de pacientes
-  - Historial y duplicación de recetas
-  - Firma digital y logo de tu clínica
-  - Seguimiento de dispensación en farmacia
-- Nota al pie: "Regístrate gratis para acceder al modo profesional"
-- Código de referencia en esquina inferior
-
-## Diseño
-
-- Paleta: Rojo Lacer (#E30613), blanco, gris oscuro (#333333)
-- Logo Lacer embebido desde `src/assets/lacer-logo.png` y `lacer-logo-bocas_sanas.jpg`
-- Formato A5 (148×210mm)
-- Generado con Python (reportlab) o Node.js, exportado como PDF a `/mnt/documents/`
-
-## Implementación
-
-1. Copiar los assets de logo al filesystem temporal
-2. Generar el PDF con reportlab (Python) — 2 páginas A5
-3. QA visual: convertir a imagen e inspeccionar ambas caras
-4. Entregar como artifact descargable
+| Archivo | Cambio |
+|---------|--------|
+| `src/components/home/HomeScreenBento.tsx` | Color botón receta + CTA profesional prominente |
+| `src/pages/Auth.tsx` | Campos extra en tab de registro (clínica, localidad, provincia) |
+| Migración SQL | `ALTER TABLE profiles ADD COLUMN locality text, ADD COLUMN province text` |
 
