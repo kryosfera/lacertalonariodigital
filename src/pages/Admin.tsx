@@ -1,104 +1,27 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Package, FolderTree, ArrowLeft, LogOut, Loader2, ImageIcon, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { AdminSidebar, type AdminSection } from '@/components/admin/AdminSidebar';
+import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { ProductsAdmin } from '@/components/admin/ProductsAdmin';
 import { CategoriesAdmin } from '@/components/admin/CategoriesAdmin';
+import { UsersAdmin } from '@/components/admin/UsersAdmin';
+import { RecipesAdmin } from '@/components/admin/RecipesAdmin';
+import { MaintenanceAdmin } from '@/components/admin/MaintenanceAdmin';
 
 const Admin = () => {
   const navigate = useNavigate();
   const { user, isAdmin, isLoading, signOut } = useAuth();
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [isSyncingCategories, setIsSyncingCategories] = useState(false);
-  const [isCleaningUrls, setIsCleaningUrls] = useState(false);
-
-  const handleSyncImages = async () => {
-    setIsSyncing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('sync-product-images');
-      
-      if (error) throw error;
-      
-      if (data.success) {
-        toast.success(
-          `Sincronización completada: ${data.summary.matched} imágenes asignadas, ${data.summary.unmatched} sin coincidencia`,
-          { duration: 5000 }
-        );
-        
-        if (data.details.unmatched.length > 0) {
-          console.log('Archivos sin coincidencia:', data.details.unmatched);
-        }
-      } else {
-        throw new Error(data.error);
-      }
-    } catch (error: any) {
-      console.error('Sync error:', error);
-      toast.error(`Error al sincronizar: ${error.message}`);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  const handleSyncCategoryImages = async () => {
-    setIsSyncingCategories(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('sync-category-images');
-      
-      if (error) throw error;
-      
-      if (data.success) {
-        toast.success(
-          `Categorías sincronizadas: ${data.summary.matched} imágenes asignadas, ${data.summary.unmatched} sin coincidencia`,
-          { duration: 5000 }
-        );
-        
-        if (data.details.unmatched.length > 0) {
-          console.log('Archivos sin coincidencia:', data.details.unmatched);
-        }
-      } else {
-        throw new Error(data.error);
-      }
-    } catch (error: any) {
-      console.error('Sync error:', error);
-      toast.error(`Error al sincronizar categorías: ${error.message}`);
-    } finally {
-      setIsSyncingCategories(false);
-    }
-  };
-
-  const handleCleanExpiredUrls = async () => {
-    setIsCleaningUrls(true);
-    try {
-      const { data, error } = await supabase.rpc('cleanup_expired_short_urls');
-      if (error) throw error;
-      const count = data as number;
-      toast.success(
-        count === 0
-          ? 'No había URLs expiradas'
-          : `${count} URL${count !== 1 ? 's' : ''} expirada${count !== 1 ? 's' : ''} eliminada${count !== 1 ? 's' : ''}`,
-        { duration: 5000 }
-      );
-    } catch (error: any) {
-      toast.error(`Error al limpiar: ${error.message}`);
-    } finally {
-      setIsCleaningUrls(false);
-    }
-  };
+  const [activeSection, setActiveSection] = useState<AdminSection>('dashboard');
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      navigate('/auth');
-    }
+    if (!isLoading && !user) navigate('/auth');
   }, [user, isLoading, navigate]);
 
   useEffect(() => {
-    if (!isLoading && user && !isAdmin) {
-      navigate('/');
-    }
+    if (!isLoading && user && !isAdmin) navigate('/');
   }, [isAdmin, isLoading, user, navigate]);
 
   const handleSignOut = async () => {
@@ -114,102 +37,28 @@ const Admin = () => {
     );
   }
 
-  if (!isAdmin) {
-    return null;
-  }
+  if (!isAdmin) return null;
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card shadow-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Link to="/">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Volver
-                </Button>
-              </Link>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">Panel de Administración</h1>
-                <p className="text-xs text-muted-foreground">Gestión de productos y categorías</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCleanExpiredUrls}
-                disabled={isCleaningUrls}
-                title="Limpiar URLs cortas expiradas"
-              >
-                {isCleaningUrls ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <Trash2 className="w-4 h-4 mr-2" />
-                )}
-                Limpiar URLs
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleSyncCategoryImages}
-                disabled={isSyncingCategories}
-              >
-                {isSyncingCategories ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <FolderTree className="w-4 h-4 mr-2" />
-                )}
-                Sync Categorías
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleSyncImages}
-                disabled={isSyncing}
-              >
-                {isSyncing ? (
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <ImageIcon className="w-4 h-4 mr-2" />
-                )}
-                Sync Productos
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
-                <LogOut className="w-4 h-4 mr-2" />
-                Cerrar Sesión
-              </Button>
-            </div>
-          </div>
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        <AdminSidebar activeSection={activeSection} onSectionChange={setActiveSection} onSignOut={handleSignOut} />
+        <div className="flex-1 flex flex-col min-w-0">
+          <header className="h-14 flex items-center border-b bg-card px-4 sticky top-0 z-50">
+            <SidebarTrigger className="mr-3" />
+            <h1 className="text-lg font-bold text-foreground">Panel de Administración</h1>
+          </header>
+          <main className="flex-1 p-4 md:p-6 overflow-auto">
+            {activeSection === 'dashboard' && <AdminDashboard />}
+            {activeSection === 'products' && <ProductsAdmin />}
+            {activeSection === 'categories' && <CategoriesAdmin />}
+            {activeSection === 'users' && <UsersAdmin />}
+            {activeSection === 'recipes' && <RecipesAdmin />}
+            {activeSection === 'maintenance' && <MaintenanceAdmin />}
+          </main>
         </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="products" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2 h-auto p-1">
-            <TabsTrigger value="products" className="flex items-center gap-2 py-2">
-              <Package className="w-4 h-4" />
-              <span>Productos</span>
-            </TabsTrigger>
-            <TabsTrigger value="categories" className="flex items-center gap-2 py-2">
-              <FolderTree className="w-4 h-4" />
-              <span>Categorías</span>
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="products">
-            <ProductsAdmin />
-          </TabsContent>
-
-          <TabsContent value="categories">
-            <CategoriesAdmin />
-          </TabsContent>
-        </Tabs>
-      </main>
-    </div>
+      </div>
+    </SidebarProvider>
   );
 };
 

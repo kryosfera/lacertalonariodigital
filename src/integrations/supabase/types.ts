@@ -364,6 +364,40 @@ export type Database = {
       }
     }
     Functions: {
+      admin_province_stats: {
+        Args: never
+        Returns: {
+          professionals: number
+          province: string
+          total_recipes: number
+        }[]
+      }
+      admin_recipes_per_month: {
+        Args: never
+        Returns: {
+          month: string
+          total: number
+        }[]
+      }
+      admin_top_products: {
+        Args: { lim?: number }
+        Returns: {
+          product_name: string
+          reference: string
+          times_prescribed: number
+        }[]
+      }
+      admin_top_professionals: {
+        Args: { lim?: number }
+        Returns: {
+          clinic_name: string
+          locality: string
+          professional_name: string
+          province: string
+          total_recipes: number
+          user_id: string
+        }[]
+      }
       cleanup_expired_short_urls: { Args: never; Returns: number }
       generate_recipe_code: { Args: never; Returns: string }
       generate_short_code: { Args: never; Returns: string }
