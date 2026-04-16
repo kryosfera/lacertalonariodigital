@@ -101,6 +101,30 @@ export function AdminDashboard() {
     },
   });
 
+  const { data: sendMethodStats } = useQuery({
+    queryKey: ['admin-send-method-stats'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('recipes').select('sent_via');
+      if (error) throw error;
+      const counts: Record<string, number> = {};
+      (data || []).forEach(r => {
+        const method = r.sent_via || 'sin_envio';
+        counts[method] = (counts[method] || 0) + 1;
+      });
+      const labels: Record<string, string> = {
+        whatsapp: 'WhatsApp',
+        email: 'Email',
+        pdf: 'PDF',
+        print: 'Impresión',
+        both: 'Email + WhatsApp',
+        sin_envio: 'Sin envío',
+      };
+      return Object.entries(counts)
+        .map(([key, value]) => ({ name: labels[key] || key, value }))
+        .sort((a, b) => b.value - a.value);
+    },
+  });
+
   const dispensingRate = totalRecipes && dispensedCount != null
     ? Math.round((dispensedCount / totalRecipes) * 100)
     : 0;
