@@ -145,7 +145,8 @@ export const HomeScreenBento = ({
         {/* Primary CTA */}
         <motion.button
           onClick={() => onNavigate(isProfessional ? "nueva-receta" : "seleccionar-categoria")}
-          className="w-full group flex items-center justify-between px-6 py-4 rounded-2xl bg-secondary text-secondary-foreground font-semibold text-base shadow-lg transition-shadow hover:shadow-xl"
+          className="w-full group flex items-center justify-between px-6 py-4 rounded-2xl text-white font-semibold text-base shadow-lg transition-shadow hover:shadow-xl"
+          style={{ background: 'linear-gradient(160deg, hsl(0 72% 51%) 0%, hsl(0 72% 38%) 100%)' }}
           variants={itemVariants}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.97 }}
@@ -235,13 +236,21 @@ export const HomeScreenBento = ({
 
         {/* Basic mode upgrade hint */}
         {!isProfessional && (
-          <motion.div className="mt-6" variants={itemVariants}>
+          <motion.div className="w-full mt-6" variants={itemVariants}>
             <Link
               to="/auth"
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground/70 hover:text-secondary transition-colors"
+              className="block w-full rounded-2xl border-2 border-secondary/30 p-5 text-center transition-all hover:border-secondary/60 hover:shadow-lg"
+              style={{ background: 'linear-gradient(135deg, hsl(0 72% 51% / 0.06) 0%, hsl(0 72% 51% / 0.12) 100%)' }}
             >
-              <Sparkles className="w-3.5 h-3.5" />
-              ¿Eres profesional? Activa todas las funciones
+              <Sparkles className="w-6 h-6 text-secondary mx-auto mb-2" />
+              <p className="text-base font-bold text-foreground mb-1">¿Eres profesional?</p>
+              <p className="text-xs text-muted-foreground mb-3">Regístrate gratis y activa gestión de pacientes, historial y más</p>
+              <span className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-semibold text-white"
+                style={{ background: 'linear-gradient(160deg, hsl(0 72% 51%) 0%, hsl(0 72% 38%) 100%)' }}
+              >
+                Activar cuenta profesional
+                <ChevronRight className="w-4 h-4" />
+              </span>
             </Link>
           </motion.div>
         )}
