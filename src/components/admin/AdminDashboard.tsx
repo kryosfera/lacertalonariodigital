@@ -225,6 +225,65 @@ export function AdminDashboard() {
         </Card>
       </div>
 
+      {/* Send Method Distribution */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Send className="h-4 w-4 text-primary" />
+            Método de envío de recetas
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {sendMethodStats && sendMethodStats.length > 0 ? (
+            <div className="grid md:grid-cols-2 gap-4 items-center">
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={sendMethodStats}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={90}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {sendMethodStats.map((entry) => (
+                        <Cell key={entry.name} fill={SEND_COLORS[entry.name] || 'hsl(0,0%,70%)'} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: number) => [value, 'Recetas']} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="space-y-3">
+                {sendMethodStats.map((entry) => {
+                  const total = sendMethodStats.reduce((s, e) => s + e.value, 0);
+                  const pct = total > 0 ? Math.round((entry.value / total) * 100) : 0;
+                  return (
+                    <div key={entry.name} className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: SEND_COLORS[entry.name] || 'hsl(0,0%,70%)' }} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-baseline">
+                          <span className="text-sm font-medium text-foreground">{entry.name}</span>
+                          <span className="text-sm tabular-nums text-muted-foreground">{entry.value} ({pct}%)</span>
+                        </div>
+                        <div className="h-1.5 mt-1 rounded-full bg-muted overflow-hidden">
+                          <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: SEND_COLORS[entry.name] || 'hsl(0,0%,70%)' }} />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm text-center py-10">Sin datos de envío</p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Top Products + Province Table */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Top Products */}
