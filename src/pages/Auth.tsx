@@ -174,7 +174,7 @@ const Auth = () => {
                       </FormItem>
                     )}
                   />
-                  <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90" disabled={isLoading}>
+                  <Button type="submit" className="w-full btn-gradient-red" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Iniciar sesión
                   </Button>
@@ -265,7 +265,7 @@ const Auth = () => {
                       )}
                     />
                   </div>
-                  <Button type="submit" className="w-full bg-secondary hover:bg-secondary/90" disabled={isLoading}>
+                  <Button type="submit" className="w-full btn-gradient-red" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Crear cuenta
                   </Button>

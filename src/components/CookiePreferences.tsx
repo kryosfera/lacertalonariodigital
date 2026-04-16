@@ -171,7 +171,7 @@ export const CookiePreferences = () => {
               </Button>
               <Button
                 onClick={handleSave}
-                className="flex-1 bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+                className="flex-1 btn-gradient-red"
               >
                 Guardar preferencias
               </Button>
