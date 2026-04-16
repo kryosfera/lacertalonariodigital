@@ -62,7 +62,7 @@ export const HomeScreenBento = ({
 
       {/* Hero Red Section */}
       <motion.div
-        className="relative -mx-5 lg:-mx-8 px-6 pt-14 pb-10 md:pt-16 md:pb-12 overflow-hidden rounded-b-[2.5rem] md:rounded-b-[3rem]"
+        className="relative -mx-5 lg:-mx-8 px-6 pt-10 pb-8 md:pt-12 md:pb-10 overflow-hidden rounded-b-[2.5rem] md:rounded-b-[3rem]"
         style={{ background: 'linear-gradient(160deg, hsl(0 72% 51%) 0%, hsl(0 72% 38%) 100%)' }}
         initial={{ opacity: 0, y: -80, scaleY: 0.6, originY: 0 }}
         animate={{ opacity: 1, y: 0, scaleY: 1 }}
@@ -140,7 +140,7 @@ export const HomeScreenBento = ({
       </motion.div>
 
       {/* Actions Area */}
-      <div className="flex-1 flex flex-col items-center w-full max-w-sm mx-auto pt-8 pb-6 gap-3">
+      <div className="flex-1 flex flex-col items-center w-full max-w-sm mx-auto pt-5 md:pt-4 pb-4 gap-2.5">
 
         {/* Primary CTA */}
         <motion.button
@@ -236,16 +236,27 @@ export const HomeScreenBento = ({
 
         {/* Basic mode upgrade hint */}
         {!isProfessional && (
-          <motion.div className="w-full mt-6" variants={itemVariants}>
+          <motion.div
+            className="w-full mt-4 md:mt-3"
+            variants={itemVariants}
+            animate={{
+              boxShadow: [
+                '0 0 0 0 hsl(0 72% 51% / 0)',
+                '0 0 20px 4px hsl(0 72% 51% / 0.25)',
+                '0 0 0 0 hsl(0 72% 51% / 0)',
+              ],
+            }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+          >
             <Link
-              to="/auth"
-              className="block w-full rounded-2xl border-2 border-secondary/30 p-5 text-center transition-all hover:border-secondary/60 hover:shadow-lg"
-              style={{ background: 'linear-gradient(135deg, hsl(0 72% 51% / 0.06) 0%, hsl(0 72% 51% / 0.12) 100%)' }}
+              to="/auth?tab=signup"
+              className="block w-full rounded-2xl border-2 border-secondary/40 p-5 md:p-4 text-center transition-all hover:border-secondary/70 hover:shadow-xl"
+              style={{ background: 'linear-gradient(135deg, hsl(0 72% 51% / 0.06) 0%, hsl(0 72% 51% / 0.14) 100%)' }}
             >
-              <Sparkles className="w-6 h-6 text-secondary mx-auto mb-2" />
-              <p className="text-base font-bold text-foreground mb-1">¿Eres profesional?</p>
-              <p className="text-xs text-muted-foreground mb-3">Regístrate gratis y activa gestión de pacientes, historial y más</p>
-              <span className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-semibold text-white"
+              <Sparkles className="w-7 h-7 text-secondary mx-auto mb-2" />
+              <p className="text-lg md:text-base font-bold text-foreground mb-1">¿Eres profesional?</p>
+              <p className="text-sm md:text-xs text-muted-foreground mb-3">Regístrate gratis y activa gestión de pacientes, historial y más</p>
+              <span className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md"
                 style={{ background: 'linear-gradient(160deg, hsl(0 72% 51%) 0%, hsl(0 72% 38%) 100%)' }}
               >
                 Activar cuenta profesional
