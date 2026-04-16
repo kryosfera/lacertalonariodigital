@@ -1,30 +1,36 @@
 
 
-# Cambios estéticos en Home + Registro con datos de clínica
+# Simplificar flujo de entrada + mejoras UX
 
 ## Cambios
 
-### 1. Unificar color rojo del botón "Nueva Receta" con el Hero
-En `HomeScreenBento.tsx`, el botón usa `bg-secondary` mientras el hero usa `hsl(0 72% 51%)`. Cambiar el botón "Nueva Receta" para usar el mismo gradiente rojo del hero en lugar de `bg-secondary`, asegurando coherencia visual.
+### 1. Eliminar pantalla de selección de perfil inicial
+En `useUserMode.tsx`, cuando no hay modo guardado en `localStorage`, en lugar de mostrar `showProfileSelector = true`, establecer directamente `userMode = 'basic'`. El usuario nuevo entra directo a la home con el banner de "¿Eres profesional?".
 
-### 2. Maximizar el CTA "¿Eres profesional?"
-Transformar el enlace discreto actual (texto pequeño gris, `text-xs text-muted-foreground/70`) en un banner llamativo:
-- Card con borde rojo y fondo degradado sutil
-- Icono Sparkles más grande
-- Texto principal en negrita: "¿Eres profesional?"
-- Subtítulo: "Regístrate gratis y activa gestión de pacientes, historial y más"
-- Botón CTA visible "Activar cuenta profesional"
+### 2. Eliminar componente ProfileSelector
+Ya no se necesita `ProfileSelector.tsx` ni su uso en `Index.tsx` (líneas 89-91).
 
-### 3. Añadir campos Localidad, Clínica y Provincia al registro
-- **Migración SQL**: Añadir columnas `locality` y `province` a la tabla `profiles` (ya tiene `clinic_name`)
-- **Formulario de registro** (`Auth.tsx`): Crear un schema separado para signup que incluya `email`, `password`, `clinic_name`, `locality` y `province`
-- **Post-registro**: Tras el `signUp` exitoso, insertar/actualizar el perfil con los datos adicionales usando `supabase.from('profiles').upsert()`
+### 3. Mejorar banner "¿Eres profesional?" en HomeScreenBento
+- Añadir animación de pulso/glow sutil al banner para darle protagonismo
+- Ajustar espaciado del layout para que en tablet/portátil (768px+) todo quepa sin scroll: reducir padding del hero, comprimir gaps
+- Cambiar el `<Link to="/auth">` por `<Link to="/auth?tab=signup">` para abrir directamente la pestaña de registro
 
-### Archivos a modificar/crear
+### 4. Auth.tsx: abrir en tab "signup" cuando viene del banner
+- Leer `?tab=signup` de la URL y establecer `activeTab` inicial a `'signup'` si está presente
+
+### 5. Renombrar campo "Clínica" a "Clínica / Profesional"
+- En `Auth.tsx`, cambiar el label de "Clínica" a "Clínica / Profesional" y el placeholder a "Nombre de clínica o profesional"
+
+### 6. Post-registro: activar modo profesional automáticamente
+Ya funciona: en `useUserMode.tsx`, cuando `user` existe se establece `professional` automáticamente. No requiere cambios.
+
+## Archivos a modificar
 
 | Archivo | Cambio |
 |---------|--------|
-| `src/components/home/HomeScreenBento.tsx` | Color botón receta + CTA profesional prominente |
-| `src/pages/Auth.tsx` | Campos extra en tab de registro (clínica, localidad, provincia) |
-| Migración SQL | `ALTER TABLE profiles ADD COLUMN locality text, ADD COLUMN province text` |
+| `src/hooks/useUserMode.tsx` | Default a `'basic'` en vez de mostrar selector |
+| `src/pages/Index.tsx` | Eliminar import y uso de `ProfileSelector` |
+| `src/components/home/HomeScreenBento.tsx` | Animación banner + link a `/auth?tab=signup` + ajuste espaciado |
+| `src/pages/Auth.tsx` | Leer query param `tab`, renombrar campo clínica |
+| `src/components/ProfileSelector.tsx` | Eliminar archivo |
 
