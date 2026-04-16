@@ -35,7 +35,9 @@ const Auth = () => {
   const { toast } = useToast();
   const { user, isLoading: authLoading, signIn, signUp } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('login');
+  const searchParams = new URLSearchParams(window.location.search);
+  const initialTab = searchParams.get('tab') === 'signup' ? 'signup' : 'login';
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -221,11 +223,11 @@ const Auth = () => {
                     name="clinic_name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Clínica</FormLabel>
+                        <FormLabel>Clínica / Profesional</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input placeholder="Nombre de tu clínica" className="pl-9" {...field} />
+                            <Input placeholder="Nombre de clínica o profesional" className="pl-9" {...field} />
                           </div>
                         </FormControl>
                         <FormMessage />

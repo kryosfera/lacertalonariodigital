@@ -39,12 +39,12 @@ export function UserModeProvider({ children }: { children: ReactNode }) {
     
     if (savedMode === 'basic' || savedMode === 'professional') {
       setUserModeState(savedMode);
-      setIsLoading(false);
     } else {
-      // No saved preference, show selector
-      setShowProfileSelector(true);
-      setIsLoading(false);
+      // Default to basic mode — user sees the professional CTA banner on home
+      setUserModeState('basic');
+      localStorage.setItem(USER_MODE_KEY, 'basic');
     }
+    setIsLoading(false);
   }, [user, authLoading]);
 
   const setUserMode = (mode: 'basic' | 'professional') => {

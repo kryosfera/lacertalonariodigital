@@ -12,7 +12,7 @@ import { HomeScreenBento } from "@/components/home";
 import { SurgeryRecommendations } from "@/components/SurgeryRecommendations";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import { DesktopNavigation } from "@/components/DesktopNavigation";
-import { ProfileSelector } from "@/components/ProfileSelector";
+
 import { ProfilePage } from "@/components/ProfilePage";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -32,7 +32,7 @@ const Index = () => {
   const [duplicateRecipe, setDuplicateRecipe] = useState<{ products: Array<{ id: string; quantity: number }>; notes?: string | null; patient_name?: string; patient_id?: string | null } | null>(null);
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const isMobile = useIsMobile();
-  const { userMode, isLoading, showProfileSelector, setUserMode } = useUserMode();
+  const { userMode, isLoading } = useUserMode();
   const { user } = useAuth();
   const { data: profileData } = useProfile();
   const isProfessional = userMode === 'professional';
@@ -86,9 +86,6 @@ const Index = () => {
     );
   }
 
-  if (showProfileSelector) {
-    return <ProfileSelector onSelectMode={setUserMode} />;
-  }
 
   const renderContent = () => {
     switch (activeTab) {
