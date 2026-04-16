@@ -60,7 +60,7 @@ export const CookieBanner = () => {
                 <Button
                   size="sm"
                   onClick={acceptAll}
-                  className="bg-secondary hover:bg-secondary/90 text-secondary-foreground"
+                  className="btn-gradient-red"
                 >
                   Aceptar todas
                 </Button>

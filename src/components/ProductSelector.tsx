@@ -200,7 +200,7 @@ export const ProductSelector = ({
             </Button>
             <Button
               onClick={onClose}
-              className={`flex-1 gap-2 ${selectedProducts.size > 0 ? 'bg-secondary hover:bg-secondary/90' : ''}`}
+              className={`flex-1 gap-2 ${selectedProducts.size > 0 ? 'btn-gradient-red' : ''}`}
               variant={selectedProducts.size > 0 ? "default" : "outline"}
             >
               {selectedProducts.size > 0 ? (
