@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, FileText, Users, Package, TrendingUp, CheckCircle } from 'lucide-react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { Loader2, FileText, Users, Package, TrendingUp, CheckCircle, Send } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const COLORS = ['hsl(0, 72%, 51%)', 'hsl(0, 72%, 38%)', 'hsl(0, 60%, 60%)', 'hsl(0, 50%, 70%)', 'hsl(0, 40%, 45%)', 'hsl(20, 60%, 50%)', 'hsl(10, 55%, 55%)', 'hsl(350, 65%, 50%)'];
