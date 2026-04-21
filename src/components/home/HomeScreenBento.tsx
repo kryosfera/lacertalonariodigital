@@ -1,4 +1,4 @@
-import { FileText, Clock, Users, Scissors, TrendingUp, ChevronRight, Sparkles } from "lucide-react";
+import { FileText, Clock, Users, Scissors, TrendingUp, ChevronRight, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import lacerLogo from "@/assets/lacer-logo.png";
@@ -16,6 +16,9 @@ interface HomeScreenBentoProps {
     totalPatients: number;
     thisMonth: number;
   };
+  statsLoading?: boolean;
+  statsError?: boolean;
+  onRetryStats?: () => void;
 }
 
 const containerVariants = {
