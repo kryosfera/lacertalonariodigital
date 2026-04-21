@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, UserRound } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
 import { AdminSidebar, type AdminSection } from '@/components/admin/AdminSidebar';
 
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
@@ -29,6 +30,12 @@ const Admin = () => {
   const handleSignOut = async () => {
     await signOut();
     navigate('/auth');
+  };
+
+  const handleSwitchToPatient = () => {
+    // Skip the auto-redirect on Index for this session
+    sessionStorage.setItem('admin_skip_mobile_redirect', '1');
+    navigate('/');
   };
 
   if (isLoading) {
@@ -63,10 +70,30 @@ const Admin = () => {
                 </h1>
               </div>
             </div>
-            <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-semibold uppercase tracking-wider">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Admin
-            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSwitchToPatient}
+                className="md:hidden h-8 px-2.5 gap-1.5"
+              >
+                <UserRound className="w-3.5 h-3.5" />
+                <span className="text-xs font-medium">Modo paciente</span>
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleSwitchToPatient}
+                className="hidden md:inline-flex h-8 px-2.5 gap-1.5"
+              >
+                <UserRound className="w-3.5 h-3.5" />
+                <span className="text-xs">Ver como paciente</span>
+              </Button>
+              <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-semibold uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                Admin
+              </span>
+            </div>
           </header>
           <main className="flex-1 p-4 md:p-6 overflow-auto">
             {activeSection === 'dashboard' && <AdminDashboard />}

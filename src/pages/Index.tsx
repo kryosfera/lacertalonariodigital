@@ -42,6 +42,7 @@ const Index = () => {
   // Mobile admins land directly on the admin dashboard
   useEffect(() => {
     if (isMobile && isAdmin) {
+      if (sessionStorage.getItem('admin_skip_mobile_redirect') === '1') return;
       navigate("/admin", { replace: true });
     }
   }, [isMobile, isAdmin, navigate]);
