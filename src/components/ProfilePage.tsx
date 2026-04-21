@@ -35,6 +35,8 @@ export const ProfilePage = () => {
   const [formData, setFormData] = useState({
     clinic_name: "",
     clinic_address: "",
+    locality: "",
+    province: "",
     professional_name: "",
     registration_number: ""
   });
@@ -51,6 +53,8 @@ export const ProfilePage = () => {
       setFormData({
         clinic_name: profile.clinic_name || "",
         clinic_address: profile.clinic_address || "",
+        locality: profile.locality || "",
+        province: profile.province || "",
         professional_name: profile.professional_name || "",
         registration_number: profile.registration_number || ""
       });
