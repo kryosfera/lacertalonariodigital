@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Users, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RecipeCreator } from "@/components/RecipeCreator";
@@ -33,16 +33,35 @@ const Index = () => {
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const isMobile = useIsMobile();
   const { userMode, isLoading } = useUserMode();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { data: profileData } = useProfile();
   const isProfessional = userMode === 'professional';
   const tour = useOnboardingTour(userMode);
+  const navigate = useNavigate();
+
+  // Mobile admins land directly on the admin dashboard
+  useEffect(() => {
+    if (isMobile && isAdmin) {
+      navigate("/admin", { replace: true });
+    }
+  }, [isMobile, isAdmin, navigate]);
 
   useEffect(() => {
     if (!isProfessional && activeTab !== "home" && activeTab !== "nueva-receta" && activeTab !== "recomendaciones") {
       setActiveTab("home");
     }
   }, [isProfessional, activeTab]);
+
+  // When the tour ends (finish or skip), return the user to Home
+  const handleTourNext = () => {
+    const wasLast = tour.currentStep === tour.totalSteps - 1;
+    tour.nextStep();
+    if (wasLast) setActiveTab("home");
+  };
+  const handleTourSkip = () => {
+    tour.skipTour();
+    setActiveTab("home");
+  };
 
   const handleNavigate = (tab: string) => {
     if (tab === "seleccionar-categoria") {
@@ -243,9 +262,9 @@ const Index = () => {
         step={tour.step}
         currentStep={tour.currentStep}
         totalSteps={tour.totalSteps}
-        onNext={tour.nextStep}
+        onNext={handleTourNext}
         onPrev={tour.prevStep}
-        onSkip={tour.skipTour}
+        onSkip={handleTourSkip}
         onNavigate={setActiveTab}
       />
     </div>
