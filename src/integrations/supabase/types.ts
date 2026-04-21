@@ -300,6 +300,63 @@ export type Database = {
           },
         ]
       }
+      recommendations: {
+        Row: {
+          created_at: string
+          description: string | null
+          external_url: string | null
+          icon: string | null
+          id: string
+          image_url: string | null
+          is_visible: boolean
+          kind: string
+          pdf_url: string | null
+          slug: string
+          sort_order: number
+          title: string
+          updated_at: string
+          vimeo_hash: string | null
+          vimeo_id: string | null
+          vimeo_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          external_url?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_visible?: boolean
+          kind?: string
+          pdf_url?: string | null
+          slug: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+          vimeo_hash?: string | null
+          vimeo_id?: string | null
+          vimeo_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          external_url?: string | null
+          icon?: string | null
+          id?: string
+          image_url?: string | null
+          is_visible?: boolean
+          kind?: string
+          pdf_url?: string | null
+          slug?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+          vimeo_hash?: string | null
+          vimeo_id?: string | null
+          vimeo_url?: string | null
+        }
+        Relationships: []
+      }
       short_urls: {
         Row: {
           code: string
