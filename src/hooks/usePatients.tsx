@@ -145,6 +145,7 @@ export function useDeletePatient() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
+      queryClient.invalidateQueries({ queryKey: ['home-stats'] });
       toast.success('Paciente eliminado correctamente');
     },
     onError: (error) => {
