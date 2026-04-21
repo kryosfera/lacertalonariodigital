@@ -204,19 +204,55 @@ export const ProfilePage = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="province">Provincia</Label>
-              <Select
-                value={formData.province || undefined}
-                onValueChange={(v) => handleInputChange('province', v)}
-              >
-                <SelectTrigger id="province">
-                  <SelectValue placeholder="Selecciona una provincia" />
-                </SelectTrigger>
-                <SelectContent className="max-h-72">
-                  {SPAIN_PROVINCES.map((p) => (
-                    <SelectItem key={p} value={p}>{p}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={provinceOpen} onOpenChange={setProvinceOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="province"
+                    type="button"
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={provinceOpen}
+                    className={cn(
+                      "w-full justify-between font-normal",
+                      !formData.province && "text-muted-foreground"
+                    )}
+                  >
+                    {formData.province || "Selecciona una provincia"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Buscar provincia..." />
+                    <CommandList>
+                      <CommandEmpty>Sin resultados.</CommandEmpty>
+                      <CommandGroup>
+                        {SPAIN_PROVINCES.map((p) => (
+                          <CommandItem
+                            key={p}
+                            value={p}
+                            onSelect={(val) => {
+                              const match = SPAIN_PROVINCES.find(
+                                (x) => x.toLowerCase() === val.toLowerCase()
+                              );
+                              handleInputChange('province', match || p);
+                              setProvinceOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                formData.province === p ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {p}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
