@@ -5,14 +5,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Building2, User, Upload, Loader2, Check, 
-  Image as ImageIcon, Signature, PenTool, RotateCcw
+  Image as ImageIcon, Signature, PenTool, RotateCcw, MapPin
 } from "lucide-react";
 import { useProfile, useUpsertProfile, useUploadProfileImage } from "@/hooks/useProfile";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserMode } from "@/hooks/useUserMode";
 import { SignaturePad } from "@/components/SignaturePad";
+
+const SPAIN_PROVINCES = [
+  "A Coruña","Álava","Albacete","Alicante","Almería","Asturias","Ávila","Badajoz",
+  "Baleares","Barcelona","Burgos","Cáceres","Cádiz","Cantabria","Castellón","Ceuta",
+  "Ciudad Real","Córdoba","Cuenca","Girona","Granada","Guadalajara","Gipuzkoa","Huelva",
+  "Huesca","Jaén","La Rioja","Las Palmas","León","Lleida","Lugo","Madrid","Málaga",
+  "Melilla","Murcia","Navarra","Ourense","Palencia","Pontevedra","Salamanca",
+  "Santa Cruz de Tenerife","Segovia","Sevilla","Soria","Tarragona","Teruel","Toledo",
+  "Valencia","Valladolid","Bizkaia","Zamora","Zaragoza"
+];
 
 export const ProfilePage = () => {
   const { user, signOut } = useAuth();
