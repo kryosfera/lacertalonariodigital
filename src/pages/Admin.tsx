@@ -32,6 +32,12 @@ const Admin = () => {
     navigate('/auth');
   };
 
+  const handleSwitchToPatient = () => {
+    // Skip the auto-redirect on Index for this session
+    sessionStorage.setItem('admin_skip_mobile_redirect', '1');
+    navigate('/');
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
