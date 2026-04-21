@@ -90,6 +90,7 @@ export function useCreatePatient() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['patients'] });
+      queryClient.invalidateQueries({ queryKey: ['home-stats'] });
       toast.success('Paciente creado correctamente');
     },
     onError: (error) => {
