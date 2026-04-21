@@ -49,7 +49,10 @@ function matchProvince(geoName: string, stats: ProvinceStat[]): ProvinceStat | u
 }
 
 const WIDTH = 500;
-const HEIGHT = 380;
+const HEIGHT = 300;
+// Recuadro de Canarias (esquina inferior izquierda)
+const CANARY_BOX = { x: 8, y: HEIGHT - 78, w: 150, h: 70 };
+const CANARY_PROVINCES = new Set(['las palmas', 'santa cruz de tenerife']);
 
 export function SpainProvinceMap({ stats }: { stats: ProvinceStat[] }) {
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
@@ -59,11 +62,31 @@ export function SpainProvinceMap({ stats }: { stats: ProvinceStat[] }) {
     [stats]
   );
 
-  const { features, pathFn } = useMemo(() => {
+  const { peninsulaFeatures, canaryFeatures, peninsulaPath, canaryPath } = useMemo(() => {
     const fc = geoData as any;
-    const projection = geoMercator().fitSize([WIDTH, HEIGHT], fc);
-    const path = geoPath(projection);
-    return { features: fc.features as any[], pathFn: path };
+    const allFeatures = fc.features as any[];
+    const peninsula: any[] = [];
+    const canary: any[] = [];
+    for (const f of allFeatures) {
+      const n = normalize(f.properties.name as string);
+      (CANARY_PROVINCES.has(n) ? canary : peninsula).push(f);
+    }
+
+    const peninsulaFC = { type: 'FeatureCollection', features: peninsula };
+    const canaryFC = { type: 'FeatureCollection', features: canary };
+
+    const pProj = geoMercator().fitSize([WIDTH, HEIGHT], peninsulaFC as any);
+    const cProj = geoMercator().fitExtent(
+      [[CANARY_BOX.x + 3, CANARY_BOX.y + 12], [CANARY_BOX.x + CANARY_BOX.w - 3, CANARY_BOX.y + CANARY_BOX.h - 3]],
+      canaryFC as any
+    );
+
+    return {
+      peninsulaFeatures: peninsula,
+      canaryFeatures: canary,
+      peninsulaPath: geoPath(pProj),
+      canaryPath: geoPath(cProj),
+    };
   }, []);
 
   const colorFor = (recipes: number) => {
@@ -73,6 +96,37 @@ export function SpainProvinceMap({ stats }: { stats: ProvinceStat[] }) {
     return `hsl(0 72% 51% / ${opacity})`;
   };
 
+  const renderPath = (f: any, pathFn: any, key: string) => {
+    const d = pathFn(f);
+    if (!d) return null;
+    const name = f.properties.name as string;
+    const stat = matchProvince(name, stats);
+    const recipes = stat ? Number(stat.total_recipes) : 0;
+    const pros = stat ? Number(stat.professionals) : 0;
+    return (
+      <path
+        key={key}
+        d={d}
+        fill={colorFor(recipes)}
+        stroke="hsl(var(--border))"
+        strokeWidth={0.4}
+        className="transition-colors hover:fill-[hsl(0_72%_45%)] cursor-pointer"
+        onMouseEnter={(e) => {
+          const rect = (e.currentTarget.ownerSVGElement?.parentElement as HTMLElement)?.getBoundingClientRect();
+          setTooltip({
+            x: e.clientX - (rect?.left ?? 0),
+            y: e.clientY - (rect?.top ?? 0),
+            content: `${name} — ${recipes} recetas · ${pros} prof.`,
+          });
+        }}
+        onMouseMove={(e) => {
+          const rect = (e.currentTarget.ownerSVGElement?.parentElement as HTMLElement)?.getBoundingClientRect();
+          setTooltip(t => t ? { ...t, x: e.clientX - (rect?.left ?? 0), y: e.clientY - (rect?.top ?? 0) } : null);
+        }}
+      />
+    );
+  };
+
   return (
     <div className="relative w-full">
       <svg
@@ -80,36 +134,29 @@ export function SpainProvinceMap({ stats }: { stats: ProvinceStat[] }) {
         className="w-full h-auto"
         onMouseLeave={() => setTooltip(null)}
       >
-        {features.map((f, i) => {
-          const d = pathFn(f);
-          if (!d) return null;
-          const name = f.properties.name as string;
-          const stat = matchProvince(name, stats);
-          const recipes = stat ? Number(stat.total_recipes) : 0;
-          const pros = stat ? Number(stat.professionals) : 0;
-          return (
-            <path
-              key={i}
-              d={d}
-              fill={colorFor(recipes)}
-              stroke="hsl(var(--border))"
-              strokeWidth={0.4}
-              className="transition-colors hover:fill-[hsl(0_72%_45%)] cursor-pointer"
-              onMouseEnter={(e) => {
-                const rect = (e.currentTarget.ownerSVGElement?.parentElement as HTMLElement)?.getBoundingClientRect();
-                setTooltip({
-                  x: e.clientX - (rect?.left ?? 0),
-                  y: e.clientY - (rect?.top ?? 0),
-                  content: `${name} — ${recipes} recetas · ${pros} prof.`,
-                });
-              }}
-              onMouseMove={(e) => {
-                const rect = (e.currentTarget.ownerSVGElement?.parentElement as HTMLElement)?.getBoundingClientRect();
-                setTooltip(t => t ? { ...t, x: e.clientX - (rect?.left ?? 0), y: e.clientY - (rect?.top ?? 0) } : null);
-              }}
-            />
-          );
-        })}
+        {peninsulaFeatures.map((f, i) => renderPath(f, peninsulaPath, `p-${i}`))}
+
+        {/* Recuadro Canarias */}
+        <rect
+          x={CANARY_BOX.x}
+          y={CANARY_BOX.y}
+          width={CANARY_BOX.w}
+          height={CANARY_BOX.h}
+          fill="none"
+          stroke="hsl(var(--border))"
+          strokeWidth={0.6}
+          strokeDasharray="2 2"
+          rx={4}
+        />
+        <text
+          x={CANARY_BOX.x + 5}
+          y={CANARY_BOX.y + 9}
+          fontSize={7}
+          className="fill-muted-foreground"
+        >
+          Canarias
+        </text>
+        {canaryFeatures.map((f, i) => renderPath(f, canaryPath, `c-${i}`))}
       </svg>
 
       {tooltip && (
