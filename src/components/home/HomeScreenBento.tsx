@@ -50,10 +50,24 @@ export const HomeScreenBento = ({
   onNavigate,
   userMode = 'basic',
   profile,
-  stats = { totalRecipes: 0, totalPatients: 0, thisMonth: 0 }
+  stats,
+  statsLoading = false,
+  statsError = false,
+  onRetryStats,
 }: HomeScreenBentoProps) => {
   const isProfessional = userMode === 'professional';
   const hasClinicInfo = isProfessional && profile && (profile.clinic_name || profile.professional_name);
+  const safeStats = stats ?? { totalRecipes: 0, totalPatients: 0, thisMonth: 0 };
+
+  // Show skeleton when loading and we have no data yet
+  const showSkeleton = statsLoading && !stats;
+
+  const StatValue = ({ value }: { value: number }) =>
+    showSkeleton ? (
+      <span className="inline-block h-5 w-8 rounded bg-muted-foreground/15 animate-pulse" />
+    ) : (
+      <span>{value}</span>
+    );
 
   return (
     <motion.div
