@@ -1,95 +1,87 @@
 
+# Mejorar Dashboard Admin: más compacto, animaciones y mapa de España
 
-# Añadir Top Productos y Clasificación por Provincias/Profesionales al Dashboard Admin
+## Objetivo
+Rediseñar el dashboard admin para que sea más denso visualmente, con micro-animaciones fluidas y una visualización geográfica real de España por provincias.
 
-## Contexto
+## Cambios principales
 
-El dashboard admin aún no se ha construido (el plan anterior fue aprobado pero no implementado). Se incorporan estas dos secciones adicionales al plan del dashboard completo.
+### 1. Layout más compacto
+- **KPI cards**: reducir padding (`p-3` en lugar de `p-4`), iconos más pequeños, agrupar 5 KPIs en una fila en desktop y añadir 2 nuevos:
+  - **Recetas hoy** (created_at = hoy)
+  - **Ticket medio productos/receta** (promedio de items por receta)
+- **Cards de gráficos**: reducir altura de 256px (h-64) a 200px (h-52), padding interno menor, títulos más pequeños (`text-sm`).
+- **Grid denso**: pasar de `gap-6` a `gap-4` y reorganizar en columnas de 3 donde quepa (KPIs + métricas rápidas + sparklines).
+- **Tablas**: filas más compactas (`py-1.5`), tipografía `text-xs` en celdas secundarias.
 
-## Alcance — lo que se construye ahora
+### 2. Animaciones
+- **Fade-in escalonado** al cargar cada sección con Framer Motion (ya disponible en el proyecto):
+  - KPIs entran con `stagger` de 0.05s
+  - Charts hacen `fade-in + slide-up` con delay incremental
+- **Counter animado** en los KPIs (números suben de 0 al valor real en ~800ms).
+- **Hover states**: cards con `hover:shadow-md hover:-translate-y-0.5 transition-all`.
+- **Recharts**: activar `isAnimationActive` con duración 800ms y easing suave.
+- **Barras del top productos**: animación de ancho al cargar (de 0% al % real).
 
-Dado que el dashboard admin completo aún no existe, se implementará todo el rediseño aprobado previamente **más** las dos nuevas secciones solicitadas. Resumen de secciones:
+### 3. Nuevos datos visuales
+- **Sparkline** dentro de cada KPI card (mini-gráfico de últimos 7 días para "Recetas") usando Recharts `<LineChart>` minimalista sin ejes.
+- **Heatmap de actividad por día/hora** (estilo GitHub contributions) — grid 7×24 mostrando cuándo se crean más recetas.
+- **Comparativa mes actual vs mes anterior** con flechas ↑↓ y porcentaje de variación en los KPIs principales.
+- **Distribución temporal**: añadir línea de tendencia al gráfico mensual.
 
-### Estructura con Sidebar
+### 4. Mapa coroplético de España por provincias
+Implementación con **react-simple-maps** + GeoJSON oficial de provincias españolas:
+- Cada provincia se colorea según intensidad de recetas (escala de blancos a rojo Lacer #E31937).
+- Tooltip al pasar mostrando: nombre provincia, nº profesionales, nº recetas.
+- Leyenda con escala de color (0 → max).
+- Click en provincia filtra el resto del dashboard (opcional, fase 2).
 
-```text
-┌──────────────────┬──────────────────────────────────┐
-│  SIDEBAR         │  CONTENIDO                       │
-│  ◉ Dashboard     │  KPIs + Gráficos                 │
-│  ◎ Productos     │  CRUD existente                  │
-│  ◎ Categorías    │  CRUD existente                  │
-│  ◎ Usuarios      │  Tabla + filtros provincia       │
-│  ◎ Recetas       │  Tabla global + filtros           │
-│  ◎ Mantenimiento │  Sync + limpieza                 │
-└──────────────────┴──────────────────────────────────┘
-```
+**Fuente GeoJSON**: usar el archivo público de provincias de España (50 polígonos), embebido en `src/data/spain-provinces.json` para evitar fetch externo en runtime.
 
-### Dashboard principal — KPIs + nuevas visualizaciones
+**Mapeo nombre provincia → datos**: normalizar acentos y mayúsculas (`Á Coruña` ↔ `A Coruña`, etc.) con una función helper.
 
-1. **KPI cards**: Total recetas, usuarios, productos, recetas mes, tasa dispensación
-2. **Top 10 productos más recetados** — Gráfico de barras horizontales. Se extrae del campo JSONB `products` de la tabla `recipes` mediante una query que desanida los productos y cuenta ocurrencias
-3. **Clasificación por provincias** — Gráfico de barras/donut agrupando usuarios registrados por `profiles.province`, con número de recetas por provincia
-4. **Ranking de profesionales** — Tabla con los profesionales más activos: nombre clínica, provincia, localidad, número de recetas creadas
-5. **Gráfico de recetas por mes** (últimos 6 meses) con recharts
-6. **Actividad reciente** — últimas 10 recetas
+## Archivos
 
-### Sección Usuarios
-
-- Tabla de perfiles con columnas: clínica, profesional, localidad, provincia, fecha registro, nº recetas
-- Filtros por provincia y localidad
-- Ordenación por actividad
-
-## Cambios técnicos
-
-### Base de datos (migraciones)
-
-1. **RLS admin en `recipes`**: Añadir policy SELECT para admin (`has_role(auth.uid(), 'admin')`) — necesario para que el admin vea todas las recetas
-2. **RLS admin en `patients`**: Añadir policy SELECT para admin
-3. **Vista SQL `admin_top_products`**: Función o vista que desanida `recipes.products` JSONB y agrupa por nombre/referencia para obtener el ranking
-
-### Archivos nuevos
-
+### Nuevos
 | Archivo | Propósito |
 |---------|-----------|
-| `src/components/admin/AdminSidebar.tsx` | Sidebar con navegación |
-| `src/components/admin/AdminDashboard.tsx` | KPIs + gráficos (recharts) incluyendo top productos y clasificación provincias |
-| `src/components/admin/UsersAdmin.tsx` | Tabla de usuarios con filtros por provincia |
-| `src/components/admin/RecipesAdmin.tsx` | Tabla global de recetas |
-| `src/components/admin/MaintenanceAdmin.tsx` | Herramientas sync y limpieza (migradas del header actual) |
+| `src/components/admin/SpainProvinceMap.tsx` | Mapa coroplético con react-simple-maps |
+| `src/components/admin/ActivityHeatmap.tsx` | Grid 7×24 estilo GitHub |
+| `src/components/admin/AnimatedCounter.tsx` | Hook/componente para números animados |
+| `src/components/admin/KpiCard.tsx` | Extraer KpiCard a archivo propio con sparkline + variación % |
+| `src/data/spain-provinces.json` | GeoJSON de provincias españolas |
 
-### Archivos modificados
-
+### Modificados
 | Archivo | Cambio |
 |---------|--------|
-| `src/pages/Admin.tsx` | Reescribir con SidebarProvider + navegación por estado interno |
+| `src/components/admin/AdminDashboard.tsx` | Layout compacto, animaciones, nuevos KPIs, integración mapa y heatmap |
+| `package.json` | Añadir `react-simple-maps` y `framer-motion` (si no están) |
 
-### Queries clave para las nuevas secciones
+### Base de datos
+Nuevas funciones SQL `security definer` para admin:
+- `admin_recipes_per_day(days int)` — series diarias para sparklines.
+- `admin_activity_heatmap()` — agrupación por día_semana × hora.
+- `admin_recipes_comparison()` — totales mes actual vs mes anterior.
 
-**Top productos recetados** — Se ejecutará client-side con RPC o query directa:
-```sql
-SELECT elem->>'name' as product_name, elem->>'reference' as reference,
-       COUNT(*) as times_prescribed
-FROM recipes, jsonb_array_elements(products) as elem
-GROUP BY product_name, reference
-ORDER BY times_prescribed DESC
-LIMIT 10
+## Resultado visual esperado
+
+```text
+┌─────────────────────────────────────────────────────────────┐
+│ Dashboard                                                   │
+├──┬──┬──┬──┬──┬──┬──┐                                         │
+│KPI│KPI│KPI│KPI│KPI│KPI│KPI│  ← 7 KPIs compactos con sparkline│
+└──┴──┴──┴──┴──┴──┴──┘                                         │
+┌──────────────┬──────────────┬──────────────┐                │
+│ Recetas/mes  │ Método envío │ Top productos│                │
+│ (con tend.)  │ (donut)      │ (con imgs)   │                │
+└──────────────┴──────────────┴──────────────┘                │
+┌──────────────────────────────┬──────────────┐               │
+│ MAPA ESPAÑA (coroplético)    │ Heatmap      │               │
+│ rojo = más recetas           │ día × hora   │               │
+└──────────────────────────────┴──────────────┘               │
+┌──────────────┬──────────────────────────────┐               │
+│ Top profes.  │ Actividad reciente           │               │
+└──────────────┴──────────────────────────────┘               │
 ```
-Se implementará como función SQL `security definer` para admin.
 
-**Clasificación por provincias**:
-```sql
-SELECT p.province, COUNT(DISTINCT p.user_id) as professionals,
-       COUNT(r.id) as total_recipes
-FROM profiles p
-LEFT JOIN recipes r ON r.user_id = p.user_id
-WHERE p.province IS NOT NULL
-GROUP BY p.province
-ORDER BY total_recipes DESC
-```
-También como función SQL para admin.
-
-### Diseño visual
-- Recharts (ya disponible via shadcn chart) para barras horizontales y donut
-- Paleta: degradado rojo corporativo en acentos, cards con `bg-card`
-- Sidebar colapsable en tablet/móvil
-
+Todo con paleta roja Lacer, dark mode soportado, y animaciones discretas estilo Apple.
