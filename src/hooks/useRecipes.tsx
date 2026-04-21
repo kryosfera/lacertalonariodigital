@@ -107,6 +107,7 @@ export function useCreateRecipe() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recipes'] });
       queryClient.invalidateQueries({ queryKey: ['patients'] }); // Update recipe counts
+      queryClient.invalidateQueries({ queryKey: ['home-stats'] });
     },
     onError: (error) => {
       console.error('Error creating recipe:', error);
