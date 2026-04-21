@@ -20,6 +20,7 @@ import { useUserMode } from "@/hooks/useUserMode";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useOnboardingTour } from "@/hooks/useOnboardingTour";
+import { useHomeStats } from "@/hooks/useHomeStats";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import { LegalFooter } from "@/components/LegalFooter";
 import { Recipe } from "@/hooks/useRecipes";
@@ -35,6 +36,7 @@ const Index = () => {
   const { userMode, isLoading } = useUserMode();
   const { user, isAdmin } = useAuth();
   const { data: profileData } = useProfile();
+  const { data: homeStats } = useHomeStats();
   const isProfessional = userMode === 'professional';
   const tour = useOnboardingTour(userMode);
   const navigate = useNavigate();
@@ -110,7 +112,7 @@ const Index = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "home":
-        return <HomeScreenBento onNavigate={handleNavigate} userMode={userMode} profile={profileData} />;
+        return <HomeScreenBento onNavigate={handleNavigate} userMode={userMode} profile={profileData} stats={homeStats} />;
       
       case "dashboard":
         if (!isProfessional) return null;
