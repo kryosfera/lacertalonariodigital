@@ -231,23 +231,43 @@ export const HomeScreenBento = ({
         {/* Stats row – professional */}
         {isProfessional && (
           <motion.div
-            className="w-full flex items-center justify-center gap-6 py-4 mt-2 rounded-2xl bg-card border border-border"
+            className="w-full mt-2 rounded-2xl bg-card border border-border overflow-hidden"
             variants={itemVariants}
           >
-            <div className="text-center">
-              <p className="text-xl font-bold text-foreground">{stats.thisMonth}</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">este mes</p>
+            <div className="flex items-center justify-center gap-6 py-4">
+              <div className="text-center">
+                <p className="text-xl font-bold text-foreground">
+                  <StatValue value={safeStats.thisMonth} />
+                </p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest">este mes</p>
+              </div>
+              <div className="w-px h-8 bg-border" />
+              <div className="text-center">
+                <p className="text-xl font-bold text-foreground">
+                  <StatValue value={safeStats.totalRecipes} />
+                </p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest">recetas</p>
+              </div>
+              <div className="w-px h-8 bg-border" />
+              <div className="text-center">
+                <p className="text-xl font-bold text-foreground">
+                  <StatValue value={safeStats.totalPatients} />
+                </p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-widest">pacientes</p>
+              </div>
             </div>
-            <div className="w-px h-8 bg-border" />
-            <div className="text-center">
-              <p className="text-xl font-bold text-foreground">{stats.totalRecipes}</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">recetas</p>
-            </div>
-            <div className="w-px h-8 bg-border" />
-            <div className="text-center">
-              <p className="text-xl font-bold text-foreground">{stats.totalPatients}</p>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">pacientes</p>
-            </div>
+            {statsError && (
+              <button
+                type="button"
+                onClick={onRetryStats}
+                className="w-full flex items-center justify-center gap-1.5 px-3 py-2 text-[11px] font-medium text-destructive bg-destructive/5 hover:bg-destructive/10 border-t border-destructive/20 transition-colors"
+              >
+                <AlertCircle className="w-3.5 h-3.5" />
+                <span>No se pudieron cargar las estadísticas</span>
+                <RefreshCw className="w-3 h-3 ml-1" />
+                <span className="underline underline-offset-2">Reintentar</span>
+              </button>
+            )}
           </motion.div>
         )}
 
