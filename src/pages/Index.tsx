@@ -36,7 +36,7 @@ const Index = () => {
   const { userMode, isLoading } = useUserMode();
   const { user, isAdmin } = useAuth();
   const { data: profileData } = useProfile();
-  const { data: homeStats } = useHomeStats();
+  const { data: homeStats, isLoading: homeStatsLoading, isError: homeStatsError, refetch: refetchHomeStats } = useHomeStats();
   const isProfessional = userMode === 'professional';
   const tour = useOnboardingTour(userMode);
   const navigate = useNavigate();
