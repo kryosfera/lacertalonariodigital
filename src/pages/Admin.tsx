@@ -74,6 +74,7 @@ const Admin = () => {
             {activeSection === 'categories' && <CategoriesAdmin />}
             {activeSection === 'users' && <UsersAdmin />}
             {activeSection === 'recipes' && <RecipesAdmin />}
+            {activeSection === 'recommendations' && <RecommendationsAdmin />}
             {activeSection === 'maintenance' && <MaintenanceAdmin />}
           </main>
         </div>
