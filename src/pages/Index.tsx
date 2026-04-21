@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Users, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { RecipeCreator } from "@/components/RecipeCreator";
