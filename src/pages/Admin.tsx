@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AdminSidebar, type AdminSection } from '@/components/admin/AdminSidebar';
-import lacerLogo from '@/assets/lacer-logo-color.png';
+
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { ProductsAdmin } from '@/components/admin/ProductsAdmin';
 import { CategoriesAdmin } from '@/components/admin/CategoriesAdmin';
