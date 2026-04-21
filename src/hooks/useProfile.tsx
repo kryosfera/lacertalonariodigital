@@ -8,6 +8,8 @@ export interface Profile {
   user_id: string;
   clinic_name: string | null;
   clinic_address: string | null;
+  locality: string | null;
+  province: string | null;
   professional_name: string | null;
   registration_number: string | null;
   signature_url: string | null;
@@ -19,6 +21,8 @@ export interface Profile {
 export interface UpdateProfileData {
   clinic_name?: string;
   clinic_address?: string;
+  locality?: string;
+  province?: string;
   professional_name?: string;
   registration_number?: string;
   signature_url?: string;
