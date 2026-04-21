@@ -10,6 +10,7 @@ import { ProductsAdmin } from '@/components/admin/ProductsAdmin';
 import { CategoriesAdmin } from '@/components/admin/CategoriesAdmin';
 import { UsersAdmin } from '@/components/admin/UsersAdmin';
 import { RecipesAdmin } from '@/components/admin/RecipesAdmin';
+import { RecommendationsAdmin } from '@/components/admin/RecommendationsAdmin';
 import { MaintenanceAdmin } from '@/components/admin/MaintenanceAdmin';
 
 const Admin = () => {
@@ -73,6 +74,7 @@ const Admin = () => {
             {activeSection === 'categories' && <CategoriesAdmin />}
             {activeSection === 'users' && <UsersAdmin />}
             {activeSection === 'recipes' && <RecipesAdmin />}
+            {activeSection === 'recommendations' && <RecommendationsAdmin />}
             {activeSection === 'maintenance' && <MaintenanceAdmin />}
           </main>
         </div>
