@@ -180,11 +180,41 @@ export const ProfilePage = () => {
             <Label htmlFor="clinic_address">Dirección</Label>
             <Textarea
               id="clinic_address"
-              placeholder="Calle, número, ciudad..."
+              placeholder="Calle, número..."
               value={formData.clinic_address}
               onChange={(e) => handleInputChange('clinic_address', e.target.value)}
               rows={2}
             />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="locality" className="flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-muted-foreground" />
+                Localidad
+              </Label>
+              <Input
+                id="locality"
+                placeholder="Madrid, Sevilla..."
+                value={formData.locality}
+                onChange={(e) => handleInputChange('locality', e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="province">Provincia</Label>
+              <Select
+                value={formData.province || undefined}
+                onValueChange={(v) => handleInputChange('province', v)}
+              >
+                <SelectTrigger id="province">
+                  <SelectValue placeholder="Selecciona una provincia" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {SPAIN_PROVINCES.map((p) => (
+                    <SelectItem key={p} value={p}>{p}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
