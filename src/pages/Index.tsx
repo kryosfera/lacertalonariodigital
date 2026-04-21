@@ -112,7 +112,17 @@ const Index = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "home":
-        return <HomeScreenBento onNavigate={handleNavigate} userMode={userMode} profile={profileData} stats={homeStats} />;
+        return (
+          <HomeScreenBento
+            onNavigate={handleNavigate}
+            userMode={userMode}
+            profile={profileData}
+            stats={homeStats}
+            statsLoading={homeStatsLoading}
+            statsError={homeStatsError}
+            onRetryStats={() => refetchHomeStats()}
+          />
+        );
       
       case "dashboard":
         if (!isProfessional) return null;
