@@ -19,6 +19,9 @@ export function useHomeStats() {
     queryKey: ["home-stats", user?.id],
     enabled: !!user,
     staleTime: 30 * 1000,
+    refetchInterval: 60 * 1000, // auto-refresh every 60s while mounted
+    refetchIntervalInBackground: false, // pause when tab not focused
+    refetchOnWindowFocus: true,
     queryFn: async (): Promise<HomeStats> => {
       if (!user) return { totalRecipes: 0, totalPatients: 0, thisMonth: 0 };
 
