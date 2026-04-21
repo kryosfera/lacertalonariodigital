@@ -20,6 +20,7 @@ import { useUserMode } from "@/hooks/useUserMode";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useOnboardingTour } from "@/hooks/useOnboardingTour";
+import { useHomeStats } from "@/hooks/useHomeStats";
 import { OnboardingTour } from "@/components/OnboardingTour";
 import { LegalFooter } from "@/components/LegalFooter";
 import { Recipe } from "@/hooks/useRecipes";
