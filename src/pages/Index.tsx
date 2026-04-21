@@ -262,9 +262,9 @@ const Index = () => {
         step={tour.step}
         currentStep={tour.currentStep}
         totalSteps={tour.totalSteps}
-        onNext={tour.nextStep}
+        onNext={handleTourNext}
         onPrev={tour.prevStep}
-        onSkip={tour.skipTour}
+        onSkip={handleTourSkip}
         onNavigate={setActiveTab}
       />
     </div>
