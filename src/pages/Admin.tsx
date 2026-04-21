@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AdminSidebar, type AdminSection } from '@/components/admin/AdminSidebar';
-import lacerLogo from '@/assets/lacer-logo-color.png';
+
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { ProductsAdmin } from '@/components/admin/ProductsAdmin';
 import { CategoriesAdmin } from '@/components/admin/CategoriesAdmin';
@@ -50,17 +50,17 @@ const Admin = () => {
             <div className="flex items-center gap-3 min-w-0">
               <SidebarTrigger />
               <div className="h-9 w-px bg-border shrink-0" aria-hidden />
-              <div className="flex items-center gap-2.5 min-w-0">
-                <img
-                  src={lacerLogo}
-                  alt="Lacer Talonario Digital"
-                  className="h-8 w-8 object-contain shrink-0"
-                />
-                <div className="min-w-0 hidden sm:block">
-                  <p className="text-[10px] uppercase tracking-widest text-muted-foreground leading-none">Lacer · Talonario Digital</p>
-                  <h1 className="text-sm md:text-base font-bold text-foreground leading-tight truncate">Panel de Administración</h1>
-                </div>
-                <h1 className="text-sm font-bold text-foreground sm:hidden truncate">Admin</h1>
+              <div className="min-w-0">
+                <p className="text-[10px] uppercase tracking-widest text-muted-foreground leading-none hidden sm:block">Panel de Administración</p>
+                <h1 className="text-sm md:text-base font-bold text-foreground leading-tight truncate">
+                  {activeSection === 'dashboard' && 'Dashboard'}
+                  {activeSection === 'products' && 'Productos'}
+                  {activeSection === 'categories' && 'Categorías'}
+                  {activeSection === 'users' && 'Usuarios'}
+                  {activeSection === 'recipes' && 'Recetas'}
+                  {activeSection === 'recommendations' && 'Recomendaciones'}
+                  {activeSection === 'maintenance' && 'Mantenimiento'}
+                </h1>
               </div>
             </div>
             <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-semibold uppercase tracking-wider">
