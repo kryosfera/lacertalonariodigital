@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, FolderTree, Users, FileText, Wrench, ArrowLeft, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, FolderTree, Users, FileText, Wrench, ArrowLeft, LogOut, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
   Sidebar,
@@ -16,12 +16,13 @@ import {
 import { Button } from '@/components/ui/button';
 import lacerLogo from '@/assets/lacer-logo-color.png';
 
-export type AdminSection = 'dashboard' | 'products' | 'categories' | 'users' | 'recipes' | 'maintenance';
+export type AdminSection = 'dashboard' | 'products' | 'categories' | 'recommendations' | 'users' | 'recipes' | 'maintenance';
 
 const menuItems: { title: string; icon: typeof LayoutDashboard; section: AdminSection }[] = [
   { title: 'Dashboard', icon: LayoutDashboard, section: 'dashboard' },
   { title: 'Productos', icon: Package, section: 'products' },
   { title: 'Categorías', icon: FolderTree, section: 'categories' },
+  { title: 'Recomendaciones', icon: BookOpen, section: 'recommendations' },
   { title: 'Usuarios', icon: Users, section: 'users' },
   { title: 'Recetas', icon: FileText, section: 'recipes' },
   { title: 'Mantenimiento', icon: Wrench, section: 'maintenance' },
