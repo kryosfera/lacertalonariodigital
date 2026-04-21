@@ -364,12 +364,36 @@ export type Database = {
       }
     }
     Functions: {
+      admin_activity_heatmap: {
+        Args: never
+        Returns: {
+          hour: number
+          total: number
+          weekday: number
+        }[]
+      }
       admin_province_stats: {
         Args: never
         Returns: {
           professionals: number
           province: string
           total_recipes: number
+        }[]
+      }
+      admin_recipes_comparison: {
+        Args: never
+        Returns: {
+          avg_products_per_recipe: number
+          current_month: number
+          previous_month: number
+          today_count: number
+        }[]
+      }
+      admin_recipes_per_day: {
+        Args: { days?: number }
+        Returns: {
+          day: string
+          total: number
         }[]
       }
       admin_recipes_per_month: {
