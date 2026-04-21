@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+import { Loader2, UserRound } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { Button } from '@/components/ui/button';
 import { AdminSidebar, type AdminSection } from '@/components/admin/AdminSidebar';
 
 import { AdminDashboard } from '@/components/admin/AdminDashboard';
