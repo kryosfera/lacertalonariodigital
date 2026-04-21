@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
+import { geoMercator, geoPath } from 'd3-geo';
 import geoData from '@/data/spain-provinces.json';
 
 interface ProvinceStat {
@@ -8,7 +8,6 @@ interface ProvinceStat {
   total_recipes: number;
 }
 
-// Normalize: lowercase + strip accents, handle common aliases
 const normalize = (s: string) =>
   (s || '')
     .toLowerCase()
@@ -18,10 +17,10 @@ const normalize = (s: string) =>
     .trim();
 
 const ALIASES: Record<string, string[]> = {
-  'a coruna': ['coruna', 'la coruna', 'coruna a'],
+  'a coruna': ['coruna', 'la coruna'],
   'illes balears': ['baleares', 'islas baleares', 'balears'],
-  'las palmas': ['palmas', 'palmas las'],
-  'santa cruz de tenerife': ['tenerife', 'santa cruz tenerife'],
+  'las palmas': ['palmas'],
+  'santa cruz de tenerife': ['tenerife'],
   'bizkaia': ['vizcaya'],
   'gipuzkoa': ['guipuzcoa'],
   'araba/alava': ['alava', 'araba'],
@@ -37,7 +36,6 @@ function matchProvince(geoName: string, stats: ProvinceStat[]): ProvinceStat | u
   const target = normalize(geoName);
   const direct = stats.find(s => normalize(s.province) === target);
   if (direct) return direct;
-  // Try aliases
   for (const [canon, aliases] of Object.entries(ALIASES)) {
     if (normalize(canon) === target || aliases.some(a => normalize(a) === target)) {
       const found = stats.find(s => {
@@ -47,9 +45,11 @@ function matchProvince(geoName: string, stats: ProvinceStat[]): ProvinceStat | u
       if (found) return found;
     }
   }
-  // Partial includes
   return stats.find(s => normalize(s.province).includes(target) || target.includes(normalize(s.province)));
 }
+
+const WIDTH = 500;
+const HEIGHT = 380;
 
 export function SpainProvinceMap({ stats }: { stats: ProvinceStat[] }) {
   const [tooltip, setTooltip] = useState<{ x: number; y: number; content: string } | null>(null);
@@ -58,6 +58,13 @@ export function SpainProvinceMap({ stats }: { stats: ProvinceStat[] }) {
     () => Math.max(1, ...stats.map(s => Number(s.total_recipes))),
     [stats]
   );
+
+  const { features, pathFn } = useMemo(() => {
+    const fc = geoData as any;
+    const projection = geoMercator().fitSize([WIDTH, HEIGHT], fc);
+    const path = geoPath(projection);
+    return { features: fc.features as any[], pathFn: path };
+  }, []);
 
   const colorFor = (recipes: number) => {
     if (recipes === 0) return 'hsl(var(--muted))';
@@ -68,51 +75,42 @@ export function SpainProvinceMap({ stats }: { stats: ProvinceStat[] }) {
 
   return (
     <div className="relative w-full">
-      <ComposableMap
-        projection="geoMercator"
-        projectionConfig={{ center: [-3.7, 40.2], scale: 1700 }}
-        width={500}
-        height={380}
-        style={{ width: '100%', height: 'auto' }}
+      <svg
+        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+        className="w-full h-auto"
+        onMouseLeave={() => setTooltip(null)}
       >
-        <Geographies geography={geoData as any}>
-          {({ geographies }: any) =>
-            geographies.map((geo: any) => {
-              const name = geo.properties.name;
-              const stat = matchProvince(name, stats);
-              const recipes = stat ? Number(stat.total_recipes) : 0;
-              const pros = stat ? Number(stat.professionals) : 0;
-              return (
-                <Geography
-                  key={geo.rsmKey}
-                  geography={geo}
-                  fill={colorFor(recipes)}
-                  stroke="hsl(var(--border))"
-                  strokeWidth={0.4}
-                  onMouseEnter={(e) => {
-                    const rect = (e.currentTarget.ownerSVGElement?.parentElement as HTMLElement)?.getBoundingClientRect();
-                    setTooltip({
-                      x: e.clientX - (rect?.left ?? 0),
-                      y: e.clientY - (rect?.top ?? 0),
-                      content: `${name} — ${recipes} recetas · ${pros} prof.`,
-                    });
-                  }}
-                  onMouseMove={(e) => {
-                    const rect = (e.currentTarget.ownerSVGElement?.parentElement as HTMLElement)?.getBoundingClientRect();
-                    setTooltip(t => t ? { ...t, x: e.clientX - (rect?.left ?? 0), y: e.clientY - (rect?.top ?? 0) } : null);
-                  }}
-                  onMouseLeave={() => setTooltip(null)}
-                  style={{
-                    default: { outline: 'none', transition: 'fill 0.2s' },
-                    hover: { fill: 'hsl(0 72% 45%)', outline: 'none', cursor: 'pointer' },
-                    pressed: { outline: 'none' },
-                  }}
-                />
-              );
-            })
-          }
-        </Geographies>
-      </ComposableMap>
+        {features.map((f, i) => {
+          const d = pathFn(f);
+          if (!d) return null;
+          const name = f.properties.name as string;
+          const stat = matchProvince(name, stats);
+          const recipes = stat ? Number(stat.total_recipes) : 0;
+          const pros = stat ? Number(stat.professionals) : 0;
+          return (
+            <path
+              key={i}
+              d={d}
+              fill={colorFor(recipes)}
+              stroke="hsl(var(--border))"
+              strokeWidth={0.4}
+              className="transition-colors hover:fill-[hsl(0_72%_45%)] cursor-pointer"
+              onMouseEnter={(e) => {
+                const rect = (e.currentTarget.ownerSVGElement?.parentElement as HTMLElement)?.getBoundingClientRect();
+                setTooltip({
+                  x: e.clientX - (rect?.left ?? 0),
+                  y: e.clientY - (rect?.top ?? 0),
+                  content: `${name} — ${recipes} recetas · ${pros} prof.`,
+                });
+              }}
+              onMouseMove={(e) => {
+                const rect = (e.currentTarget.ownerSVGElement?.parentElement as HTMLElement)?.getBoundingClientRect();
+                setTooltip(t => t ? { ...t, x: e.clientX - (rect?.left ?? 0), y: e.clientY - (rect?.top ?? 0) } : null);
+              }}
+            />
+          );
+        })}
+      </svg>
 
       {tooltip && (
         <div
@@ -123,10 +121,12 @@ export function SpainProvinceMap({ stats }: { stats: ProvinceStat[] }) {
         </div>
       )}
 
-      {/* Legend */}
       <div className="flex items-center justify-center gap-2 mt-2 text-[10px] text-muted-foreground">
         <span>0</span>
-        <div className="h-2 w-32 rounded-full" style={{ background: 'linear-gradient(to right, hsl(0 72% 51% / 0.2), hsl(0 72% 51% / 1))' }} />
+        <div
+          className="h-2 w-32 rounded-full"
+          style={{ background: 'linear-gradient(to right, hsl(0 72% 51% / 0.2), hsl(0 72% 51% / 1))' }}
+        />
         <span>{max} recetas</span>
       </div>
     </div>

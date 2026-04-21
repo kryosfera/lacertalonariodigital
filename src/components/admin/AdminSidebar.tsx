@@ -6,6 +6,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -13,6 +14,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
+import lacerLogo from '@/assets/lacer-logo-color.png';
 
 export type AdminSection = 'dashboard' | 'products' | 'categories' | 'users' | 'recipes' | 'maintenance';
 
@@ -37,6 +39,19 @@ export function AdminSidebar({ activeSection, onSectionChange, onSignOut }: Admi
 
   return (
     <Sidebar collapsible="icon">
+      <SidebarHeader className="border-b">
+        <div className={`flex items-center gap-2.5 px-2 py-2 ${collapsed ? 'justify-center' : ''}`}>
+          <div className="rounded-lg bg-white p-1 shadow-sm shrink-0">
+            <img src={lacerLogo} alt="Lacer" className="h-7 w-7 object-contain" />
+          </div>
+          {!collapsed && (
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground leading-none">Lacer</p>
+              <p className="text-xs font-bold text-foreground leading-tight truncate">Talonario Digital</p>
+            </div>
+          )}
+        </div>
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>
