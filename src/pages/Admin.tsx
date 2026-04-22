@@ -78,7 +78,7 @@ const Admin = () => {
                 className="md:hidden h-8 px-2.5 gap-1.5"
               >
                 <UserRound className="w-3.5 h-3.5" />
-                <span className="text-xs font-medium">Modo paciente</span>
+                <span className="text-xs font-medium">Modo profesional</span>
               </Button>
               <Button
                 size="sm"
@@ -87,7 +87,7 @@ const Admin = () => {
                 className="hidden md:inline-flex h-8 px-2.5 gap-1.5"
               >
                 <UserRound className="w-3.5 h-3.5" />
-                <span className="text-xs">Ver como paciente</span>
+                <span className="text-xs">Ver como profesional</span>
               </Button>
               <span className="hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-semibold uppercase tracking-wider">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
