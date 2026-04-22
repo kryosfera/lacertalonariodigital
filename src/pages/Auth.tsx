@@ -3,12 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, Lock, Loader2, ArrowLeft, Building2, MapPin } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowLeft, Building2, MapPin, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,8 +35,24 @@ const signupSchema = z.object({
   province: z.string().min(1, { message: 'Requerido' }).max(200),
 });
 
+const forgotSchema = z.object({
+  email: z.string().trim().email({ message: 'Email inválido' }).max(255),
+});
+
+const resetSchema = z
+  .object({
+    password: z.string().min(6, { message: 'Mínimo 6 caracteres' }).max(100),
+    confirm: z.string().min(6, { message: 'Mínimo 6 caracteres' }).max(100),
+  })
+  .refine((d) => d.password === d.confirm, {
+    message: 'Las contraseñas no coinciden',
+    path: ['confirm'],
+  });
+
 type LoginFormData = z.infer<typeof loginSchema>;
 type SignupFormData = z.infer<typeof signupSchema>;
+type ForgotFormData = z.infer<typeof forgotSchema>;
+type ResetFormData = z.infer<typeof resetSchema>;
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -38,6 +62,9 @@ const Auth = () => {
   const searchParams = new URLSearchParams(window.location.search);
   const initialTab = searchParams.get('tab') === 'signup' ? 'signup' : 'login';
   const [activeTab, setActiveTab] = useState(initialTab);
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -49,11 +76,31 @@ const Auth = () => {
     defaultValues: { email: '', password: '', clinic_name: '', locality: '', province: '' },
   });
 
+  const forgotForm = useForm<ForgotFormData>({
+    resolver: zodResolver(forgotSchema),
+    defaultValues: { email: '' },
+  });
+
+  const resetForm = useForm<ResetFormData>({
+    resolver: zodResolver(resetSchema),
+    defaultValues: { password: '', confirm: '' },
+  });
+
+  // Detect password recovery flow from Supabase
   useEffect(() => {
-    if (!authLoading && user) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecoveryMode(true);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!authLoading && user && !isRecoveryMode) {
       navigate('/');
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, isRecoveryMode]);
 
   const handleLogin = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -90,7 +137,6 @@ const Auth = () => {
           variant: 'destructive',
         });
       } else {
-        // Save profile data after successful signup
         const { data: sessionData } = await supabase.auth.getSession();
         const userId = sessionData.session?.user?.id;
         if (userId) {
@@ -109,10 +155,123 @@ const Auth = () => {
     }
   };
 
+  const handleForgot = async (data: ForgotFormData) => {
+    setForgotLoading(true);
+    try {
+      await supabase.auth.resetPasswordForEmail(data.email, {
+        redirectTo: `${window.location.origin}/auth?mode=reset`,
+      });
+      toast({
+        title: 'Email enviado',
+        description: 'Si el email existe, recibirás un enlace de recuperación en breve.',
+      });
+      setForgotOpen(false);
+      forgotForm.reset();
+    } catch (e) {
+      toast({
+        title: 'Email enviado',
+        description: 'Si el email existe, recibirás un enlace de recuperación en breve.',
+      });
+      setForgotOpen(false);
+      forgotForm.reset();
+    } finally {
+      setForgotLoading(false);
+    }
+  };
+
+  const handleReset = async (data: ResetFormData) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: data.password });
+      if (error) {
+        toast({
+          title: 'Error',
+          description: error.message,
+          variant: 'destructive',
+        });
+      } else {
+        toast({ title: 'Contraseña actualizada correctamente' });
+        setIsRecoveryMode(false);
+        navigate('/');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const openForgot = () => {
+    const currentEmail = loginForm.getValues('email');
+    forgotForm.reset({ email: currentEmail || '' });
+    setForgotOpen(true);
+  };
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-secondary" />
+      </div>
+    );
+  }
+
+  // Password recovery view
+  if (isRecoveryMode) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-secondary/5 via-background to-secondary/10 p-4 pt-safe">
+        <Card className="w-full max-w-md border-secondary/20 shadow-xl">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto w-20 h-20 rounded-2xl bg-white shadow-lg flex items-center justify-center mb-4 border border-secondary/10">
+              <img src={lacerLogo} alt="Lacer" className="w-14 h-14 object-contain" />
+            </div>
+            <CardTitle className="text-xl font-bold text-foreground">
+              Nueva contraseña
+            </CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Introduce tu nueva contraseña para continuar
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Form {...resetForm}>
+              <form onSubmit={resetForm.handleSubmit(handleReset)} className="space-y-3">
+                <FormField
+                  control={resetForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nueva contraseña</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input type="password" placeholder="••••••••" className="pl-9" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={resetForm.control}
+                  name="confirm"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirmar contraseña</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input type="password" placeholder="••••••••" className="pl-9" {...field} />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full btn-gradient-red" disabled={isLoading}>
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Actualizar contraseña
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -174,6 +333,15 @@ const Auth = () => {
                       </FormItem>
                     )}
                   />
+                  <div className="flex justify-end -mt-1">
+                    <button
+                      type="button"
+                      onClick={openForgot}
+                      className="text-xs text-muted-foreground hover:text-secondary transition-colors underline-offset-2 hover:underline"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </button>
+                  </div>
                   <Button type="submit" className="w-full btn-gradient-red" disabled={isLoading}>
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Iniciar sesión
@@ -291,6 +459,55 @@ const Auth = () => {
         <ArrowLeft className="mr-1 h-4 w-4" />
         Volver al inicio
       </Button>
+
+      {/* Forgot password dialog */}
+      <Dialog open={forgotOpen} onOpenChange={setForgotOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-2">
+              <KeyRound className="w-5 h-5 text-secondary" />
+            </div>
+            <DialogTitle className="text-center">Recuperar contraseña</DialogTitle>
+            <DialogDescription className="text-center">
+              Introduce tu email y te enviaremos un enlace para restablecer tu contraseña.
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...forgotForm}>
+            <form onSubmit={forgotForm.handleSubmit(handleForgot)} className="space-y-4">
+              <FormField
+                control={forgotForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input placeholder="tu@email.com" className="pl-9" autoFocus {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <DialogFooter className="gap-2 sm:gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setForgotOpen(false)}
+                  disabled={forgotLoading}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" className="btn-gradient-red" disabled={forgotLoading}>
+                  {forgotLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Enviar enlace
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
