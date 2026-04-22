@@ -763,59 +763,72 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
             />
           </div>
 
-          {/* Patient Info - Only for Professional users, compact */}
+          {/* Patient Info - Only for Professional users */}
           {isProfessional && (
             <div className="px-3 md:px-0 mt-3">
-              <div className="flex gap-2">
-                <Popover open={patientSearchOpen} onOpenChange={setPatientSearchOpen}>
-                  <PopoverTrigger asChild>
-                    <div className="relative flex-1">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                      <Input
-                        placeholder="Paciente..."
-                        value={patientName}
-                        onChange={(e) => {
-                          setPatientName(e.target.value);
-                          setSelectedPatient(null);
-                          setPatientSearchOpen(true);
-                        }}
-                        onFocus={() => setPatientSearchOpen(true)}
-                        className="pl-10 h-10"
-                      />
-                      {selectedPatient && (
-                        <Check className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500 w-4 h-4" />
-                      )}
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 pointer-events-none z-10" />
+                <Input
+                  placeholder="Buscar o escribir paciente..."
+                  value={patientName}
+                  onChange={(e) => {
+                    setPatientName(e.target.value);
+                    setSelectedPatient(null);
+                    setPatientSearchOpen(true);
+                  }}
+                  onFocus={() => setPatientSearchOpen(true)}
+                  onBlur={() => {
+                    // Delay close so click on item registers
+                    setTimeout(() => setPatientSearchOpen(false), 150);
+                  }}
+                  className="pl-10 pr-10 h-10"
+                  autoComplete="off"
+                />
+                {(selectedPatient || patientName) && (
+                  <button
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setSelectedPatient(null);
+                      setPatientName("");
+                      setPatientPhone("");
+                      setPatientEmail("");
+                    }}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors z-10"
+                    aria-label="Limpiar paciente"
+                  >
+                    {selectedPatient ? <Check className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4" />}
+                  </button>
+                )}
+
+                {/* Custom dropdown — avoids Popover focus-stealing on mobile */}
+                {patientSearchOpen && filteredPatients.length > 0 && !selectedPatient && (
+                  <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-popover border border-border rounded-md shadow-lg overflow-hidden max-h-64 overflow-y-auto">
+                    <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground border-b border-border bg-muted/30">
+                      Pacientes guardados
                     </div>
-                  </PopoverTrigger>
-                  <PopoverContent className="p-0 w-[280px]" align="start">
-                    <Command>
-                      <CommandList>
-                        {filteredPatients.length === 0 ? (
-                          <CommandEmpty>No se encontraron pacientes</CommandEmpty>
-                        ) : (
-                          <CommandGroup heading="Pacientes">
-                            {filteredPatients.map((patient) => (
-                              <CommandItem
-                                key={patient.id}
-                                value={patient.name}
-                                onSelect={() => handleSelectPatient(patient)}
-                                className="cursor-pointer"
-                              >
-                                <User className="mr-2 h-4 w-4" />
-                                <div className="flex flex-col">
-                                  <span>{patient.name}</span>
-                                  {patient.phone && (
-                                    <span className="text-xs text-muted-foreground">{patient.phone}</span>
-                                  )}
-                                </div>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        )}
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                    {filteredPatients.map((patient) => (
+                      <button
+                        key={patient.id}
+                        type="button"
+                        onMouseDown={(e) => {
+                          // onMouseDown fires before input's onBlur
+                          e.preventDefault();
+                          handleSelectPatient(patient);
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-accent transition-colors text-left"
+                      >
+                        <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className="text-sm truncate">{patient.name}</span>
+                          {patient.phone && (
+                            <span className="text-xs text-muted-foreground truncate">{patient.phone}</span>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
