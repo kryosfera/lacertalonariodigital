@@ -1,37 +1,53 @@
+## Diagnóstico
 
+Hay dos cosas distintas llamadas "Dashboard" en la app:
 
-## Objetivo
-Añadir la funcionalidad "¿Olvidaste tu contraseña?" en la pantalla `/auth` para que cualquier usuario (incluido Enrique) pueda restablecer su contraseña por email.
+1. **Dashboard del admin** (`/admin` → `AdminDashboard.tsx`): el nuevo con 7 KPIs, mapa de España, heatmap, top productos, etc. **Ya existe y funciona.**
+2. **Dashboard del profesional** (`/` → tab "dashboard" → `DashboardStats.tsx`): el antiguo de 5 KPIs personales del usuario. Es lo que Joaquín está viendo.
 
-## Cómo funcionará
+Joaquín entra como admin pero la auto-redirección a `/admin` **solo está activa en móvil** (`Index.tsx` línea 46: `if (isMobile && isAdmin)`). En desktop (1336px) aterriza en la home normal y, al pulsar "Dashboard" en la navegación lateral, ve el `DashboardStats` antiguo en lugar del panel admin.
 
-### 1. Enlace en el formulario de Login
-Debajo del campo "Contraseña" en la pestaña "Iniciar sesión" añadiré un enlace discreto **"¿Olvidaste tu contraseña?"** alineado a la derecha.
+## Cambios a aplicar
 
-### 2. Diálogo de recuperación
-Al hacer clic, se abre un `Dialog` minimalista (estilo Apple, coherente con el resto de la app) con:
-- Título: "Recuperar contraseña"
-- Descripción breve explicando que se enviará un email con un enlace.
-- Campo email (con validación zod, prerellenado si ya escribió uno en login).
-- Botón "Enviar enlace de recuperación" + botón cancelar.
+### 1. Auto-redirect admin → `/admin` en todos los dispositivos
+En `src/pages/Index.tsx` quitar la condición `isMobile` para que **cualquier admin** que entre a `/` sea redirigido a `/admin` (respetando el flag `admin_skip_mobile_redirect` cuando viene de pulsar "Ver como profesional" en el header del panel).
 
-Llama a `supabase.auth.resetPasswordForEmail(email, { redirectTo: \`${window.location.origin}/auth?mode=reset\` })`.
+```ts
+useEffect(() => {
+  if (isAdmin) {
+    if (sessionStorage.getItem('admin_skip_mobile_redirect') === '1') {
+      sessionStorage.removeItem('admin_skip_mobile_redirect');
+      return;
+    }
+    navigate("/admin", { replace: true });
+  }
+}, [isAdmin, navigate]);
+```
 
-Mostrará toast de éxito ("Si el email existe, recibirás un enlace en breve") sin revelar si el email está registrado (buena práctica de seguridad).
+Renombro mentalmente la flag (el nombre se queda igual para no romper nada en `Admin.tsx`, solo cambia el comportamiento).
 
-### 3. Pantalla de nueva contraseña
-Cuando el usuario hace clic en el enlace del email, Supabase lo devuelve a `/auth` con una sesión de recuperación activa. Detectaré el evento `PASSWORD_RECOVERY` de `onAuthStateChange` y mostraré una vista alternativa dentro de `Auth.tsx` con:
-- Campo "Nueva contraseña" + "Confirmar contraseña" (validación zod, mín. 6 caracteres, deben coincidir).
-- Botón "Actualizar contraseña" → llama a `supabase.auth.updateUser({ password })`.
-- Al éxito: toast + redirección a `/`.
+### 2. Redirección post-login para admins
+En `src/pages/Auth.tsx`, tras un login exitoso, comprobar el rol y enviar al admin a `/admin` directamente en lugar de a `/`. Igualmente en el `useEffect` que redirige cuando ya hay sesión activa.
 
-### 4. Configuración de email
-Las plantillas de auth ya las gestiona Supabase por defecto, así que **el flujo funciona inmediatamente** sin más setup. El email de recuperación llegará desde el remitente por defecto de Supabase.
+Esto evita el "parpadeo" de cargar Index → detectar admin → redirigir.
 
-> Más adelante, si quieres que los emails de recuperación lleven el branding Lacer (logo, colores, dominio propio), podemos configurar plantillas auth personalizadas con dominio propio. Lo dejo como mejora opcional posterior.
+### 3. Unificar el Dashboard del profesional con el del admin (opcional pero recomendado)
+El tab "dashboard" del Index (que ven los profesionales no-admin) sigue mostrando `DashboardStats` (5 KPIs básicos). Para evitar confusión futura propongo dejarlo como está porque:
+- Un profesional ve **sus** estadísticas (filtradas por `user_id`).
+- Un admin ve **todas** las estadísticas globales en `/admin`.
+
+Son audiencias y datos distintos, no conviene fusionarlos. Si prefieres que también el profesional vea un dashboard más rico, lo abordamos en una iteración aparte.
+
+### 4. Limpieza del header del Index para admins
+Como un admin nunca verá el Index (siempre redirigido), no hace falta tocar el botón ⚙️ del header. Se mantiene por si el admin pulsa "Ver como profesional" desde `/admin` y quiere volver.
 
 ## Archivos a modificar
-- `src/pages/Auth.tsx` — añadir enlace, diálogo de recuperación, pantalla de nueva contraseña, listener de `PASSWORD_RECOVERY`.
+- `src/pages/Index.tsx` — quitar la restricción `isMobile` del redirect admin.
+- `src/pages/Auth.tsx` — tras login, comprobar rol admin vía `user_roles` y redirigir a `/admin` si aplica.
 
-No requiere cambios en backend, migraciones ni Edge Functions.
+No requiere migraciones ni cambios en backend.
 
+## Resultado esperado
+- Joaquín (admin) entra con `joaquin@kryofera.com` → aterriza directo en `/admin` con el dashboard nuevo (7 KPIs, mapa, heatmap, etc.).
+- Si pulsa "Ver como profesional" desde el header del panel, va a `/` y puede navegar como profesional sin que le redirija de vuelta (gracias a la flag de sesión).
+- Cualquier otro admin (Enrique cuando entre) tendrá el mismo flujo.

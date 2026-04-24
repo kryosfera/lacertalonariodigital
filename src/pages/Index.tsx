@@ -41,13 +41,16 @@ const Index = () => {
   const tour = useOnboardingTour(userMode);
   const navigate = useNavigate();
 
-  // Mobile admins land directly on the admin dashboard
+  // Admins land directly on the admin dashboard (any device)
   useEffect(() => {
-    if (isMobile && isAdmin) {
-      if (sessionStorage.getItem('admin_skip_mobile_redirect') === '1') return;
+    if (isAdmin) {
+      if (sessionStorage.getItem('admin_skip_mobile_redirect') === '1') {
+        sessionStorage.removeItem('admin_skip_mobile_redirect');
+        return;
+      }
       navigate("/admin", { replace: true });
     }
-  }, [isMobile, isAdmin, navigate]);
+  }, [isAdmin, navigate]);
 
   useEffect(() => {
     if (!isProfessional && activeTab !== "home" && activeTab !== "nueva-receta" && activeTab !== "recomendaciones") {
