@@ -98,7 +98,15 @@ const Auth = () => {
 
   useEffect(() => {
     if (!authLoading && user && !isRecoveryMode) {
-      navigate('/');
+      (async () => {
+        const { data } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .maybeSingle();
+        navigate(data ? '/admin' : '/');
+      })();
     }
   }, [user, authLoading, navigate, isRecoveryMode]);
 
@@ -116,7 +124,19 @@ const Auth = () => {
         });
       } else {
         toast({ title: 'Sesión iniciada correctamente' });
-        navigate('/');
+        const { data: sessionData } = await supabase.auth.getSession();
+        const uid = sessionData.session?.user?.id;
+        if (uid) {
+          const { data: roleData } = await supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', uid)
+            .eq('role', 'admin')
+            .maybeSingle();
+          navigate(roleData ? '/admin' : '/');
+        } else {
+          navigate('/');
+        }
       }
     } finally {
       setIsLoading(false);
