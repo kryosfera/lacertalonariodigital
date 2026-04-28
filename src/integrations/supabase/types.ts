@@ -541,6 +541,65 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_user_activity_heatmap: {
+        Args: { target_user: string }
+        Returns: {
+          hour: number
+          total: number
+          weekday: number
+        }[]
+      }
+      admin_user_overview: {
+        Args: { target_user: string }
+        Returns: {
+          avg_products_per_recipe: number
+          current_month: number
+          dispensation_rate: number
+          dispensed_count: number
+          first_recipe_at: string
+          last_recipe_at: string
+          previous_month: number
+          today_count: number
+          total_patients: number
+          total_recipes: number
+        }[]
+      }
+      admin_user_patients_with_stats: {
+        Args: { target_user: string }
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          last_recipe_at: string
+          name: string
+          notes: string
+          phone: string
+          total_recipes: number
+        }[]
+      }
+      admin_user_recipes_timeseries: {
+        Args: { days?: number; target_user: string }
+        Returns: {
+          day: string
+          total: number
+        }[]
+      }
+      admin_user_send_methods: {
+        Args: { target_user: string }
+        Returns: {
+          method: string
+          total: number
+        }[]
+      }
+      admin_user_top_products: {
+        Args: { lim?: number; target_user: string }
+        Returns: {
+          product_name: string
+          reference: string
+          thumbnail_url: string
+          times_prescribed: number
+        }[]
+      }
       cleanup_expired_short_urls: { Args: never; Returns: number }
       generate_recipe_code: { Args: never; Returns: string }
       generate_short_code: { Args: never; Returns: string }
