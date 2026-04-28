@@ -34,16 +34,11 @@ export function UserModeProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Check localStorage for saved preference
-    const savedMode = localStorage.getItem(USER_MODE_KEY) as UserMode;
-    
-    if (savedMode === 'basic' || savedMode === 'professional') {
-      setUserModeState(savedMode);
-    } else {
-      // Default to basic mode — user sees the professional CTA banner on home
-      setUserModeState('basic');
-      localStorage.setItem(USER_MODE_KEY, 'basic');
-    }
+    // No active session → always force Basic (Quick) mode.
+    // Professional mode requires an authenticated user; otherwise stats/widgets
+    // would render empty (always 0) and the header would lie about the mode.
+    setUserModeState('basic');
+    localStorage.setItem(USER_MODE_KEY, 'basic');
     setIsLoading(false);
   }, [user, authLoading]);
 
