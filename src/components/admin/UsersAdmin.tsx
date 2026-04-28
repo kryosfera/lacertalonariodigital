@@ -28,6 +28,7 @@ export function UsersAdmin() {
   const [search, setSearch] = useState('');
   const [provinceFilter, setProvinceFilter] = useState('__all__');
   const [pending, setPending] = useState<{ userId: string; action: 'grant' | 'revoke'; name: string } | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
 
   const { data: profiles, isLoading } = useQuery({
     queryKey: ['admin-profiles'],
