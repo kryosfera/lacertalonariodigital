@@ -246,6 +246,13 @@ export function UsersAdmin() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <UserDetailSheet
+        open={!!selectedProfile}
+        onOpenChange={(o) => !o && setSelectedProfile(null)}
+        profile={selectedProfile}
+        isAdminUser={selectedProfile ? (adminIds?.has(selectedProfile.user_id) ?? false) : false}
+      />
     </div>
   );
 }
