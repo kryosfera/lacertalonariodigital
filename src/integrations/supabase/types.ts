@@ -429,8 +429,35 @@ export type Database = {
           weekday: number
         }[]
       }
+      admin_activity_heatmap_range: {
+        Args: { end_ts: string; start_ts: string }
+        Returns: {
+          hour: number
+          total: number
+          weekday: number
+        }[]
+      }
+      admin_kpis_range: {
+        Args: { end_ts: string; start_ts: string }
+        Returns: {
+          avg_products_per_recipe: number
+          dispensed_count: number
+          period_count: number
+          previous_period_count: number
+          today_count: number
+          total_recipes: number
+        }[]
+      }
       admin_province_stats: {
         Args: never
+        Returns: {
+          professionals: number
+          province: string
+          total_recipes: number
+        }[]
+      }
+      admin_province_stats_range: {
+        Args: { end_ts: string; start_ts: string }
         Returns: {
           professionals: number
           province: string
@@ -460,6 +487,20 @@ export type Database = {
           total: number
         }[]
       }
+      admin_recipes_timeseries: {
+        Args: { bucket?: string; end_ts: string; start_ts: string }
+        Returns: {
+          period: string
+          total: number
+        }[]
+      }
+      admin_send_methods_range: {
+        Args: { end_ts: string; start_ts: string }
+        Returns: {
+          method: string
+          total: number
+        }[]
+      }
       admin_top_products: {
         Args: { lim?: number }
         Returns: {
@@ -469,8 +510,28 @@ export type Database = {
           times_prescribed: number
         }[]
       }
+      admin_top_products_range: {
+        Args: { end_ts: string; lim?: number; start_ts: string }
+        Returns: {
+          product_name: string
+          reference: string
+          thumbnail_url: string
+          times_prescribed: number
+        }[]
+      }
       admin_top_professionals: {
         Args: { lim?: number }
+        Returns: {
+          clinic_name: string
+          locality: string
+          professional_name: string
+          province: string
+          total_recipes: number
+          user_id: string
+        }[]
+      }
+      admin_top_professionals_range: {
+        Args: { end_ts: string; lim?: number; start_ts: string }
         Returns: {
           clinic_name: string
           locality: string
