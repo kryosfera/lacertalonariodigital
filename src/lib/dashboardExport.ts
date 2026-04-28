@@ -356,7 +356,6 @@ export async function exportToXlsx(data: DashboardExportData) {
       if (v === 0) {
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F4F6' } };
       } else {
-        const alpha = Math.round(40 + intensity * 215).toString(16).padStart(2, '0').toUpperCase();
         // Blend white -> Lacer red
         const r = Math.round(255 - (255 - 0xe3) * intensity);
         const g = Math.round(255 - (255 - 0x19) * intensity);
@@ -364,7 +363,6 @@ export async function exportToXlsx(data: DashboardExportData) {
         const hex = `FF${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`.toUpperCase();
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: hex } };
       }
-      void alpha;
     }
   }
 
