@@ -406,9 +406,6 @@ export async function exportToXlsx(data: DashboardExportData) {
   URL.revokeObjectURL(url);
 }
 
-// Suppress unused var warning for legacy alpha calculation
-const alpha = '';
-
 export function exportToCsv(data: DashboardExportData) {
   const rows = [
     ['Lacer · Dashboard'],
