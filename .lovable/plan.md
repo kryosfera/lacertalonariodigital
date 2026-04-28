@@ -1,101 +1,86 @@
-# Filtro temporal global + Export en Dashboard Admin
+## Detalle de Usuario en Panel Admin
 
-## Confirmación: datos 100% reales (sin mockups)
+Añadir la posibilidad de hacer clic en una fila de Usuarios para abrir una **vista de detalle** completa con todos los datos del profesional, sus recetas, pacientes y métricas de uso.
 
-He revisado `AdminDashboard.tsx` y verificado contra la base de datos. Todo se alimenta de Supabase en tiempo real:
+### Comportamiento (UX)
 
-| Widget | Fuente real |
-|---|---|
-| KPIs (Total, Hoy, Mes, Variación, Avg productos) | Tabla `recipes` + RPC `admin_recipes_comparison` |
-| Profesionales / Productos / Dispensación | Tablas `profiles`, `products`, `recipes.dispensed_at` |
-| Recetas por mes | RPC `admin_recipes_per_month` |
-| Método de envío (donut) | Agregación real de `recipes.sent_via` |
-| Top 10 productos | RPC `admin_top_products` (jsonb de recetas reales) |
-| Mapa España + tabla provincias | RPC `admin_province_stats` |
-| Heatmap día/hora | RPC `admin_activity_heatmap` (últimos 90 días) |
-| Top profesionales | RPC `admin_top_professionals` |
-| Recetas recientes | `recipes` ordenado por fecha |
+1. La búsqueda actual en `UsersAdmin` se mantiene tal cual (clínica, profesional, localidad, filtro por provincia).
+2. Cada fila pasa a ser **clickable** (cursor pointer + hover destacado). Se añade además un botón "Ver detalle" en la columna de acciones para que la intención sea explícita y no entre en conflicto con los botones de "Hacer admin / Quitar".
+3. Al hacer clic se abre un **panel/sheet lateral** (`Sheet` de shadcn) ocupando ~720px en desktop y pantalla completa en móvil, sin perder el listado de fondo. Esto permite navegar entre usuarios rápido sin cambiar de ruta.
+4. Dentro del panel: cabecera con nombre de clínica, profesional, badge admin, provincia/localidad, fecha de registro y nº colegiado. Debajo, **tabs**: Resumen · Recetas · Pacientes · Actividad.
 
-Verificado en BBDD: 18 recetas, 3 profesionales, 95 productos. Todo real.
+### Contenido del detalle
 
-## Filtro temporal: diseño
+**Tab Resumen**
+- KPIs en tarjetas tipo Bento: total recetas, recetas este mes, recetas dispensadas, % dispensación, media productos por receta, último uso (hace X días).
+- Datos del perfil: dirección clínica, logo, miniatura de firma si existe.
+- Top 5 productos prescritos por este usuario.
+- Mini gráfico de líneas de recetas en los últimos 90 días.
 
-Selector de rango en la cabecera del dashboard (segmented control, estilo Apple minimalista):
+**Tab Recetas**
+- Tabla con todas las recetas del usuario (código, paciente, fecha, canal de envío, estado dispensada/pendiente, nº productos).
+- Buscador interno + filtro estado (dispensada / pendiente).
+- Acción "Exportar CSV" del listado del usuario.
 
-```text
-[ Hoy ] [ 7 días ] [ 30 días ] [ Este mes ] [ 90 días ] [ Este año ] [ Todo ]  [ 📅 Personalizado ]   [ ⬇ Exportar ]
-```
+**Tab Pacientes**
+- Listado de pacientes del usuario (nombre, teléfono, email, nº recetas, última receta).
+- Buscador por nombre/teléfono/email.
 
-- Estado React `range` controla el periodo activo, incluido en `queryKey` → refetch automático.
-- Animación del subrayado activo con framer-motion `layoutId`.
-- En móvil: scroll horizontal.
-- Persistencia en `localStorage` (`admin_dashboard_range`).
+**Tab Actividad**
+- Distribución por día de la semana y hora (heatmap reducido).
+- Distribución por canal de envío (whatsapp / email / etc.).
+- Histograma mensual de los últimos 12 meses.
 
-## Cambios técnicos
+### Implementación técnica
 
-### 1. Nuevas funciones RPC (migración SQL) que aceptan `start_date` / `end_date`
+**1. Nuevas RPCs en Supabase** (security definer, restringidas a `authenticated` con check de admin vía `has_role`):
 
-- `admin_kpis_range(start, end)` → recetas, hoy, avg productos, dispensados, variación vs periodo anterior equivalente
-- `admin_top_products_range(start, end, lim)`
-- `admin_province_stats_range(start, end)`
-- `admin_top_professionals_range(start, end, lim)`
-- `admin_activity_heatmap_range(start, end)`
-- `admin_send_methods_range(start, end)`
-- `admin_recipes_timeseries(start, end, bucket)` → bucket dinámico (`hour`/`day`/`week`/`month`) según rango
+- `admin_user_overview(target_user uuid)` → fila única con KPIs del usuario (total, mes actual, dispensadas, % dispensación, avg productos, last_used_at, total pacientes).
+- `admin_user_recipes_timeseries(target_user uuid, days int default 90)` → serie diaria.
+- `admin_user_top_products(target_user uuid, lim int default 5)`.
+- `admin_user_activity_heatmap(target_user uuid)` → weekday/hour/total últimos 90 días.
+- `admin_user_send_methods(target_user uuid)` → método/total.
+- `admin_user_patients_with_stats(target_user uuid)` → pacientes + nº recetas + última receta.
 
-KPIs globales no temporales (Total Productos, Total Profesionales) se mantienen y se marcan con badge "global".
+Todas con `WHERE user_id = target_user` y verificación `IF NOT has_role(auth.uid(),'admin') THEN RAISE EXCEPTION ...`.
 
-### 2. Frontend (`AdminDashboard.tsx`)
+Las recetas del usuario se consultan directo con `supabase.from('recipes').select('*').eq('user_id', target_user)` (la policy "Admins can view all recipes" ya lo permite).
 
-- Componente nuevo `DashboardRangeFilter` con presets + date range picker shadcn (modo "Personalizado").
-- Helper `getRangeBounds(preset)` → `{start, end, bucket, label}`.
-- Eje X de la timeseries adaptado al bucket.
-- Recetas recientes: feed global, no filtra.
-- Skeleton overlay sutil durante refetch (no se desmontan widgets).
-- Texto contextual: "Mostrando: últimos 30 días (28 mar – 28 abr)".
+**2. Nuevos componentes**
 
-### 3. Export del dashboard filtrado
+- `src/components/admin/UserDetailSheet.tsx` — `Sheet` con cabecera + `Tabs` + las 4 secciones. Recibe `userId`, `profile` y `open/onOpenChange`.
+- `src/components/admin/userDetail/UserOverviewTab.tsx`
+- `src/components/admin/userDetail/UserRecipesTab.tsx`
+- `src/components/admin/userDetail/UserPatientsTab.tsx`
+- `src/components/admin/userDetail/UserActivityTab.tsx`
 
-Botón **⬇ Exportar** junto al filtro, con dropdown de 3 formatos:
+**3. Cambios en `UsersAdmin.tsx`**
+- Estado `selectedUserId`.
+- Fila clickable + nuevo botón "Ver detalle" (icon `Eye`) antes del botón de rol; `e.stopPropagation()` en los botones de admin para evitar que abra el sheet.
+- Renderizar `<UserDetailSheet>` al final.
 
-#### a) Excel (.xlsx) — recomendado
-Genera un workbook con varias hojas, todas reflejando el rango activo:
-- **Resumen**: KPIs (Total, Hoy, Mes, Variación %, Avg productos, Dispensación %, rango aplicado, fecha de exportación).
-- **Recetas por periodo**: timeseries (fecha + total) según bucket.
-- **Método de envío**: nombre + total + %.
-- **Top productos**: ranking, nombre, referencia, veces prescrito.
-- **Provincias**: provincia, profesionales, recetas.
-- **Top profesionales**: clínica, profesional, provincia, localidad, recetas.
-- **Heatmap**: matriz día×hora.
-- **Recetas recientes**: paciente, fecha, vía, código, dispensada.
+**4. React Query**
+- `queryKey: ['admin-user-overview', userId]`, etc. Habilitadas solo cuando hay `userId` y el sheet está abierto (`enabled`).
+- `staleTime: 30_000` siguiendo política del proyecto.
 
-Implementación: librería `xlsx` (SheetJS) en cliente — sin servidor extra. Estilos básicos: header bold, tipografía consistente, anchos auto, totales con `SUM()` (formula real), negativos con paréntesis, fechas formateadas. Nombre archivo: `lacer-dashboard-{rango}-{YYYYMMDD}.xlsx`.
+**5. Estilo**
+- Reutiliza `KpiCard`, `ActivityHeatmap` (parametrizándolo o creando `MiniHeatmap`), tokens Lacer (rojo `#E31937`), soporte dark mode, animaciones Framer Motion para entrada de tabs.
 
-#### b) CSV
-Un único CSV con la timeseries del periodo (más ligero, para análisis rápido en Excel/Sheets/BI).
+### Ficheros previstos
 
-#### c) PDF (snapshot visual)
-Captura el contenedor del dashboard con `html2canvas` → genera PDF A4 horizontal con `jspdf`. Incluye encabezado con logo Lacer, rango aplicado y fecha. Útil para reportes a dirección.
+Nuevos:
+- `supabase/migrations/<timestamp>_admin_user_detail_rpcs.sql`
+- `src/components/admin/UserDetailSheet.tsx`
+- `src/components/admin/userDetail/UserOverviewTab.tsx`
+- `src/components/admin/userDetail/UserRecipesTab.tsx`
+- `src/components/admin/userDetail/UserPatientsTab.tsx`
+- `src/components/admin/userDetail/UserActivityTab.tsx`
 
-Durante el export se muestra toast de progreso ("Generando export…") y al terminar toast de éxito con descarga automática.
+Modificados:
+- `src/components/admin/UsersAdmin.tsx`
+- `src/integrations/supabase/types.ts` (autogenerado tras la migración)
 
-### 4. UX export
+### Datos
+Toda la información mostrada será **100% real** desde Supabase, sin mockups, igual que el resto del dashboard admin.
 
-- Confirmación visual del rango exportado en el nombre del archivo y en la primera hoja/portada del PDF.
-- Si no hay datos en el rango, el botón se deshabilita con tooltip.
-- Permisos: solo accesible desde `/admin` (ya protegido por `isAdmin`).
-
-## Archivos a tocar
-
-- `supabase/migrations/<timestamp>_admin_dashboard_filters.sql` (nuevas RPCs)
-- `src/components/admin/AdminDashboard.tsx` (integración filtro + botón export)
-- `src/components/admin/DashboardRangeFilter.tsx` (nuevo)
-- `src/components/admin/DashboardExportMenu.tsx` (nuevo, dropdown XLSX/CSV/PDF)
-- `src/lib/dateRanges.ts` (helper de rangos y buckets)
-- `src/lib/dashboardExport.ts` (lógica xlsx + csv + pdf)
-- `package.json`: añadir `xlsx`, `jspdf`, `html2canvas`
-
-## Fuera de alcance
-
-- Cambios en otras secciones del admin (Productos, Recetas, etc.)
-- Programar exports recurrentes por email (se puede añadir después)
+¿Apruebas el plan?

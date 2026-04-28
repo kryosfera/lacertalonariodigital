@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Search, Users, Shield, ShieldOff } from 'lucide-react';
+import { Loader2, Search, Users, Shield, ShieldOff, Eye } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import {
@@ -20,6 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { UserDetailSheet } from './UserDetailSheet';
 
 export function UsersAdmin() {
   const { user } = useAuth();
@@ -27,6 +28,7 @@ export function UsersAdmin() {
   const [search, setSearch] = useState('');
   const [provinceFilter, setProvinceFilter] = useState('__all__');
   const [pending, setPending] = useState<{ userId: string; action: 'grant' | 'revoke'; name: string } | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
 
   const { data: profiles, isLoading } = useQuery({
     queryKey: ['admin-profiles'],
@@ -138,7 +140,7 @@ export function UsersAdmin() {
                     <TableHead>Nº Colegiado</TableHead>
                     <TableHead className="text-right">Recetas</TableHead>
                     <TableHead>Registro</TableHead>
-                    <TableHead className="text-right">Rol</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -146,7 +148,11 @@ export function UsersAdmin() {
                     const isAdminUser = adminIds?.has(p.user_id) ?? false;
                     const isSelf = user?.id === p.user_id;
                     return (
-                      <TableRow key={p.id}>
+                      <TableRow
+                        key={p.id}
+                        className="cursor-pointer"
+                        onClick={() => setSelectedProfile(p)}
+                      >
                         <TableCell>
                           <div className="font-medium flex items-center gap-2">
                             {p.clinic_name || '—'}
@@ -161,29 +167,40 @@ export function UsersAdmin() {
                         <TableCell className="text-sm">{p.registration_number || '—'}</TableCell>
                         <TableCell className="text-right font-semibold">{recipeCounts?.[p.user_id] ?? 0}</TableCell>
                         <TableCell className="text-sm">{new Date(p.created_at).toLocaleDateString('es-ES')}</TableCell>
-                        <TableCell className="text-right">
-                          {isAdminUser ? (
+                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-end gap-1">
                             <Button
                               size="sm"
                               variant="ghost"
-                              disabled={isSelf || mutation.isPending}
-                              onClick={() => setPending({ userId: p.user_id, action: 'revoke', name: p.clinic_name || p.professional_name || 'usuario' })}
-                              title={isSelf ? 'No puedes quitarte el rol a ti mismo' : 'Quitar admin'}
+                              onClick={() => setSelectedProfile(p)}
+                              title="Ver detalle"
                             >
-                              <ShieldOff className="h-4 w-4 mr-1" />
-                              Quitar
+                              <Eye className="h-4 w-4 mr-1" />
+                              Detalle
                             </Button>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              disabled={mutation.isPending}
-                              onClick={() => setPending({ userId: p.user_id, action: 'grant', name: p.clinic_name || p.professional_name || 'usuario' })}
-                            >
-                              <Shield className="h-4 w-4 mr-1" />
-                              Hacer admin
-                            </Button>
-                          )}
+                            {isAdminUser ? (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                disabled={isSelf || mutation.isPending}
+                                onClick={() => setPending({ userId: p.user_id, action: 'revoke', name: p.clinic_name || p.professional_name || 'usuario' })}
+                                title={isSelf ? 'No puedes quitarte el rol a ti mismo' : 'Quitar admin'}
+                              >
+                                <ShieldOff className="h-4 w-4 mr-1" />
+                                Quitar
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={mutation.isPending}
+                                onClick={() => setPending({ userId: p.user_id, action: 'grant', name: p.clinic_name || p.professional_name || 'usuario' })}
+                              >
+                                <Shield className="h-4 w-4 mr-1" />
+                                Hacer admin
+                              </Button>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     );
@@ -229,6 +246,13 @@ export function UsersAdmin() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <UserDetailSheet
+        open={!!selectedProfile}
+        onOpenChange={(o) => !o && setSelectedProfile(null)}
+        profile={selectedProfile}
+        isAdminUser={selectedProfile ? (adminIds?.has(selectedProfile.user_id) ?? false) : false}
+      />
     </div>
   );
 }
