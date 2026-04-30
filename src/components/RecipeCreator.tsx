@@ -23,6 +23,7 @@ import { useCreateRecipe, RecipeProduct } from "@/hooks/useRecipes";
 import { cn } from "@/lib/utils";
 
 import { useProfile } from "@/hooks/useProfile";
+import lacerLogo from "@/assets/lacer-logo.png";
 
 interface Product {
   id: string;
@@ -581,20 +582,26 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       )}
 
       {/* Recipe Summary - Maximized for mobile */}
-      <div className="max-w-2xl mx-auto pb-24 md:pb-4">
+      <div className="max-w-2xl mx-auto pb-28 md:pb-4">
         {/* Mobile: Full-height flex layout */}
         <div className="flex flex-col h-full md:block">
-          
+
+          {/* Mobile centered header: Lacer logo + title */}
+          <div className="md:hidden flex flex-col items-center pt-3 pb-4">
+            <img src={lacerLogo} alt="Lacer" className="h-10 w-auto" />
+            <h1 className="text-xl font-bold text-foreground mt-2">Nueva Receta</h1>
+          </div>
+
           {/* Quick Actions Bar - Mobile first */}
-          <div className="px-3 md:px-0 mb-2 md:mb-4">
+          <div className="px-3 md:px-0 mb-3 md:mb-4">
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                className="flex-1 h-12 md:h-14 border-dashed border-2 hover:border-secondary hover:bg-secondary/5 transition-colors font-medium"
+                className="flex-1 h-14 md:h-14 border-2 border-secondary/60 hover:border-secondary hover:bg-secondary/5 transition-colors font-semibold rounded-2xl text-base bg-transparent"
                 onClick={handleOpenCategorySelector}
               >
                 <Plus className="w-5 h-5 mr-2" />
-                <span className="hidden sm:inline">Añadir </span>Productos
+                Productos
               </Button>
             </div>
           </div>
@@ -603,22 +610,24 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
           <div className="flex-1 px-3 md:px-0">
             <TooltipProvider delayDuration={300}>
               {selectedProducts.size > 0 ? (
-                <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+                <div className="bg-card rounded-2xl border border-border/40 shadow-sm overflow-hidden">
                   {/* Compact header */}
-                  <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30">
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-secondary text-secondary-foreground font-bold">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-7 h-7 rounded-full bg-secondary text-white text-sm font-bold flex items-center justify-center flex-shrink-0">
                         {selectedProducts.size}
-                      </Badge>
-                      <span className="text-sm font-medium text-foreground">
-                        producto{selectedProducts.size !== 1 ? 's' : ''}
+                      </div>
+                      <span className="text-sm font-semibold text-foreground truncate">
+                        {selectedProducts.size === 1
+                          ? selectedProductsData[0]?.name
+                          : `${selectedProducts.size} productos`}
                       </span>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={clearSelection}
-                      className="h-7 text-xs text-muted-foreground hover:text-destructive"
+                      className="h-7 px-3 rounded-full bg-muted text-xs text-muted-foreground hover:text-destructive hover:bg-muted"
                     >
                       Limpiar
                     </Button>
@@ -753,21 +762,21 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
           </div>
 
           {/* Notes - Compact on mobile */}
-          <div className="px-3 md:px-0 mt-3">
+          <div className="px-3 md:px-0 mt-4">
             <Textarea
               placeholder="Notas adicionales (opcional)..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              rows={2}
-              className="resize-none text-sm bg-muted/30 border-muted"
+              rows={3}
+              className="resize-none text-sm bg-muted/60 border-0 rounded-2xl p-4 placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-secondary/30"
             />
           </div>
 
           {/* Patient Info - Only for Professional users */}
           {isProfessional && (
-            <div className="px-3 md:px-0 mt-3">
+            <div className="px-3 md:px-0 mt-4">
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 pointer-events-none z-10" />
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 pointer-events-none z-10" />
                 <Input
                   placeholder="Buscar o escribir paciente..."
                   value={patientName}
@@ -781,7 +790,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                     // Delay close so click on item registers
                     setTimeout(() => setPatientSearchOpen(false), 150);
                   }}
-                  className="pl-10 pr-10 h-10"
+                  className="pl-11 pr-11 h-14 rounded-2xl border border-border/40 bg-background text-sm font-medium"
                   autoComplete="off"
                 />
                 {(selectedPatient || patientName) && (
@@ -794,10 +803,10 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                       setPatientPhone("");
                       setPatientEmail("");
                     }}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors z-10"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-md hover:bg-muted transition-colors z-10"
                     aria-label="Limpiar paciente"
                   >
-                    {selectedPatient ? <Check className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4" />}
+                    <Check className="w-5 h-5 text-green-500" />
                   </button>
                 )}
 
@@ -866,26 +875,26 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
           )}
 
           {/* Action Buttons - Integrated in content flow (NOT fixed) */}
-          <div className="px-3 md:px-0 mt-4 mb-4 space-y-3">
+          <div className="px-3 md:px-0 mt-6 mb-4 space-y-3">
             {/* Primary action - WhatsApp full width */}
             <Button
               onClick={() => {
                 setSendMethod("whatsapp");
                 setShowSendDialog(true);
               }}
-              className="w-full h-12 md:h-14 bg-[#25D366] hover:bg-[#128C7E] text-white font-semibold text-base gap-2"
+              className="w-full h-14 bg-[#25D366] hover:bg-[#1FAD54] text-white font-semibold text-base gap-2 rounded-2xl shadow-sm"
               disabled={selectedProducts.size === 0}
             >
               <MessageCircle className="w-5 h-5" />
               Enviar por WhatsApp
               {selectedProducts.size > 0 && (
-                <Badge variant="secondary" className="ml-1 bg-white/20 text-white">
+                <Badge variant="secondary" className="ml-1 bg-white/20 text-white border-0 rounded-full px-2.5">
                   {selectedProductsData.reduce((acc, p) => acc + p.quantity, 0)} uds
                 </Badge>
               )}
             </Button>
 
-            {/* Secondary actions - Inline row */}
+            {/* Secondary actions - 3 equal outline buttons */}
             <div className="flex gap-2">
               <Button
                 onClick={() => {
@@ -893,28 +902,29 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                   setShowSendDialog(true);
                 }}
                 variant="outline"
-                className="flex-1 h-11 gap-2"
+                className="flex-1 h-12 gap-2 rounded-xl border-secondary/40 text-secondary hover:bg-secondary/5 hover:text-secondary hover:border-secondary/60"
                 disabled={selectedProducts.size === 0}
               >
                 <Mail className="w-4 h-4" />
-                <span className="text-sm">Email</span>
+                <span className="text-sm font-medium">Email</span>
               </Button>
               <Button
                 variant="outline"
-                className="flex-1 h-11 gap-2"
+                className="flex-1 h-12 gap-2 rounded-xl border-secondary/40 text-secondary hover:bg-secondary/5 hover:text-secondary hover:border-secondary/60"
                 disabled={selectedProducts.size === 0 || isSending}
                 onClick={handleDownloadPDF}
               >
                 <Download className="w-4 h-4" />
-                <span className="text-sm">PDF</span>
+                <span className="text-sm font-medium">PDF</span>
               </Button>
               <Button
                 variant="outline"
-                className="h-11 w-11 p-0"
+                className="flex-1 h-12 gap-2 rounded-xl border-secondary/40 text-secondary hover:bg-secondary/5 hover:text-secondary hover:border-secondary/60"
                 disabled={selectedProducts.size === 0 || isSending}
                 onClick={handlePrint}
               >
                 <Printer className="w-4 h-4" />
+                <span className="text-sm font-medium">Print</span>
               </Button>
             </div>
           </div>
