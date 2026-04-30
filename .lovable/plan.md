@@ -1,67 +1,50 @@
-# Problema
+# Rediseño Pantalla Recomendaciones
 
-En la captura de WhatsApp el enlace enviado es `lacertalonariodigital.lovable.app/receta?d=JTdCJTIyc...` (cadena base64 enorme). Al abrirlo aparece "Receta no encontrada" porque WhatsApp suele cortar / partir URLs largas y la decodificación base64 falla.
+Adaptar `src/components/SurgeryRecommendations.tsx` al nuevo diseño visual minimalista tipo Apple con identidad Lacer.
 
-## Causa raíz
+## Cambios visuales clave
 
-En `RecipeCreator.tsx → generateRecipeUrlWithFallback` el flujo es:
+**Header (mobile):**
+- Logo Lacer rojo centrado en la parte superior (como en screen-2)
+- Título "Recomendaciones" en tipografía bold MUY grande (text-4xl/5xl), alineado a la izquierda
+- Subtítulo "Material para tus pacientes" debajo en gris
+- Eliminar el icono cuadrado rojo actual junto al título
 
-1. Si es profesional → guardar en BD y usar `/receta?n=CODE` (URL corta, ideal).
-2. Crear short URL → `/r/CODE`.
-3. **Fallback base64** → `/receta?d=<cadena enorme>`.
+**Filtros (pills):**
+- Estilo "outline" redondeado con borde fino
+- Pill activo: borde rojo Lacer + texto rojo + fondo blanco (no relleno rojo sólido)
+- Pills inactivos: borde gris claro, texto gris, fondo blanco
+- Sin iconos dentro de los pills (solo texto: Todos / PDF / Vídeo / Enlace)
+- Mayor padding horizontal y tamaño más generoso
 
-En **Modo Básico** (sin login) se salta el paso 1 y, además, la RLS de `short_urls` exige `auth.uid() IS NOT NULL`, por lo que el paso 2 también falla. Resultado: siempre cae al fallback base64 que WhatsApp rompe.
+**Tarjetas (Bento style):**
+- Una tarjeta por fila en mobile (grid-cols-1), no dos
+- Imagen grande arriba ocupando todo el ancho de la tarjeta (aspect ratio ~16/10)
+- Badge "PDF/Vídeo/Enlace" arriba a la derecha sobre la imagen, fondo blanco translúcido con texto oscuro (no negro/40)
+- Eliminar el icono pequeño rojo flotante en la esquina inferior izquierda de la imagen
+- Para vídeos: mantener botón play circular blanco grande centrado
+- Bordes redondeados grandes (rounded-3xl), sombra suave
+- Padding interno generoso (p-5/p-6)
+- Título en bold grande (text-xl), descripción en gris claro debajo
+- **CTA "Ver" como botón rojo Lacer pill grande** (no outline) con icono play/external a la izquierda
+- Botón compartir como **círculo outline rojo** separado a la derecha (no junto al Ver)
+- Layout de acciones: `[ ▶ Ver  pill ancho ] ............... [ ⚇ ]`
 
-# Solución
+**Desktop (md+):**
+- Mantener grid de 2-3 columnas pero con el mismo estilo de tarjeta grande
+- Header alineado a la izquierda con logo a la izquierda también
 
-Permitir que **cualquier usuario** (incluso anónimo) pueda crear `short_urls`, para que el enlace sea siempre corto y válido del tipo `lacertalonariodigital.lovable.app/r/AbC123`.
+## Detalles técnicos
 
-## Cambios
+- Archivo único a editar: `src/components/SurgeryRecommendations.tsx`
+- Usar logo Lacer existente (buscar en `src/assets/` o `public/`) — si no existe, dejar TODO con placeholder
+- Colores via tokens: `text-primary`, `border-primary`, `bg-primary` (rojo Lacer ya configurado)
+- Animaciones: mantener fade-in + scale on hover
+- WhatsApp dialog y video modal: sin cambios funcionales
+- Responsive: `grid-cols-1 md:grid-cols-2 lg:grid-cols-3`
 
-### 1. Base de datos (migración)
+## Fuera de alcance
 
-Reemplazar la política INSERT de `short_urls` para permitir creaciones anónimas:
-
-```sql
-DROP POLICY "Authenticated users can create short URLs" ON public.short_urls;
-
-CREATE POLICY "Anyone can create short URLs"
-  ON public.short_urls FOR INSERT
-  WITH CHECK (true);
-```
-
-Riesgos / mitigación:
-- La tabla ya tiene expiración a 30 días y se limpia con `cleanup_expired_short_urls`.
-- El `code` se genera server-side (`generate_short_code()`), no es manipulable.
-- Solo guarda datos de receta no sensibles (productos + nombre paciente + notas), igual que ya hace el flujo profesional cuando se comparte una receta pública.
-
-### 2. `src/lib/recipeUtils.ts → createShortUrl`
-
-Hacerla funcional sin sesión:
-- Si hay sesión → usar `Authorization: Bearer <accessToken>` (como ahora).
-- Si no hay sesión → usar `Authorization: Bearer <anon key>` (igual que el resto de llamadas anónimas del proyecto).
-- Quitar el `return null` cuando falta sesión.
-
-### 3. `src/components/RecipeCreator.tsx`
-
-Sin cambios de lógica: el flujo de fallback ya prefiere short URL antes que base64; al desbloquear `createShortUrl` para anónimos, los usuarios en Modo Básico recibirán siempre `/r/CODE`.
-
-# Resultado esperado
-
-El mensaje de WhatsApp pasará de:
-
-```
-Consulta la receta en:
-https://lacertalonariodigital.lovable.app/receta?d=JTdCJTIycCUyMiUz... (200+ chars)
-```
-
-A:
-
-```
-Consulta la receta en:
-https://lacertalonariodigital.lovable.app/r/Ab3xK9
-```
-
-Enlace corto, copiable y que WhatsApp no parte. Funciona tanto en Modo Básico como Profesional.
-
-¿Apruebas?
+- No tocar el badge "Premium" del mockup (no existe en datos actuales)
+- No cambiar lógica de compartir, filtrado o fetching
+- No tocar bottom navigation (ya coincide con el diseño)
