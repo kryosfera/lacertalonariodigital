@@ -49,6 +49,7 @@ export const SurgeryRecommendations = () => {
   const [phoneError, setPhoneError] = useState("");
   const [whatsAppData, setWhatsAppData] = useState<WhatsAppShareData | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
 
   const filtered = useMemo(() => {
     if (!items) return [];
