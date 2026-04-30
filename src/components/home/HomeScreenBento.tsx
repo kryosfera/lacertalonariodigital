@@ -287,8 +287,7 @@ export const HomeScreenBento = ({
           >
             <Link
               to="/auth?tab=signup"
-              className="block w-full rounded-2xl border-2 border-secondary/40 p-3 md:p-4 text-center transition-all hover:border-secondary/70 hover:shadow-xl"
-              style={{ background: 'linear-gradient(135deg, hsl(0 72% 51% / 0.06) 0%, hsl(0 72% 51% / 0.14) 100%)' }}
+              className="block w-full rounded-2xl border-2 border-secondary/40 p-3 md:p-4 text-center transition-all hover:border-secondary/70 hover:shadow-xl bg-transparent"
             >
               <Sparkles className="w-5 h-5 text-secondary mx-auto mb-1" />
               <p className="text-sm md:text-base font-bold text-foreground mb-0.5">¿Eres profesional?</p>
