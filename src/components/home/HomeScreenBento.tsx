@@ -274,7 +274,7 @@ export const HomeScreenBento = ({
         {/* Basic mode upgrade hint */}
         {!isProfessional && (
           <motion.div
-            className="w-full mt-4 md:mt-3"
+            className="w-full mt-2"
             variants={itemVariants}
             animate={{
               boxShadow: [
@@ -287,17 +287,17 @@ export const HomeScreenBento = ({
           >
             <Link
               to="/auth?tab=signup"
-              className="block w-full rounded-2xl border-2 border-secondary/40 p-5 md:p-4 text-center transition-all hover:border-secondary/70 hover:shadow-xl"
+              className="block w-full rounded-2xl border-2 border-secondary/40 p-3 md:p-4 text-center transition-all hover:border-secondary/70 hover:shadow-xl"
               style={{ background: 'linear-gradient(135deg, hsl(0 72% 51% / 0.06) 0%, hsl(0 72% 51% / 0.14) 100%)' }}
             >
-              <Sparkles className="w-7 h-7 text-secondary mx-auto mb-2" />
-              <p className="text-lg md:text-base font-bold text-foreground mb-1">¿Eres profesional?</p>
-              <p className="text-sm md:text-xs text-muted-foreground mb-3">Regístrate gratis y activa gestión de pacientes, historial y más</p>
-              <span className="inline-flex items-center gap-1.5 px-6 py-2.5 rounded-xl text-sm font-semibold text-white shadow-md"
+              <Sparkles className="w-5 h-5 text-secondary mx-auto mb-1" />
+              <p className="text-sm md:text-base font-bold text-foreground mb-0.5">¿Eres profesional?</p>
+              <p className="text-[11px] md:text-xs text-muted-foreground mb-2">Regístrate gratis y activa gestión de pacientes e historial</p>
+              <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-semibold text-white shadow-md"
                 style={{ background: 'linear-gradient(160deg, hsl(0 72% 51%) 0%, hsl(0 72% 38%) 100%)' }}
               >
                 Activar cuenta profesional
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-3.5 h-3.5" />
               </span>
             </Link>
           </motion.div>
@@ -305,8 +305,8 @@ export const HomeScreenBento = ({
       </div>
 
       {/* Footer */}
-      <div className="mt-auto pb-4 text-center">
-        <p className="text-[10px] text-muted-foreground/40 tracking-widest uppercase mb-2">
+      <div className="mt-auto pb-2 text-center">
+        <p className="text-[10px] text-muted-foreground/40 tracking-widest uppercase mb-1">
           v2.0 · {isProfessional ? 'profesional' : 'modo rápido'}
         </p>
         <LegalFooter className="" />
