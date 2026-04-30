@@ -282,63 +282,72 @@ export const SurgeryRecommendations = () => {
           </div>
         ) : (
           // LIST VIEW
-          <div className="flex flex-col gap-2">
+          <ul className="flex flex-col gap-2" role="list" aria-label="Listado de recomendaciones">
             {filtered.map((rec) => {
               const isVideo = rec.kind === 'video';
+              const titleId = `rec-title-${rec.id}`;
+              const actionLabel = isVideo ? `Ver vídeo: ${rec.title}` : rec.kind === 'pdf' ? `Abrir PDF: ${rec.title}` : `Abrir enlace: ${rec.title}`;
               return (
-                <article
-                  key={rec.id}
-                  className="group bg-card rounded-2xl border border-border/40 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] transition-all duration-200 px-4 py-3"
-                >
-                  {/* Title row */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="shrink-0 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                      {typeLabel(rec.kind)}
-                    </span>
-                    <h3 className="font-semibold text-sm text-foreground leading-tight flex-1">
-                      {rec.title}
-                    </h3>
-                  </div>
+                <li key={rec.id}>
+                  <article
+                    aria-labelledby={titleId}
+                    className="group bg-card rounded-2xl border border-border/40 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:border-border focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background transition-all duration-200 px-4 py-3"
+                  >
+                    {/* Title row */}
+                    <div className="flex items-center gap-2 mb-2">
+                      <span
+                        className="shrink-0 text-[9px] font-semibold uppercase tracking-wide text-muted-foreground bg-muted px-1.5 py-0.5 rounded"
+                        aria-label={`Tipo de recurso: ${typeLabel(rec.kind)}`}
+                      >
+                        {typeLabel(rec.kind)}
+                      </span>
+                      <h3 id={titleId} className="font-semibold text-sm text-foreground leading-tight flex-1">
+                        {rec.title}
+                      </h3>
+                    </div>
 
-                  {/* Actions row */}
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => openResource(rec)}
-                      className="flex-1 h-9 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm hover:bg-primary/90 active:scale-95"
-                    >
-                      {isVideo ? (
-                        <Play className="w-3.5 h-3.5" fill="currentColor" />
-                      ) : (
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      )}
-                      Ver
-                    </button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button
-                          className="h-9 px-4 rounded-full border border-primary/40 text-primary text-xs font-semibold hover:bg-primary/5 flex items-center justify-center gap-1.5 transition-colors active:scale-95"
-                          aria-label="Compartir"
-                        >
-                          <Share2 className="w-3.5 h-3.5" />
-                          Compartir
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48 bg-popover border border-border shadow-lg z-50">
-                        <DropdownMenuItem onClick={() => handleShareWhatsApp(rec)} className="gap-2 cursor-pointer">
-                          <MessageCircle className="w-4 h-4 text-green-600" />
-                          Compartir por WhatsApp
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleShareEmail(rec)} className="gap-2 cursor-pointer">
-                          <Mail className="w-4 h-4 text-primary" />
-                          Enviar por Email
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </article>
+                    {/* Actions row */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => openResource(rec)}
+                        aria-label={actionLabel}
+                        className="flex-1 h-9 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm hover:bg-primary/90 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      >
+                        {isVideo ? (
+                          <Play className="w-3.5 h-3.5" fill="currentColor" aria-hidden="true" />
+                        ) : (
+                          <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+                        )}
+                        <span>Ver</span>
+                      </button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            className="h-9 px-4 rounded-full border border-primary/40 text-primary text-xs font-semibold hover:bg-primary/5 hover:border-primary flex items-center justify-center gap-1.5 transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                            aria-label={`Compartir ${rec.title}`}
+                            aria-haspopup="menu"
+                          >
+                            <Share2 className="w-3.5 h-3.5" aria-hidden="true" />
+                            <span>Compartir</span>
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 bg-popover border border-border shadow-lg z-50">
+                          <DropdownMenuItem onClick={() => handleShareWhatsApp(rec)} className="gap-2 cursor-pointer focus:bg-accent" aria-label={`Compartir ${rec.title} por WhatsApp`}>
+                            <MessageCircle className="w-4 h-4 text-green-600" aria-hidden="true" />
+                            Compartir por WhatsApp
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleShareEmail(rec)} className="gap-2 cursor-pointer focus:bg-accent" aria-label={`Enviar ${rec.title} por email`}>
+                            <Mail className="w-4 h-4 text-primary" aria-hidden="true" />
+                            Enviar por Email
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </article>
+                </li>
               );
             })}
-          </div>
+          </ul>
         )}
       </div>
 
