@@ -79,7 +79,7 @@ export const HomeScreenBento = ({
 
       {/* Hero Red Section */}
       <motion.div
-        className="relative -mx-5 lg:-mx-8 px-6 pt-7 pb-6 md:pt-10 md:pb-8 overflow-hidden rounded-b-[2.5rem] md:rounded-b-[3rem]"
+        className="relative -mx-5 lg:-mx-8 px-6 pt-5 pb-4 md:pt-8 md:pb-6 overflow-hidden rounded-b-[2rem] md:rounded-b-[2.5rem]"
         style={{ background: 'linear-gradient(160deg, hsl(0 72% 51%) 0%, hsl(0 72% 38%) 100%)' }}
         initial={{ opacity: 0, y: -80, scaleY: 0.6, originY: 0 }}
         animate={{ opacity: 1, y: 0, scaleY: 1 }}
