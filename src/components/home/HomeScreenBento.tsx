@@ -71,7 +71,7 @@ export const HomeScreenBento = ({
 
   return (
     <motion.div
-      className="min-h-[calc(100vh-80px)] flex flex-col px-5 lg:px-8"
+      className="min-h-[calc(100vh-80px)] flex flex-col px-5 lg:px-8 pb-20 md:pb-4"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
@@ -79,7 +79,7 @@ export const HomeScreenBento = ({
 
       {/* Hero Red Section */}
       <motion.div
-        className="relative -mx-5 lg:-mx-8 px-6 pt-7 pb-6 md:pt-10 md:pb-8 overflow-hidden rounded-b-[2.5rem] md:rounded-b-[3rem]"
+        className="relative -mx-5 lg:-mx-8 px-6 pt-5 pb-4 md:pt-8 md:pb-6 overflow-hidden rounded-b-[2rem] md:rounded-b-[2.5rem]"
         style={{ background: 'linear-gradient(160deg, hsl(0 72% 51%) 0%, hsl(0 72% 38%) 100%)' }}
         initial={{ opacity: 0, y: -80, scaleY: 0.6, originY: 0 }}
         animate={{ opacity: 1, y: 0, scaleY: 1 }}
@@ -100,14 +100,14 @@ export const HomeScreenBento = ({
         <div className="relative flex flex-col items-center text-center">
           {/* Logo */}
           <motion.div
-            className="w-16 h-16 md:w-20 md:h-20 rounded-[1.25rem] bg-white/95 backdrop-blur-sm shadow-xl flex items-center justify-center mb-3"
+            className="w-14 h-14 md:w-18 md:h-18 rounded-[1.1rem] bg-white/95 backdrop-blur-sm shadow-xl flex items-center justify-center mb-2"
             variants={itemVariants}
             whileHover={{ scale: 1.05, rotate: -2 }}
           >
             {hasClinicInfo && profile?.logo_url ? (
-              <img src={profile.logo_url} alt={profile.clinic_name || "Clínica"} className="w-12 h-12 md:w-14 md:h-14 object-contain rounded-lg" />
+              <img src={profile.logo_url} alt={profile.clinic_name || "Clínica"} className="w-10 h-10 md:w-12 md:h-12 object-contain rounded-lg" />
             ) : (
-              <img src={lacerLogo} alt="Lacer" className="w-12 h-12 md:w-14 md:h-14 object-contain" />
+              <img src={lacerLogo} alt="Lacer" className="w-10 h-10 md:w-12 md:h-12 object-contain" />
             )}
           </motion.div>
 
@@ -139,14 +139,14 @@ export const HomeScreenBento = ({
           ) : (
             <>
               <motion.h1
-                className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight leading-[1.1] mb-1.5"
+                className="text-[1.5rem] sm:text-2xl md:text-3xl font-bold text-white tracking-tight leading-[1.1] mb-1"
                 variants={itemVariants}
               >
                 Talonario Digital
               </motion.h1>
 
               <motion.p
-                className="text-xs md:text-sm text-white/80 max-w-xs leading-relaxed"
+                className="text-[11px] md:text-sm text-white/80 max-w-xs leading-snug"
                 variants={itemVariants}
               >
                 Recetas digitales para tus pacientes, directo a su móvil.
@@ -157,7 +157,7 @@ export const HomeScreenBento = ({
       </motion.div>
 
       {/* Actions Area */}
-      <div className="flex-1 flex flex-col items-center w-full max-w-sm mx-auto pt-7 md:pt-6 pb-3 gap-2.5">
+      <div className="flex-1 flex flex-col items-center w-full max-w-sm mx-auto pt-5 md:pt-5 pb-2 gap-2.5">
 
         {/* Primary CTA */}
         <motion.button
@@ -287,8 +287,7 @@ export const HomeScreenBento = ({
           >
             <Link
               to="/auth?tab=signup"
-              className="block w-full rounded-2xl border-2 border-secondary/40 p-3 md:p-4 text-center transition-all hover:border-secondary/70 hover:shadow-xl"
-              style={{ background: 'linear-gradient(135deg, hsl(0 72% 51% / 0.06) 0%, hsl(0 72% 51% / 0.14) 100%)' }}
+              className="block w-full rounded-2xl border-2 border-secondary/40 p-3 md:p-4 text-center transition-all hover:border-secondary/70 hover:shadow-xl bg-transparent"
             >
               <Sparkles className="w-5 h-5 text-secondary mx-auto mb-1" />
               <p className="text-sm md:text-base font-bold text-foreground mb-0.5">¿Eres profesional?</p>
