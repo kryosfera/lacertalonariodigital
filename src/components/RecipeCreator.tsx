@@ -23,7 +23,6 @@ import { useCreateRecipe, RecipeProduct } from "@/hooks/useRecipes";
 import { cn } from "@/lib/utils";
 
 import { useProfile } from "@/hooks/useProfile";
-import lacerLogo from "@/assets/lacer-logo.png";
 
 interface Product {
   id: string;
@@ -585,12 +584,6 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       <div className="max-w-2xl mx-auto pb-28 md:pb-4">
         {/* Mobile: Full-height flex layout */}
         <div className="flex flex-col h-full md:block">
-
-          {/* Mobile centered header: Lacer logo + title */}
-          <div className="md:hidden flex flex-col items-center pt-3 pb-4">
-            <img src={lacerLogo} alt="Lacer" className="h-10 w-auto" />
-            <h1 className="text-xl font-bold text-foreground mt-2">Nueva Receta</h1>
-          </div>
 
           {/* Quick Actions Bar - Mobile first */}
           <div className="px-3 md:px-0 mb-3 md:mb-4">
