@@ -191,7 +191,7 @@ export default function Recipe() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-4">
+      <div className="min-h-screen pt-safe bg-background p-4">
         <div className="max-w-2xl mx-auto">
           <Skeleton className="h-16 w-full mb-4" />
           <Skeleton className="h-8 w-1/2 mb-8" />
@@ -204,7 +204,7 @@ export default function Recipe() {
 
   if (error || !recipe) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen pt-safe bg-background flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-8 pb-6">
             <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
@@ -227,7 +227,7 @@ export default function Recipe() {
   return (
     <div className="min-h-screen bg-background pb-16">
       {/* Header */}
-      <header className="bg-secondary text-secondary-foreground py-4 px-4">
+      <header className="bg-secondary text-secondary-foreground pt-safe py-4 px-4">
         <div className="max-w-2xl mx-auto flex items-center gap-3">
           {hasProfileData && profile?.logo_url ? (
             <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center overflow-hidden">

@@ -257,7 +257,15 @@ All colors MUST be HSL.
   }
   
   .pt-safe {
-    padding-top: env(safe-area-inset-top, 0);
+    padding-top: max(env(safe-area-inset-top, 0px), 12px);
+  }
+  
+  .mt-safe {
+    margin-top: env(safe-area-inset-top, 0px);
+  }
+  
+  .h-safe-top {
+    height: env(safe-area-inset-top, 0px);
   }
   
   /* Hide scrollbar */

@@ -7,7 +7,7 @@ const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="bg-card border-b border-border sticky top-0 z-50">
+      <header className="bg-card border-b border-border sticky top-0 z-50 pt-safe">
         <div className="container mx-auto px-4 py-3 flex items-center gap-3">
           <Link to="/">
             <Button variant="ghost" size="icon" className="rounded-full">

@@ -51,7 +51,7 @@ export default function ShortRecipe() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background p-4">
+      <div className="min-h-screen pt-safe bg-background p-4">
         <div className="max-w-2xl mx-auto">
           <Skeleton className="h-16 w-full mb-4" />
           <Skeleton className="h-8 w-1/2 mb-8" />
@@ -67,7 +67,7 @@ export default function ShortRecipe() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen pt-safe bg-background flex items-center justify-center p-4">
       <Card className="max-w-md w-full text-center">
         <CardContent className="pt-8 pb-6">
           <AlertCircle className="w-16 h-16 text-destructive mx-auto mb-4" />
