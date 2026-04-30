@@ -82,12 +82,12 @@ export const ProductSelector = ({
     const hasSelection = selectedProducts.size > 0;
     return (
       <div
-        className={`fixed inset-0 z-50 bg-background flex flex-col pt-safe ${
+        className={`fixed inset-0 z-50 bg-background flex flex-col ${
           isClosing ? 'screen-slide-out' : 'screen-slide-in'
         }`}
       >
         {/* Header: back · category title · close */}
-        <div className="flex items-center justify-between px-2 py-2 border-b border-border/40 bg-background">
+        <div className="flex items-center justify-between px-2 py-2 pt-safe border-b border-border/40 bg-background">
           <Button
             variant="ghost"
             size="icon"
