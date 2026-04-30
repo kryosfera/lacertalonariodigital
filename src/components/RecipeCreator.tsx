@@ -14,6 +14,7 @@ import { CategorySelector } from "./CategorySelector";
 import { ProductSelector } from "./ProductSelector";
 import { sendViaWhatsApp, sendViaEmail, downloadPDF, generateRecipeUrl, generateShortRecipeUrl, createShortUrl } from "@/lib/recipeUtils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -926,74 +927,67 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
 
       {/* Send Dialog */}
       <Dialog open={showSendDialog} onOpenChange={setShowSendDialog}>
-        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto rounded-3xl border-0 p-6 shadow-2xl">
+          <DialogHeader className="space-y-2 text-left">
+            <DialogTitle className="text-2xl font-bold tracking-tight">
               {sendMethod === "whatsapp" ? "Enviar por WhatsApp" : "Enviar por Email"}
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-base text-muted-foreground">
               Revisa la receta y añade los datos del paciente
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            {/* Visual Recipe Summary with quantity controls */}
-            <div className="bg-muted/50 rounded-lg p-3 space-y-2">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+
+          <div className="space-y-5 pt-2">
+            {/* Resumen de la receta */}
+            <div className="space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Resumen de la receta
               </p>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
+              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                 {selectedProductsData.map((product) => (
-                  <div 
-                    key={product.id} 
-                    className="flex items-center gap-2 bg-background rounded-md p-2"
+                  <div
+                    key={product.id}
+                    className="flex items-center gap-3 bg-card border border-border/60 rounded-2xl p-3"
                   >
-                    <div className="w-10 h-10 rounded bg-white border flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <div className="w-14 h-14 rounded-xl bg-white border border-border/40 flex items-center justify-center overflow-hidden flex-shrink-0">
                       {product.thumbnail_url ? (
                         <img
                           src={product.thumbnail_url}
                           alt={product.name}
-                          className="w-full h-full object-contain p-0.5"
+                          className="w-full h-full object-contain p-1"
                         />
                       ) : (
-                        <Package className="w-4 h-4 text-muted-foreground" />
+                        <Package className="w-5 h-5 text-muted-foreground" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">
+                      <p className="text-base font-semibold text-foreground leading-tight line-clamp-2">
                         {product.name}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-sm text-muted-foreground mt-0.5">
                         C.N. {product.reference}
                       </p>
                     </div>
-                    {/* Quantity controls */}
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => updateQuantity(product.id, product.quantity - 1)}
-                      >
-                        <Minus className="w-3 h-3" />
-                      </Button>
-                      <span className="w-6 text-center text-sm font-medium">
-                        {product.quantity}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => updateQuantity(product.id, product.quantity + 1)}
-                      >
-                        <Plus className="w-3 h-3" />
-                      </Button>
-                    </div>
+                    <Select
+                      value={String(product.quantity)}
+                      onValueChange={(value) => updateQuantity(product.id, Number(value))}
+                    >
+                      <SelectTrigger className="w-16 h-10 rounded-lg flex-shrink-0">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                          <SelectItem key={n} value={String(n)}>
+                            {n}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 ))}
               </div>
               {notes && (
-                <div className="pt-2 border-t border-border/50">
+                <div className="px-3 pt-1">
                   <p className="text-xs text-muted-foreground">
                     <span className="font-medium">Notas:</span> {notes}
                   </p>
@@ -1004,36 +998,42 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
             {/* Contact input */}
             {sendMethod === "whatsapp" ? (
               <div className="space-y-2">
-                <Label htmlFor="phone">Teléfono (opcional)</Label>
+                <Label htmlFor="phone" className="text-base font-semibold text-foreground">
+                  Teléfono (opcional)
+                </Label>
                 <Input
                   id="phone"
                   type="tel"
                   placeholder="+34 600 000 000"
                   value={patientPhone}
                   onChange={(e) => setPatientPhone(e.target.value)}
+                  className="h-12 rounded-xl text-base"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm text-muted-foreground">
                   Si no introduces un número, se abrirá WhatsApp para que lo selecciones
                 </p>
               </div>
             ) : (
               <div className="space-y-2">
-                <Label htmlFor="email">Email (opcional)</Label>
+                <Label htmlFor="email" className="text-base font-semibold text-foreground">
+                  Email (opcional)
+                </Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="paciente@email.com"
                   value={patientEmail}
                   onChange={(e) => setPatientEmail(e.target.value)}
+                  className="h-12 rounded-xl text-base"
                 />
               </div>
             )}
-            
+
             <Button
-              className="w-full"
+              className="w-full h-14 rounded-2xl text-base font-semibold shadow-[0_8px_24px_-8px_hsl(var(--primary)/0.55)]"
               onClick={sendMethod === "whatsapp" ? handleSendWhatsApp : handleSendEmail}
             >
-              <Send className="w-4 h-4 mr-2" />
+              <Send className="w-5 h-5 mr-2" />
               Enviar receta ({selectedProducts.size} productos)
             </Button>
           </div>
