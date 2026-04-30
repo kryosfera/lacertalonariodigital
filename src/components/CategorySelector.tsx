@@ -121,41 +121,64 @@ export const CategorySelector = ({
             isClosing ? 'screen-slide-out' : 'screen-slide-in'
           }`}
         >
-          {/* Compact header with selected count and template button */}
-          <div className="flex items-center justify-between px-4 py-2 border-b border-border/30">
-            <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold text-foreground">Selecciona categoría</h2>
+          {/* Apple-style minimal header */}
+          <div className="px-5 pt-3 pb-2">
+            <div className="flex items-center justify-between">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="text-foreground w-10 h-10 -ml-2"
+                aria-label="Volver"
+              >
+                <ArrowLeft className="w-6 h-6" strokeWidth={2} />
+              </Button>
+
+              <img
+                src={lacerIcon}
+                alt="Lacer"
+                className="h-10 w-auto object-contain"
+              />
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="text-foreground w-10 h-10 -mr-2"
+                aria-label="Cerrar"
+              >
+                <X className="w-6 h-6" strokeWidth={2} />
+              </Button>
+            </div>
+
+            <div className="mt-2 flex items-center justify-center gap-2">
+              <h2 className="text-2xl font-medium text-foreground tracking-tight">
+                Selecciona categoría
+              </h2>
               {selectedProductsCount > 0 && (
                 <Badge className="bg-secondary text-secondary-foreground font-bold">
                   {selectedProductsCount}
                 </Badge>
               )}
             </div>
-            <div className="flex items-center gap-1">
-              {templates.length > 0 && (
+
+            {templates.length > 0 && (
+              <div className="mt-1 flex justify-end">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowTemplateDialog(true)}
-                  className="text-muted-foreground h-8 gap-1 text-xs"
+                  className="text-muted-foreground h-7 gap-1 text-xs"
                 >
-                  <FileText className="w-4 h-4" />
+                  <FileText className="w-3.5 h-3.5" />
                   Plantillas
                 </Button>
-              )}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="text-muted-foreground w-8 h-8"
-              >
-                <X className="w-5 h-5" />
-              </Button>
-            </div>
+              </div>
+            )}
           </div>
 
-          {/* Fullscreen grid - fills remaining space */}
-          <div className="flex-1 p-3 overflow-auto">
+          {/* Categories grid */}
+          <div className="flex-1 px-5 pt-3 pb-[100px] overflow-auto">
             {isLoading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
@@ -163,18 +186,18 @@ export const CategorySelector = ({
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 {categoriesWithProducts.map((category, index) => (
-                    <button
-                      key={category.id}
-                      onClick={() => onSelectCategory(category.id, category.name)}
-                      className="relative flex items-center justify-center bg-white rounded-xl border border-border/10 hover:border-secondary/50 hover:shadow-lg active:scale-[0.97] transition-all duration-200 overflow-hidden card-scale-in aspect-square"
-                      style={{ animationDelay: `${index * 25}ms` }}
-                    >
-                      {category.image_url ? (
-                        <img
-                          src={category.image_url}
-                          alt={category.name}
-                          className="w-full h-full object-contain p-2"
-                        />
+                  <button
+                    key={category.id}
+                    onClick={() => onSelectCategory(category.id, category.name)}
+                    className="relative flex items-center justify-center bg-white rounded-2xl border border-border/40 hover:border-secondary/50 hover:shadow-md active:scale-[0.97] transition-all duration-200 overflow-hidden card-scale-in aspect-[4/3]"
+                    style={{ animationDelay: `${index * 15}ms` }}
+                  >
+                    {category.image_url ? (
+                      <img
+                        src={category.image_url}
+                        alt={category.name}
+                        className="w-full h-full object-contain p-4"
+                      />
                     ) : (
                       <span className="text-sm font-bold text-foreground text-center leading-tight px-2">
                         {category.name}
@@ -187,11 +210,11 @@ export const CategorySelector = ({
                 {uncategorizedCount > 0 && (
                   <button
                     onClick={() => onSelectCategory("uncategorized", "Otros productos")}
-                    className="flex items-center justify-center bg-muted/20 rounded-lg border border-border/10 hover:border-secondary/50 hover:shadow-lg active:scale-[0.97] transition-all duration-200"
+                    className="flex items-center justify-center bg-muted/20 rounded-2xl border border-border/40 hover:border-secondary/50 hover:shadow-md active:scale-[0.97] transition-all duration-200 aspect-[4/3]"
                   >
-                    <div className="flex flex-col items-center gap-0.5">
-                      <Package className="w-6 h-6 text-muted-foreground" />
-                      <span className="text-[10px] font-medium text-muted-foreground">
+                    <div className="flex flex-col items-center gap-1">
+                      <Package className="w-7 h-7 text-muted-foreground" />
+                      <span className="text-xs font-medium text-muted-foreground">
                         Otros
                       </span>
                     </div>
@@ -201,9 +224,9 @@ export const CategorySelector = ({
             )}
           </div>
 
-          {/* Floating action bar when products are selected */}
+          {/* Floating action bar - sits above bottom navigation (72px) */}
           {selectedProductsCount > 0 && (
-            <div className="p-3 border-t border-border/30 bg-background">
+            <div className="fixed left-0 right-0 bottom-[72px] px-4 pb-2 pt-2 bg-background/95 backdrop-blur-md border-t border-border/30">
               <Button
                 onClick={onClose}
                 className="w-full btn-gradient-red gap-2"
