@@ -1,73 +1,55 @@
-## Problema
+## Objetivo
 
-En iOS, al abrir la PWA instalada en pantalla de inicio, el contenido aparece pegado a la barra de estado (hora, notch, wifi, batería) porque:
+Adaptar la pantalla de selección de categorías (mobile) al rediseño de la maqueta, manteniendo intacta la `BottomNavigation` actual.
 
-1. `index.html` declara `apple-mobile-web-app-status-bar-style="black-translucent"`, lo que hace la barra de estado **transparente** y permite que la web pinte por debajo de ella.
-2. Solo el wrapper de `Index.tsx` aplica `pt-safe` (`env(safe-area-inset-top)`) — sin separación visual extra, el primer bloque (Home Bento, títulos) queda visualmente pegado al notch.
-3. Otras pantallas full-screen (`Recipe.tsx`, `ShortRecipe.tsx`, páginas legales, `CookieBanner` flotante, headers `sticky top-0` de Admin/Privacy/Cookie/Legal) no tienen `pt-safe`, por lo que también se mezclan con la status bar.
+## Cambios visuales (mobile)
 
-## Solución
+Archivo único a modificar: `src/components/CategorySelector.tsx` (bloque mobile).
 
-### 1. Cambiar el estilo de la status bar de iOS
+### 1. Header rediseñado
+Reemplazar el header compacto actual por uno tipo "modal screen" inspirado en Apple:
 
-En `index.html`, sustituir:
-```html
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-```
-por:
-```html
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+```text
+[ ←  ]        [ Logo Lacer rojo ]        [ × ]
+              Selecciona categoría
 ```
 
-Con `default`, iOS reserva el espacio de la status bar y la pinta con el color del `theme-color` (#DC2626 ya configurado), de modo que la app **no** se renderiza debajo del notch. Esto resuelve el 90% del problema sin tocar JS.
+- Fondo blanco/`bg-background`, sin borde inferior visible.
+- Botón izquierdo: flecha `ArrowLeft` (icon ghost) → llama a `onClose` (volver atrás funcionalmente equivalente a cerrar).
+- Centro: imagen del logo Lacer (gota roja) — usaremos `lacer-logo-bocas_sanas.jpg` recortado o el icono de la PWA. Tamaño ~48px.
+- Botón derecho: `X` → `onClose`.
+- Debajo, centrado, título grande: `Selecciona categoría` (texto en `text-2xl font-medium text-foreground`, sin uppercase, sin badge a la izquierda).
+- Badge del contador de seleccionados se mueve a la derecha del título o se mantiene flotante en la action bar inferior (ya existente).
+- Botón "Plantillas" se mueve a un pequeño chip debajo del título (alineado a la derecha) para no saturar el header limpio.
 
-Mantener `viewport-fit=cover` (necesario para que `env(safe-area-inset-*)` siga funcionando en orientaciones landscape).
+### 2. Grid de categorías
+- Mantener `grid-cols-2` con `gap-3`.
+- Cambiar `aspect-square` → `aspect-[4/3]` para tarjetas más anchas que altas (como en la maqueta).
+- Tarjetas: `bg-white rounded-2xl border border-border/40` (borde gris muy suave, esquinas más redondeadas), sin sombra por defecto, sombra sutil al hover/active.
+- Logo de la marca: `object-contain p-4` (más padding interno para que el logo respire).
+- Eliminar el `card-scale-in` con delay escalonado largo — mantener animación pero más rápida (delay 15ms) para que entre fluido.
 
-### 2. Reforzar `pt-safe` con un mínimo razonable
+### 3. Espaciado general
+- Contenedor principal: `pt-safe` (ya existe) + `pt-2` extra para separar del notch.
+- Padding lateral: `px-5` (más aire lateral, como en la maqueta).
+- Asegurar `pb-[88px]` en el grid para que la última fila no quede tapada por la `BottomNavigation` (72px + safe area).
 
-En `src/index.css`, ampliar la utilidad `pt-safe` para garantizar un colchón mínimo aunque el inset reportado sea 0 (algunos navegadores en escritorio o Android lo devuelven como 0):
+### 4. Action bar de continuar
+- Mantener la barra flotante inferior cuando hay productos seleccionados, pero posicionarla **por encima** de la BottomNavigation (`bottom-[72px]` + safe area) en lugar de empujar el grid.
+- Mantener estilo `btn-gradient-red`.
 
-```css
-.pt-safe {
-  padding-top: max(env(safe-area-inset-top, 0px), 12px);
-}
-```
+### 5. NO se toca
+- `BottomNavigation.tsx` (queda exactamente como está).
+- Versión desktop del `CategorySelector` (sin cambios).
+- Lógica de carga de categorías, plantillas, navegación.
 
-Y añadir variantes útiles:
-```css
-.mt-safe { margin-top: env(safe-area-inset-top, 0px); }
-.min-h-screen-safe { min-height: calc(100vh - env(safe-area-inset-top, 0px)); }
-```
+## Detalles técnicos
 
-### 3. Aplicar `pt-safe` a las pantallas que faltan
-
-Añadir `pt-safe` (o aplicarlo al wrapper raíz) a:
-
-- `src/pages/Recipe.tsx` — los tres returns (`min-h-screen ... p-4`)
-- `src/pages/ShortRecipe.tsx` — los dos returns
-- `src/pages/Admin.tsx` — el header sticky o el wrapper
-- `src/pages/PrivacyPolicy.tsx`, `CookiePolicy.tsx`, `LegalNotice.tsx` — al header sticky
-- `src/pages/NotFound.tsx` — wrapper
-
-### 4. Headers sticky en móvil
-
-Para los headers `sticky top-0` (Admin, páginas legales), añadir `pt-safe` al propio header **además** del wrapper, para que su fondo se extienda visualmente bajo la status bar y no quede una franja blanca incongruente cuando el usuario hace scroll.
-
-### 5. Banner de cookies
-
-Revisar `CookieBanner.tsx`: si está fijo en la parte superior añadir `pt-safe`; si va abajo (lo más probable), asegurar `pb-safe` con `env(safe-area-inset-bottom)` (ya existe la utilidad).
-
-## Archivos a modificar
-
-- `index.html` — cambiar `status-bar-style` a `default`
-- `src/index.css` — reforzar `.pt-safe`, añadir `.mt-safe`
-- `src/pages/Index.tsx` — verificar que el header desktop también respeta safe area en tablets
-- `src/pages/Recipe.tsx`, `ShortRecipe.tsx`, `Admin.tsx`, `PrivacyPolicy.tsx`, `CookiePolicy.tsx`, `LegalNotice.tsx`, `NotFound.tsx` — añadir `pt-safe`
-- `src/components/CookieBanner.tsx` — verificar posición y aplicar safe area correspondiente
+- Importar `ArrowLeft` desde `lucide-react` además de los iconos ya usados.
+- Reutilizar el asset `@/assets/lacer-logo-bocas_sanas.jpg` ya importado, o si conviene usar el icono PWA cuadrado para el header. Verificaremos cuál se ve mejor recortado a 48x48.
+- Las tarjetas mantienen `onClick={() => onSelectCategory(...)}` sin cambios funcionales.
+- Animación: mantener `card-scale-in` con `animationDelay: ${index * 15}ms`.
 
 ## Resultado esperado
 
-Al abrir la PWA instalada en iPhone:
-- La barra de estado (hora, señal, batería) queda sobre un fondo rojo Lacer (`theme-color #DC2626`) en pantallas con header rojo, o respeta el espacio en blanco con margen suficiente en el resto.
-- El contenido de Home, Recetas, Pacientes, Recipe pública, etc. nunca se solapa con el notch o Dynamic Island.
-- En orientación horizontal (landscape) los insets laterales también se respetan donde aplica.
+Pantalla de categorías con apariencia mucho más Apple-minimal: header amplio y aireado, título grande sin badge ruidoso a la izquierda, tarjetas amplias 4:3 con bordes suaves, y la `BottomNavigation` actual visible debajo sin alteraciones.
