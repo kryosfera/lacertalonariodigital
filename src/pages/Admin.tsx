@@ -53,7 +53,7 @@ const Admin = () => {
       <div className="min-h-screen flex w-full bg-background">
         <AdminSidebar activeSection={activeSection} onSectionChange={setActiveSection} onSignOut={handleSignOut} />
         <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-16 flex items-center justify-between border-b bg-card/95 backdrop-blur-md px-4 sticky top-0 z-50 shadow-sm">
+          <header className="pt-safe flex items-center justify-between border-b bg-card/95 backdrop-blur-md px-4 sticky top-0 z-50 shadow-sm min-h-16">
             <div className="flex items-center gap-3 min-w-0">
               <SidebarTrigger />
               <div className="h-9 w-px bg-border shrink-0" aria-hidden />
