@@ -1,43 +1,67 @@
-## Rediseño del diálogo "Enviar por WhatsApp"
+# Problema
 
-Adaptar el `Dialog` actual en `src/components/RecipeCreator.tsx` (líneas ~928-1041) al diseño de la imagen de referencia: card blanca con esquinas más redondeadas, mayor jerarquía tipográfica, control de cantidad lateral compacto y CTA rojo prominente con sombra suave.
+En la captura de WhatsApp el enlace enviado es `lacertalonariodigital.lovable.app/receta?d=JTdCJTIyc...` (cadena base64 enorme). Al abrirlo aparece "Receta no encontrada" porque WhatsApp suele cortar / partir URLs largas y la decodificación base64 falla.
 
-### Cambios visuales
+## Causa raíz
 
-1. **Contenedor del diálogo**
-   - `DialogContent`: aumentar radio (`rounded-3xl`), padding más generoso (`p-6`), sombra más marcada y eliminar la línea divisoria por defecto.
-   - Mantener `max-w-md` y scroll interno.
+En `RecipeCreator.tsx → generateRecipeUrlWithFallback` el flujo es:
 
-2. **Encabezado**
-   - Título en `text-2xl font-bold` (más grande que el actual `text-lg`).
-   - Descripción en `text-base text-muted-foreground` con más aire debajo.
-   - El botón cerrar (X) se mantiene en su posición top-right (ya viene del DialogContent).
+1. Si es profesional → guardar en BD y usar `/receta?n=CODE` (URL corta, ideal).
+2. Crear short URL → `/r/CODE`.
+3. **Fallback base64** → `/receta?d=<cadena enorme>`.
 
-3. **Resumen de la receta**
-   - Etiqueta "RESUMEN DE LA RECETA" en `text-xs uppercase tracking-wider text-muted-foreground`.
-   - Cada producto dentro de una **card blanca con borde sutil** (`border border-border/60 rounded-2xl p-3`) en lugar del fondo `bg-muted/50` actual.
-   - Thumbnail más grande (`w-14 h-14`), nombre en 2 líneas si hace falta (`font-semibold text-base`), C.N. debajo en `text-sm text-muted-foreground`.
-   - **Selector de cantidad como `<Select>`** compacto a la derecha (en lugar de los botones +/−), mostrando "1 ▾", "2 ▾", etc. (1-10). Esto coincide con la imagen.
+En **Modo Básico** (sin login) se salta el paso 1 y, además, la RLS de `short_urls` exige `auth.uid() IS NOT NULL`, por lo que el paso 2 también falla. Resultado: siempre cae al fallback base64 que WhatsApp rompe.
 
-4. **Campo teléfono**
-   - Label "Teléfono (opcional)" en `text-base font-semibold text-foreground`.
-   - Input más alto (`h-12 rounded-xl`) con placeholder `+34 600 000 000`.
-   - Texto de ayuda debajo: "Si no introduces un número, se abrirá WhatsApp para que lo selecciones" en `text-sm text-muted-foreground`.
+# Solución
 
-5. **CTA principal**
-   - Botón rojo full-width (`h-14 rounded-2xl bg-primary`) con icono `Send` y texto `Enviar receta (N productos)` en `text-base font-semibold`.
-   - Añadir sombra suave roja: `shadow-[0_8px_24px_-8px_hsl(var(--primary)/0.5)]` para el efecto "glow" de la imagen.
+Permitir que **cualquier usuario** (incluso anónimo) pueda crear `short_urls`, para que el enlace sea siempre corto y válido del tipo `lacertalonariodigital.lovable.app/r/AbC123`.
 
-6. **Espaciado general**
-   - `space-y-5` entre secciones (vs `space-y-4` actual) para que respire más.
+## Cambios
 
-### Notas técnicas
+### 1. Base de datos (migración)
 
-- Solo se modifica el bloque del `Dialog` de envío en `RecipeCreator.tsx`. La lógica (`handleSendWhatsApp`, `updateQuantity`, estados) se mantiene intacta.
-- Cambiar los botones +/− por `<Select>` requiere usar el componente `Select` de `@/components/ui/select` (ya está en el proyecto). El valor se sigue enlazando a `updateQuantity(product.id, Number(value))`.
-- Mantener compatibilidad con el modo Email: solo se rediseña el contenedor y el resumen; el bloque de Email reutiliza los mismos estilos del input/label.
-- Respetar dark mode: usar tokens semánticos (`bg-card`, `border-border`, `text-foreground`) en lugar de blancos hardcodeados.
+Reemplazar la política INSERT de `short_urls` para permitir creaciones anónimas:
 
-### Archivos a modificar
+```sql
+DROP POLICY "Authenticated users can create short URLs" ON public.short_urls;
 
-- `src/components/RecipeCreator.tsx` — bloque líneas ~928-1041.
+CREATE POLICY "Anyone can create short URLs"
+  ON public.short_urls FOR INSERT
+  WITH CHECK (true);
+```
+
+Riesgos / mitigación:
+- La tabla ya tiene expiración a 30 días y se limpia con `cleanup_expired_short_urls`.
+- El `code` se genera server-side (`generate_short_code()`), no es manipulable.
+- Solo guarda datos de receta no sensibles (productos + nombre paciente + notas), igual que ya hace el flujo profesional cuando se comparte una receta pública.
+
+### 2. `src/lib/recipeUtils.ts → createShortUrl`
+
+Hacerla funcional sin sesión:
+- Si hay sesión → usar `Authorization: Bearer <accessToken>` (como ahora).
+- Si no hay sesión → usar `Authorization: Bearer <anon key>` (igual que el resto de llamadas anónimas del proyecto).
+- Quitar el `return null` cuando falta sesión.
+
+### 3. `src/components/RecipeCreator.tsx`
+
+Sin cambios de lógica: el flujo de fallback ya prefiere short URL antes que base64; al desbloquear `createShortUrl` para anónimos, los usuarios en Modo Básico recibirán siempre `/r/CODE`.
+
+# Resultado esperado
+
+El mensaje de WhatsApp pasará de:
+
+```
+Consulta la receta en:
+https://lacertalonariodigital.lovable.app/receta?d=JTdCJTIycCUyMiUz... (200+ chars)
+```
+
+A:
+
+```
+Consulta la receta en:
+https://lacertalonariodigital.lovable.app/r/Ab3xK9
+```
+
+Enlace corto, copiable y que WhatsApp no parte. Funciona tanto en Modo Básico como Profesional.
+
+¿Apruebas?
