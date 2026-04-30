@@ -803,10 +803,10 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                       setPatientPhone("");
                       setPatientEmail("");
                     }}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors z-10"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-md hover:bg-muted transition-colors z-10"
                     aria-label="Limpiar paciente"
                   >
-                    {selectedPatient ? <Check className="w-4 h-4 text-green-500" /> : <X className="w-4 h-4" />}
+                    <Check className="w-5 h-5 text-green-500" />
                   </button>
                 )}
 
