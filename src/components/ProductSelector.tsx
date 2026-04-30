@@ -77,102 +77,101 @@ export const ProductSelector = ({
   const gridConfig = getGridConfig(filteredProducts.length);
   const needsScroll = filteredProducts.length > 12;
 
-  // Mobile: Grid visual con imágenes maximizadas
+  // Mobile: Apple-style vertical list
   if (isMobile) {
+    const hasSelection = selectedProducts.size > 0;
     return (
-      <div 
+      <div
         className={`fixed inset-0 z-50 bg-background flex flex-col pt-safe ${
           isClosing ? 'screen-slide-out' : 'screen-slide-in'
         }`}
       >
-        {/* Compact header */}
-        <div className="flex items-center justify-between px-3 py-2 border-b border-border/30">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onBack}
-              className="text-foreground w-8 h-8"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
-            <div className="min-w-0">
-              <h2 className="text-sm font-semibold text-foreground truncate">
-                {categoryName}
-              </h2>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {selectedProducts.size > 0 && (
-              <Badge className="bg-secondary text-secondary-foreground font-bold">
-                {selectedProducts.size}
-              </Badge>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              className="text-muted-foreground w-8 h-8"
-            >
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
+        {/* Header: back · category title · close */}
+        <div className="flex items-center justify-between px-2 py-2 border-b border-border/40 bg-background">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onBack}
+            className="text-foreground w-10 h-10"
+            aria-label="Volver"
+          >
+            <ChevronLeft className="w-6 h-6" strokeWidth={2.5} />
+          </Button>
+
+          <h2 className="text-base font-bold text-foreground uppercase tracking-wide truncate px-2">
+            {categoryName}
+          </h2>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onClose}
+            className="text-foreground w-10 h-10"
+            aria-label="Cerrar"
+          >
+            <X className="w-6 h-6" strokeWidth={2} />
+          </Button>
         </div>
-        
-        {/* Search - compact */}
-        <div className="px-3 py-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+
+        {/* Lacer logo + search block on muted background */}
+        <div className="bg-muted/40 px-4 pt-3 pb-3 flex flex-col items-center gap-3">
+          <img
+            src={lacerIcon}
+            alt="Lacer"
+            className="h-12 w-auto object-contain"
+          />
+          <div className="relative w-full">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
               placeholder="Buscar..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-9 h-9 bg-muted border-0 text-sm"
+              className="pl-11 h-12 rounded-xl bg-background border border-border/40 text-base"
             />
           </div>
         </div>
 
-        {/* Products grid - fills remaining space */}
-        <div className="flex-1 overflow-auto p-2">
+        {/* Products vertical list */}
+        <div className="flex-1 overflow-auto bg-muted/40 px-4 pt-3 pb-[170px]">
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 gap-3 max-w-xs mx-auto w-full">
+            <div className="flex flex-col gap-3">
               {filteredProducts.map((product, index) => {
                 const isSelected = selectedProducts.has(product.id);
-                
+
                 return (
                   <button
                     key={product.id}
                     onClick={() => onToggleProduct(product.id)}
-                    className={`relative flex flex-col bg-white rounded-xl border-2 transition-all duration-200 overflow-hidden card-scale-in aspect-square ${
-                      isSelected 
-                        ? 'border-secondary ring-2 ring-secondary/30 shadow-md' 
-                        : 'border-transparent hover:border-secondary/30'
+                    className={`relative flex flex-col bg-background rounded-2xl shadow-sm overflow-hidden card-scale-in transition-all duration-200 ${
+                      isSelected
+                        ? 'border-2 border-secondary ring-2 ring-secondary/20'
+                        : 'border border-border/30 hover:border-secondary/40'
                     }`}
-                    style={{ animationDelay: `${index * 15}ms` }}
+                    style={{ animationDelay: `${index * 20}ms` }}
                   >
                     {/* Selection indicator */}
                     {isSelected && (
-                      <div className="absolute top-1.5 right-1.5 z-10 w-6 h-6 bg-secondary rounded-full flex items-center justify-center shadow-sm">
-                        <Check className="w-3.5 h-3.5 text-white" />
+                      <div className="absolute top-3 right-3 z-10 w-7 h-7 bg-secondary rounded-full flex items-center justify-center shadow-md">
+                        <Check className="w-4 h-4 text-white" strokeWidth={3} />
                       </div>
                     )}
-                    
-                    {/* Product image - maximized */}
-                    <div className="flex-1 flex items-center justify-center w-full min-h-0 p-3">
+
+                    {/* Product image */}
+                    <div className="flex items-center justify-center w-full h-40 p-4">
                       {product.thumbnail_url ? (
                         <img
                           src={product.thumbnail_url}
                           alt={product.name}
-                          className="w-full h-full object-contain"
+                          className="max-h-full max-w-full object-contain"
                         />
                       ) : (
-                        <Package className="w-10 h-10 text-muted-foreground/50" />
+                        <Package className="w-12 h-12 text-muted-foreground/50" />
                       )}
                     </div>
 
                     {/* Product name */}
-                    <div className="px-3 pb-2.5 pt-1.5 border-t border-border/20">
-                      <span className="text-sm font-semibold text-foreground text-center leading-tight line-clamp-2 block">
+                    <div className="px-3 pb-4">
+                      <span className="block text-base font-bold text-foreground text-center uppercase tracking-wide leading-tight">
                         {product.name}
                       </span>
                     </div>
@@ -181,30 +180,32 @@ export const ProductSelector = ({
               })}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+            <div className="flex flex-col items-center justify-center h-full text-muted-foreground py-20">
               <Package className="w-10 h-10 mb-2 opacity-50" />
               <p className="text-sm">No se encontraron productos</p>
             </div>
           )}
         </div>
 
-        {/* Bottom action bar */}
-        <div className="p-3 border-t border-border/30 bg-background safe-area-pb">
-          <div className="flex gap-2">
+        {/* Floating action bar above BottomNavigation (72px) */}
+        <div className="fixed left-0 right-0 bottom-[72px] px-4 pt-3 pb-3 bg-background/95 backdrop-blur-md border-t border-border/30">
+          <div className="flex gap-3">
             <Button
               variant="outline"
               onClick={onBack}
-              className="flex-1 gap-2"
+              className="flex-1 h-12 gap-2 rounded-xl text-base font-medium"
             >
               <FolderOpen className="w-4 h-4" />
               Otra categoría
             </Button>
             <Button
               onClick={onClose}
-              className={`flex-1 gap-2 ${selectedProducts.size > 0 ? 'btn-gradient-red' : ''}`}
-              variant={selectedProducts.size > 0 ? "default" : "outline"}
+              variant={hasSelection ? "default" : "outline"}
+              className={`flex-1 h-12 gap-2 rounded-xl text-base font-medium ${
+                hasSelection ? 'btn-gradient-red' : ''
+              }`}
             >
-              {selectedProducts.size > 0 ? (
+              {hasSelection ? (
                 <>
                   <Check className="w-4 h-4" />
                   Continuar ({selectedProducts.size})
