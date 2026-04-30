@@ -1,37 +1,31 @@
 ## Problema
 
-En la pantalla de selección de productos (móvil), los botones **Otra categoría** y **Continuar** aparecen flotando con un hueco grande debajo, en lugar de pegados al borde inferior de la pantalla.
+En la pantalla de selección de productos (móvil) se ve el contenido de la pantalla padre ("Nueva Receta") **transparentándose por la zona superior** (safe area del notch). Además, al hacer scroll, los productos pasan visibles por debajo de esa franja superior.
 
-**Causa**: el selector se renderiza como overlay a pantalla completa (`fixed inset-0 z-50`) por encima de todo, incluida la `BottomNavigation`. Pero la barra de botones está fijada en `bottom-[72px]` reservando espacio para una navbar que **no está visible** detrás del overlay. Resultado: 72px de hueco vacío bajo los botones.
+**Causa**: el contenedor raíz del overlay tiene `pt-safe` (padding-top para la safe area de iOS) pero el fondo `bg-background` aplica al contenedor entero. El padding crea una zona en la parte superior donde no hay contenido, y como el header interno (`bg-background`) empieza **debajo** del padding, esa franja superior queda "translúcida" visualmente respecto al contenido que scrollea por detrás dentro del flex layout.
 
 ## Solución
 
-En `src/components/ProductSelector.tsx` (bloque mobile, líneas ~190-225):
+En `src/components/ProductSelector.tsx`, bloque mobile:
 
-1. **Fijar la barra al borde inferior real**: cambiar `bottom-[72px]` por `bottom-0`.
-2. **Respetar safe area iOS**: añadir `pb-[max(12px,env(safe-area-inset-bottom))]` para que en iPhones con notch/home indicator los botones no queden pegados al borde físico.
-3. **Ajustar el padding inferior del listado de productos**: cambiar `pb-[170px]` por algo menor (`pb-[110px]`) ya que ahora la barra ocupa menos espacio vertical (sin los 72px extra).
+1. **Quitar `pt-safe` del contenedor raíz** (línea 85).
+2. **Añadir `pt-safe` al header interno** (back / título / cerrar) en línea 90, junto con su `bg-background` ya existente. Así la safe area queda cubierta por el header opaco, sin hueco transparente.
 
 ```tsx
-{/* Listado */}
-<div className="flex-1 overflow-auto bg-muted/40 px-4 pt-3 pb-[110px]">
+{/* Antes */}
+<div className="fixed inset-0 z-50 bg-background flex flex-col pt-safe ...">
+  <div className="flex items-center justify-between px-2 py-2 border-b ... bg-background">
 
-{/* Barra de acción pegada al fondo */}
-<div className="fixed left-0 right-0 bottom-0 px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] bg-background/95 backdrop-blur-md border-t border-border/30">
-  <div className="flex gap-3">
-    <Button variant="outline" ...>Otra categoría</Button>
-    <Button ...>Continuar (N)</Button>
-  </div>
-</div>
+{/* Después */}
+<div className="fixed inset-0 z-50 bg-background flex flex-col ...">
+  <div className="flex items-center justify-between px-2 py-2 pt-safe border-b ... bg-background">
 ```
 
 ## Lo que NO se toca
 
-- Lógica del componente ni props.
-- Versión desktop.
-- `BottomNavigation` (sigue oculta detrás del overlay, que es el comportamiento correcto: el selector es modal a pantalla completa).
-- Header, búsqueda y grid de productos.
+- Lógica del componente, props ni desktop.
+- Resto del layout (logo Lacer, búsqueda, lista de productos, barra inferior).
 
 ## Resultado
 
-Los botones **Otra categoría** y **Continuar (N)** quedan fijados al borde inferior de la pantalla, respetando la safe area de iOS, sin hueco vacío debajo.
+La franja superior (notch / status bar) queda totalmente cubierta por el header opaco del selector. No se ve nada del "Nueva Receta" detrás, ni al cargar ni al hacer scroll.
