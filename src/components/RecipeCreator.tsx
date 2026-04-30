@@ -762,13 +762,13 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
           </div>
 
           {/* Notes - Compact on mobile */}
-          <div className="px-3 md:px-0 mt-3">
+          <div className="px-3 md:px-0 mt-4">
             <Textarea
               placeholder="Notas adicionales (opcional)..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              rows={2}
-              className="resize-none text-sm bg-muted/30 border-muted"
+              rows={3}
+              className="resize-none text-sm bg-muted/60 border-0 rounded-2xl p-4 placeholder:text-muted-foreground/70 focus-visible:ring-1 focus-visible:ring-secondary/30"
             />
           </div>
 
