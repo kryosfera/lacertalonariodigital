@@ -774,9 +774,9 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
 
           {/* Patient Info - Only for Professional users */}
           {isProfessional && (
-            <div className="px-3 md:px-0 mt-3">
+            <div className="px-3 md:px-0 mt-4">
               <div className="relative">
-                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 pointer-events-none z-10" />
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4 pointer-events-none z-10" />
                 <Input
                   placeholder="Buscar o escribir paciente..."
                   value={patientName}
@@ -790,7 +790,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                     // Delay close so click on item registers
                     setTimeout(() => setPatientSearchOpen(false), 150);
                   }}
-                  className="pl-10 pr-10 h-10"
+                  className="pl-11 pr-11 h-14 rounded-2xl border border-border/40 bg-background text-sm font-medium"
                   autoComplete="off"
                 />
                 {(selectedPatient || patientName) && (
