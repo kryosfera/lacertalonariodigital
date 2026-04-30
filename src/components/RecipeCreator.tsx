@@ -23,7 +23,6 @@ import { useCreateRecipe, RecipeProduct } from "@/hooks/useRecipes";
 import { cn } from "@/lib/utils";
 
 import { useProfile } from "@/hooks/useProfile";
-import lacerLogo from "@/assets/lacer-logo.png";
 
 interface Product {
   id: string;
