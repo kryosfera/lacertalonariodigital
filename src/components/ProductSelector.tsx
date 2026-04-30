@@ -132,7 +132,7 @@ export const ProductSelector = ({
         </div>
 
         {/* Products vertical list */}
-        <div className="flex-1 overflow-auto bg-muted/40 px-4 pt-3 pb-[170px]">
+        <div className="flex-1 overflow-auto bg-muted/40 px-4 pt-3 pb-[110px]">
           {filteredProducts.length > 0 ? (
             <div className="flex flex-col gap-3">
               {filteredProducts.map((product, index) => {
@@ -187,8 +187,8 @@ export const ProductSelector = ({
           )}
         </div>
 
-        {/* Floating action bar above BottomNavigation (72px) */}
-        <div className="fixed left-0 right-0 bottom-[72px] px-4 pt-3 pb-3 bg-background/95 backdrop-blur-md border-t border-border/30">
+        {/* Floating action bar pinned to bottom (overlay covers BottomNavigation) */}
+        <div className="fixed left-0 right-0 bottom-0 px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] bg-background/95 backdrop-blur-md border-t border-border/30">
           <div className="flex gap-3">
             <Button
               variant="outline"
