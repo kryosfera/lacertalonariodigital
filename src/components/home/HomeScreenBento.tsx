@@ -100,14 +100,14 @@ export const HomeScreenBento = ({
         <div className="relative flex flex-col items-center text-center">
           {/* Logo */}
           <motion.div
-            className="w-16 h-16 md:w-20 md:h-20 rounded-[1.25rem] bg-white/95 backdrop-blur-sm shadow-xl flex items-center justify-center mb-3"
+            className="w-14 h-14 md:w-18 md:h-18 rounded-[1.1rem] bg-white/95 backdrop-blur-sm shadow-xl flex items-center justify-center mb-2"
             variants={itemVariants}
             whileHover={{ scale: 1.05, rotate: -2 }}
           >
             {hasClinicInfo && profile?.logo_url ? (
-              <img src={profile.logo_url} alt={profile.clinic_name || "Clínica"} className="w-12 h-12 md:w-14 md:h-14 object-contain rounded-lg" />
+              <img src={profile.logo_url} alt={profile.clinic_name || "Clínica"} className="w-10 h-10 md:w-12 md:h-12 object-contain rounded-lg" />
             ) : (
-              <img src={lacerLogo} alt="Lacer" className="w-12 h-12 md:w-14 md:h-14 object-contain" />
+              <img src={lacerLogo} alt="Lacer" className="w-10 h-10 md:w-12 md:h-12 object-contain" />
             )}
           </motion.div>
 
