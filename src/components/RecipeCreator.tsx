@@ -875,26 +875,26 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
           )}
 
           {/* Action Buttons - Integrated in content flow (NOT fixed) */}
-          <div className="px-3 md:px-0 mt-4 mb-4 space-y-3">
+          <div className="px-3 md:px-0 mt-6 mb-4 space-y-3">
             {/* Primary action - WhatsApp full width */}
             <Button
               onClick={() => {
                 setSendMethod("whatsapp");
                 setShowSendDialog(true);
               }}
-              className="w-full h-12 md:h-14 bg-[#25D366] hover:bg-[#128C7E] text-white font-semibold text-base gap-2"
+              className="w-full h-14 bg-[#25D366] hover:bg-[#1FAD54] text-white font-semibold text-base gap-2 rounded-2xl shadow-sm"
               disabled={selectedProducts.size === 0}
             >
               <MessageCircle className="w-5 h-5" />
               Enviar por WhatsApp
               {selectedProducts.size > 0 && (
-                <Badge variant="secondary" className="ml-1 bg-white/20 text-white">
+                <Badge variant="secondary" className="ml-1 bg-white/20 text-white border-0 rounded-full px-2.5">
                   {selectedProductsData.reduce((acc, p) => acc + p.quantity, 0)} uds
                 </Badge>
               )}
             </Button>
 
-            {/* Secondary actions - Inline row */}
+            {/* Secondary actions - 3 equal outline buttons */}
             <div className="flex gap-2">
               <Button
                 onClick={() => {
@@ -902,28 +902,29 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                   setShowSendDialog(true);
                 }}
                 variant="outline"
-                className="flex-1 h-11 gap-2"
+                className="flex-1 h-12 gap-2 rounded-xl border-secondary/40 text-secondary hover:bg-secondary/5 hover:text-secondary hover:border-secondary/60"
                 disabled={selectedProducts.size === 0}
               >
                 <Mail className="w-4 h-4" />
-                <span className="text-sm">Email</span>
+                <span className="text-sm font-medium">Email</span>
               </Button>
               <Button
                 variant="outline"
-                className="flex-1 h-11 gap-2"
+                className="flex-1 h-12 gap-2 rounded-xl border-secondary/40 text-secondary hover:bg-secondary/5 hover:text-secondary hover:border-secondary/60"
                 disabled={selectedProducts.size === 0 || isSending}
                 onClick={handleDownloadPDF}
               >
                 <Download className="w-4 h-4" />
-                <span className="text-sm">PDF</span>
+                <span className="text-sm font-medium">PDF</span>
               </Button>
               <Button
                 variant="outline"
-                className="h-11 w-11 p-0"
+                className="flex-1 h-12 gap-2 rounded-xl border-secondary/40 text-secondary hover:bg-secondary/5 hover:text-secondary hover:border-secondary/60"
                 disabled={selectedProducts.size === 0 || isSending}
                 onClick={handlePrint}
               >
                 <Printer className="w-4 h-4" />
+                <span className="text-sm font-medium">Print</span>
               </Button>
             </div>
           </div>
