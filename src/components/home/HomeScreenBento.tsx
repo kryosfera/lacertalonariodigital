@@ -71,7 +71,7 @@ export const HomeScreenBento = ({
 
   return (
     <motion.div
-      className="min-h-[calc(100vh-80px)] flex flex-col px-5 lg:px-8"
+      className="min-h-[calc(100vh-80px)] flex flex-col px-5 lg:px-8 pb-20 md:pb-4"
       initial="hidden"
       animate="visible"
       variants={containerVariants}
