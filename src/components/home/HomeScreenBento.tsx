@@ -139,14 +139,14 @@ export const HomeScreenBento = ({
           ) : (
             <>
               <motion.h1
-                className="text-[1.75rem] sm:text-3xl md:text-4xl font-bold text-white tracking-tight leading-[1.1] mb-2"
+                className="text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight leading-[1.1] mb-1.5"
                 variants={itemVariants}
               >
                 Talonario Digital
               </motion.h1>
 
               <motion.p
-                className="text-sm md:text-base text-white/80 max-w-xs leading-relaxed"
+                className="text-xs md:text-sm text-white/80 max-w-xs leading-relaxed"
                 variants={itemVariants}
               >
                 Recetas digitales para tus pacientes, directo a su móvil.
