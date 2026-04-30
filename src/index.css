@@ -46,12 +46,12 @@ All colors MUST be HSL.
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary: 353 79% 49%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 210 40% 96%;
     --sidebar-accent-foreground: 222 47% 11%;
     --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 221 83% 53%;
+    --sidebar-ring: 353 79% 49%;
 
     /* Medical theme gradients - Using Lacer red */
     --gradient-medical: linear-gradient(135deg, hsl(0 72% 51%), hsl(0 72% 41%));
