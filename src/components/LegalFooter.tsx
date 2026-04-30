@@ -10,7 +10,7 @@ export const LegalFooter = ({ className = "" }: LegalFooterProps) => {
   const { openPreferences } = useCookieConsent();
 
   return (
-    <footer className={`py-4 px-4 ${className}`}>
+    <footer className={`py-2 px-4 ${className}`}>
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[10px] text-muted-foreground/60">
         <Link 
           to="/politica-cookies" 
