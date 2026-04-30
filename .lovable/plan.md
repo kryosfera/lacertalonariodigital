@@ -1,31 +1,43 @@
-## Problema
+## Rediseño del diálogo "Enviar por WhatsApp"
 
-En la pantalla de selección de productos (móvil) se ve el contenido de la pantalla padre ("Nueva Receta") **transparentándose por la zona superior** (safe area del notch). Además, al hacer scroll, los productos pasan visibles por debajo de esa franja superior.
+Adaptar el `Dialog` actual en `src/components/RecipeCreator.tsx` (líneas ~928-1041) al diseño de la imagen de referencia: card blanca con esquinas más redondeadas, mayor jerarquía tipográfica, control de cantidad lateral compacto y CTA rojo prominente con sombra suave.
 
-**Causa**: el contenedor raíz del overlay tiene `pt-safe` (padding-top para la safe area de iOS) pero el fondo `bg-background` aplica al contenedor entero. El padding crea una zona en la parte superior donde no hay contenido, y como el header interno (`bg-background`) empieza **debajo** del padding, esa franja superior queda "translúcida" visualmente respecto al contenido que scrollea por detrás dentro del flex layout.
+### Cambios visuales
 
-## Solución
+1. **Contenedor del diálogo**
+   - `DialogContent`: aumentar radio (`rounded-3xl`), padding más generoso (`p-6`), sombra más marcada y eliminar la línea divisoria por defecto.
+   - Mantener `max-w-md` y scroll interno.
 
-En `src/components/ProductSelector.tsx`, bloque mobile:
+2. **Encabezado**
+   - Título en `text-2xl font-bold` (más grande que el actual `text-lg`).
+   - Descripción en `text-base text-muted-foreground` con más aire debajo.
+   - El botón cerrar (X) se mantiene en su posición top-right (ya viene del DialogContent).
 
-1. **Quitar `pt-safe` del contenedor raíz** (línea 85).
-2. **Añadir `pt-safe` al header interno** (back / título / cerrar) en línea 90, junto con su `bg-background` ya existente. Así la safe area queda cubierta por el header opaco, sin hueco transparente.
+3. **Resumen de la receta**
+   - Etiqueta "RESUMEN DE LA RECETA" en `text-xs uppercase tracking-wider text-muted-foreground`.
+   - Cada producto dentro de una **card blanca con borde sutil** (`border border-border/60 rounded-2xl p-3`) en lugar del fondo `bg-muted/50` actual.
+   - Thumbnail más grande (`w-14 h-14`), nombre en 2 líneas si hace falta (`font-semibold text-base`), C.N. debajo en `text-sm text-muted-foreground`.
+   - **Selector de cantidad como `<Select>`** compacto a la derecha (en lugar de los botones +/−), mostrando "1 ▾", "2 ▾", etc. (1-10). Esto coincide con la imagen.
 
-```tsx
-{/* Antes */}
-<div className="fixed inset-0 z-50 bg-background flex flex-col pt-safe ...">
-  <div className="flex items-center justify-between px-2 py-2 border-b ... bg-background">
+4. **Campo teléfono**
+   - Label "Teléfono (opcional)" en `text-base font-semibold text-foreground`.
+   - Input más alto (`h-12 rounded-xl`) con placeholder `+34 600 000 000`.
+   - Texto de ayuda debajo: "Si no introduces un número, se abrirá WhatsApp para que lo selecciones" en `text-sm text-muted-foreground`.
 
-{/* Después */}
-<div className="fixed inset-0 z-50 bg-background flex flex-col ...">
-  <div className="flex items-center justify-between px-2 py-2 pt-safe border-b ... bg-background">
-```
+5. **CTA principal**
+   - Botón rojo full-width (`h-14 rounded-2xl bg-primary`) con icono `Send` y texto `Enviar receta (N productos)` en `text-base font-semibold`.
+   - Añadir sombra suave roja: `shadow-[0_8px_24px_-8px_hsl(var(--primary)/0.5)]` para el efecto "glow" de la imagen.
 
-## Lo que NO se toca
+6. **Espaciado general**
+   - `space-y-5` entre secciones (vs `space-y-4` actual) para que respire más.
 
-- Lógica del componente, props ni desktop.
-- Resto del layout (logo Lacer, búsqueda, lista de productos, barra inferior).
+### Notas técnicas
 
-## Resultado
+- Solo se modifica el bloque del `Dialog` de envío en `RecipeCreator.tsx`. La lógica (`handleSendWhatsApp`, `updateQuantity`, estados) se mantiene intacta.
+- Cambiar los botones +/− por `<Select>` requiere usar el componente `Select` de `@/components/ui/select` (ya está en el proyecto). El valor se sigue enlazando a `updateQuantity(product.id, Number(value))`.
+- Mantener compatibilidad con el modo Email: solo se rediseña el contenedor y el resumen; el bloque de Email reutiliza los mismos estilos del input/label.
+- Respetar dark mode: usar tokens semánticos (`bg-card`, `border-border`, `text-foreground`) en lugar de blancos hardcodeados.
 
-La franja superior (notch / status bar) queda totalmente cubierta por el header opaco del selector. No se ve nada del "Nueva Receta" detrás, ni al cargar ni al hacer scroll.
+### Archivos a modificar
+
+- `src/components/RecipeCreator.tsx` — bloque líneas ~928-1041.
