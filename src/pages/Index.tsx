@@ -58,6 +58,14 @@ const Index = () => {
     }
   }, [isProfessional, activeTab]);
 
+  // Always refresh Home stats when returning to the Home tab
+  useEffect(() => {
+    if (activeTab === "home" && user) {
+      refetchHomeStats();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, user?.id]);
+
   // When the tour ends (finish or skip), return the user to Home
   const handleTourNext = () => {
     const wasLast = tour.currentStep === tour.totalSteps - 1;
