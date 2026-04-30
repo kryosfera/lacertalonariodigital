@@ -118,8 +118,8 @@ export const SurgeryRecommendations = () => {
   return (
     <div className="space-y-6 pb-24 md:pb-8 pt-safe">
       {/* Header */}
-      <div className="px-5 pt-4">
-        <div className="flex justify-center md:justify-start mb-4">
+      <div className="px-5 pt-4 text-center">
+        <div className="flex justify-center mb-4">
           <img src={lacerLogo} alt="Lacer" className="h-7 md:h-9 w-auto" />
         </div>
         <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight leading-none">
