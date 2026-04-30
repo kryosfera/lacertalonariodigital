@@ -17,11 +17,11 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    --primary: 221 83% 53%;
+    --primary: 353 79% 49%;
     --primary-foreground: 0 0% 100%;
     
-    --primary-light: 221 83% 63%;
-    --primary-dark: 221 83% 38%;
+    --primary-light: 353 79% 59%;
+    --primary-dark: 353 79% 39%;
 
     --secondary: 0 72% 51%;
     --secondary-foreground: 0 0% 100%;
@@ -40,18 +40,18 @@ All colors MUST be HSL.
 
     --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 221 83% 53%;
+    --ring: 353 79% 49%;
 
     --radius: 0.75rem;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 222 47% 11%;
-    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary: 353 79% 49%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 210 40% 96%;
     --sidebar-accent-foreground: 222 47% 11%;
     --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 221 83% 53%;
+    --sidebar-ring: 353 79% 49%;
 
     /* Medical theme gradients - Using Lacer red */
     --gradient-medical: linear-gradient(135deg, hsl(0 72% 51%), hsl(0 72% 41%));
@@ -79,11 +79,11 @@ All colors MUST be HSL.
     --popover: 217 33% 17%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 221 83% 53%;
+    --primary: 353 79% 49%;
     --primary-foreground: 0 0% 100%;
     
-    --primary-light: 221 83% 63%;
-    --primary-dark: 221 83% 38%;
+    --primary-light: 353 79% 59%;
+    --primary-dark: 353 79% 39%;
 
     --secondary: 0 72% 51%;
     --secondary-foreground: 0 0% 100%;
