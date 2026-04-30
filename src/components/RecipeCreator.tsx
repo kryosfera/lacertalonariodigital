@@ -582,20 +582,26 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       )}
 
       {/* Recipe Summary - Maximized for mobile */}
-      <div className="max-w-2xl mx-auto pb-24 md:pb-4">
+      <div className="max-w-2xl mx-auto pb-28 md:pb-4">
         {/* Mobile: Full-height flex layout */}
         <div className="flex flex-col h-full md:block">
-          
+
+          {/* Mobile centered header: Lacer logo + title */}
+          <div className="md:hidden flex flex-col items-center pt-3 pb-4">
+            <img src={lacerLogo} alt="Lacer" className="h-10 w-auto" />
+            <h1 className="text-xl font-bold text-foreground mt-2">Nueva Receta</h1>
+          </div>
+
           {/* Quick Actions Bar - Mobile first */}
-          <div className="px-3 md:px-0 mb-2 md:mb-4">
+          <div className="px-3 md:px-0 mb-3 md:mb-4">
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                className="flex-1 h-12 md:h-14 border-dashed border-2 hover:border-secondary hover:bg-secondary/5 transition-colors font-medium"
+                className="flex-1 h-14 md:h-14 border-2 border-secondary/60 hover:border-secondary hover:bg-secondary/5 transition-colors font-semibold rounded-2xl text-base bg-transparent"
                 onClick={handleOpenCategorySelector}
               >
                 <Plus className="w-5 h-5 mr-2" />
-                <span className="hidden sm:inline">Añadir </span>Productos
+                Productos
               </Button>
             </div>
           </div>
