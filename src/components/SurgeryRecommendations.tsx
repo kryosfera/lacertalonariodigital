@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { FileText, Play, Scissors, Syringe, BookOpen, X, Share2, Mail, MessageCircle, ExternalLink, Phone, Smartphone, Stethoscope, HeartPulse, Pill, Activity, ClipboardList, Link as LinkIcon, Loader2 } from "lucide-react";
+import { FileText, Play, Scissors, Syringe, BookOpen, X, Share2, Mail, MessageCircle, ExternalLink, Phone, Smartphone, Stethoscope, HeartPulse, Pill, Activity, ClipboardList, Link as LinkIcon, Loader2, LayoutGrid, List } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,6 +49,7 @@ export const SurgeryRecommendations = () => {
   const [phoneError, setPhoneError] = useState("");
   const [whatsAppData, setWhatsAppData] = useState<WhatsAppShareData | null>(null);
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
 
   const filtered = useMemo(() => {
     if (!items) return [];
@@ -118,35 +119,61 @@ export const SurgeryRecommendations = () => {
     <div className="space-y-6 pb-24 md:pb-8 pt-safe">
       {/* Header */}
       <div className="px-5 pt-4">
-        <div className="flex justify-center md:justify-start mb-6">
-          <img src={lacerLogo} alt="Lacer" className="h-8 md:h-10 w-auto" />
+        <div className="flex justify-center md:justify-start mb-4">
+          <img src={lacerLogo} alt="Lacer" className="h-7 md:h-9 w-auto" />
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight leading-none">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight leading-none">
           Recomendaciones
         </h1>
-        <p className="text-base md:text-lg text-muted-foreground mt-2">
+        <p className="text-sm md:text-base text-muted-foreground mt-1">
           Material para tus pacientes
         </p>
 
-        {/* Filter pills */}
-        <div className="flex gap-2 flex-wrap mt-6">
-          {filterOptions.map((opt) => {
-            const isActive = activeFilter === opt.value;
-            return (
-              <button
-                key={opt.value}
-                onClick={() => setActiveFilter(opt.value)}
-                className={cn(
-                  "px-5 py-2 rounded-full text-sm font-medium border transition-all duration-200 active:scale-95",
-                  isActive
-                    ? "border-primary text-primary bg-background shadow-sm"
-                    : "border-border text-muted-foreground bg-background hover:border-muted-foreground/40"
-                )}
-              >
-                {opt.label}
-              </button>
-            );
-          })}
+        {/* Filters + view toggle on one line */}
+        <div className="flex items-center gap-2 mt-5">
+          <div className="flex gap-1.5 flex-1 min-w-0 overflow-x-auto scrollbar-none">
+            {filterOptions.map((opt) => {
+              const isActive = activeFilter === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => setActiveFilter(opt.value)}
+                  className={cn(
+                    "shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 active:scale-95",
+                    isActive
+                      ? "border-primary text-primary bg-background shadow-sm"
+                      : "border-border text-muted-foreground bg-background hover:border-muted-foreground/40"
+                  )}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* View mode toggle */}
+          <div className="shrink-0 flex items-center bg-muted rounded-full p-0.5">
+            <button
+              onClick={() => setViewMode('card')}
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                viewMode === 'card' ? "bg-background text-primary shadow-sm" : "text-muted-foreground"
+              )}
+              aria-label="Vista tarjetas"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                viewMode === 'list' ? "bg-background text-primary shadow-sm" : "text-muted-foreground"
+              )}
+              aria-label="Vista lista"
+            >
+              <List className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -158,15 +185,15 @@ export const SurgeryRecommendations = () => {
           </div>
         ) : filtered.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground py-12">No hay recomendaciones disponibles.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        ) : viewMode === 'card' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filtered.map((rec) => {
               const Icon = ICONS[rec.icon ?? 'FileText'] ?? FileText;
               const isVideo = rec.kind === 'video';
               return (
                 <article
                   key={rec.id}
-                  className="group bg-card rounded-3xl overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300 border border-border/40"
+                  className="group bg-card rounded-2xl overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300 border border-border/40"
                 >
                   {/* Image */}
                   <div
@@ -182,58 +209,152 @@ export const SurgeryRecommendations = () => {
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
-                        <Icon className="w-12 h-12 text-primary/40" />
+                        <Icon className="w-10 h-10 text-primary/40" />
                       </div>
                     )}
 
                     {/* Type badge */}
-                    <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-background/90 backdrop-blur-md text-xs font-semibold text-foreground shadow-sm">
+                    <div className="absolute top-2.5 right-2.5 px-2.5 py-0.5 rounded-full bg-background/90 backdrop-blur-md text-[10px] font-semibold text-foreground shadow-sm">
                       {typeLabel(rec.kind)}
                     </div>
 
                     {/* Video play overlay */}
                     {isVideo && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="w-16 h-16 rounded-full bg-background/95 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                          <Play className="w-7 h-7 text-primary ml-1" fill="currentColor" />
+                        <div className="w-14 h-14 rounded-full bg-background/95 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+                          <Play className="w-6 h-6 text-primary ml-0.5" fill="currentColor" />
                         </div>
                       </div>
                     )}
                   </div>
 
                   {/* Content */}
-                  <div className="p-5 space-y-3">
-                    <div className="space-y-1.5 min-h-[72px]">
-                      <h3 className="font-bold text-lg text-foreground leading-tight tracking-tight">
+                  <div className="p-4 space-y-2.5">
+                    <div className="space-y-1 min-h-[56px]">
+                      <h3 className="font-bold text-base text-foreground leading-tight tracking-tight line-clamp-1">
                         {rec.title}
                       </h3>
                       {rec.description && (
-                        <p className="text-sm text-muted-foreground leading-snug line-clamp-2">
+                        <p className="text-xs text-muted-foreground leading-snug line-clamp-2">
                           {rec.description}
                         </p>
                       )}
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-3 pt-1">
+                    <div className="flex items-center gap-2">
                       <Button
                         onClick={() => openResource(rec)}
-                        className="flex-1 h-11 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm gap-2 shadow-sm"
+                        className="flex-1 h-9 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5 shadow-sm"
                       >
                         {isVideo ? (
-                          <Play className="w-4 h-4" fill="currentColor" />
+                          <Play className="w-3.5 h-3.5" fill="currentColor" />
                         ) : (
-                          <ExternalLink className="w-4 h-4" />
+                          <ExternalLink className="w-3.5 h-3.5" />
                         )}
                         Ver
                       </Button>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <button
-                            className="w-11 h-11 rounded-full border border-primary/40 text-primary hover:bg-primary/5 flex items-center justify-center transition-colors active:scale-95"
+                            className="w-9 h-9 rounded-full border border-primary/40 text-primary hover:bg-primary/5 flex items-center justify-center transition-colors active:scale-95"
                             aria-label="Compartir"
                           >
-                            <Share2 className="w-4 h-4" />
+                            <Share2 className="w-3.5 h-3.5" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 bg-popover border border-border shadow-lg z-50">
+                          <DropdownMenuItem onClick={() => handleShareWhatsApp(rec)} className="gap-2 cursor-pointer">
+                            <MessageCircle className="w-4 h-4 text-green-600" />
+                            Compartir por WhatsApp
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleShareEmail(rec)} className="gap-2 cursor-pointer">
+                            <Mail className="w-4 h-4 text-primary" />
+                            Enviar por Email
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          // LIST VIEW
+          <div className="flex flex-col gap-2">
+            {filtered.map((rec) => {
+              const Icon = ICONS[rec.icon ?? 'FileText'] ?? FileText;
+              const isVideo = rec.kind === 'video';
+              return (
+                <article
+                  key={rec.id}
+                  className="group bg-card rounded-2xl overflow-hidden border border-border/40 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] transition-all duration-200 flex items-stretch"
+                >
+                  {/* Thumbnail */}
+                  <div
+                    className="relative w-20 sm:w-24 shrink-0 bg-muted cursor-pointer overflow-hidden"
+                    onClick={() => openResource(rec)}
+                  >
+                    {rec.image_url ? (
+                      <img
+                        src={rec.image_url}
+                        alt={rec.title}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                        <Icon className="w-6 h-6 text-primary/40" />
+                      </div>
+                    )}
+                    {isVideo && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                        <div className="w-7 h-7 rounded-full bg-background/95 flex items-center justify-center shadow">
+                          <Play className="w-3.5 h-3.5 text-primary ml-0.5" fill="currentColor" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Body */}
+                  <div className="flex-1 min-w-0 px-3 py-2.5 flex items-center gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="text-[9px] font-semibold uppercase tracking-wide text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                          {typeLabel(rec.kind)}
+                        </span>
+                      </div>
+                      <h3 className="font-semibold text-sm text-foreground leading-tight truncate">
+                        {rec.title}
+                      </h3>
+                      {rec.description && (
+                        <p className="text-xs text-muted-foreground leading-snug truncate">
+                          {rec.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={() => openResource(rec)}
+                        className="h-8 px-3 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1 shadow-sm hover:bg-primary/90 active:scale-95"
+                      >
+                        {isVideo ? (
+                          <Play className="w-3 h-3" fill="currentColor" />
+                        ) : (
+                          <ExternalLink className="w-3 h-3" />
+                        )}
+                        Ver
+                      </button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            className="w-8 h-8 rounded-full border border-primary/40 text-primary hover:bg-primary/5 flex items-center justify-center transition-colors active:scale-95"
+                            aria-label="Compartir"
+                          >
+                            <Share2 className="w-3.5 h-3.5" />
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48 bg-popover border border-border shadow-lg z-50">
