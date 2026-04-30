@@ -14,6 +14,7 @@ import { CategorySelector } from "./CategorySelector";
 import { ProductSelector } from "./ProductSelector";
 import { sendViaWhatsApp, sendViaEmail, downloadPDF, generateRecipeUrl, generateShortRecipeUrl, createShortUrl } from "@/lib/recipeUtils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
