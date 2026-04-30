@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
-import { FileText, Play, Scissors, Syringe, BookOpen, X, Share2, Mail, MessageCircle, ExternalLink, Phone, Filter, Smartphone, Stethoscope, HeartPulse, Pill, Activity, ClipboardList, Link as LinkIcon, Loader2 } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { FileText, Play, Scissors, Syringe, BookOpen, X, Share2, Mail, MessageCircle, ExternalLink, Phone, Smartphone, Stethoscope, HeartPulse, Pill, Activity, ClipboardList, Link as LinkIcon, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +18,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRecommendations, type Recommendation } from "@/hooks/useRecommendations";
+import { cn } from "@/lib/utils";
+import lacerLogo from "@/assets/lacer-logo-color.png";
 
 interface WhatsAppShareData {
   type: 'pdf' | 'video' | 'link';
@@ -32,11 +33,11 @@ const ICONS: Record<string, any> = {
   Scissors, FileText, Syringe, Play, BookOpen, Stethoscope, HeartPulse, Pill, Activity, ClipboardList, Link: LinkIcon,
 };
 
-const filterOptions: { value: FilterType; label: string; icon: typeof FileText }[] = [
-  { value: 'all', label: 'Todos', icon: BookOpen },
-  { value: 'pdf', label: 'PDF', icon: FileText },
-  { value: 'video', label: 'Vídeo', icon: Play },
-  { value: 'link', label: 'Enlace', icon: LinkIcon },
+const filterOptions: { value: FilterType; label: string }[] = [
+  { value: 'all', label: 'Todos' },
+  { value: 'pdf', label: 'PDF' },
+  { value: 'video', label: 'Vídeo' },
+  { value: 'link', label: 'Enlace' },
 ];
 
 export const SurgeryRecommendations = () => {
@@ -114,33 +115,34 @@ export const SurgeryRecommendations = () => {
   const typeLabel = (k: string) => k === 'pdf' ? 'PDF' : k === 'video' ? 'Vídeo' : 'Enlace';
 
   return (
-    <div className="space-y-5 pb-24 md:pb-8">
-      {/* Compact Header */}
-      <div className="px-4 pt-2">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shadow-md">
-            <BookOpen className="w-5 h-5 text-secondary-foreground" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-foreground leading-tight">Recomendaciones</h2>
-            <p className="text-xs text-muted-foreground">Material para tus pacientes</p>
-          </div>
+    <div className="space-y-6 pb-24 md:pb-8 pt-safe">
+      {/* Header */}
+      <div className="px-5 pt-4">
+        <div className="flex justify-center md:justify-start mb-6">
+          <img src={lacerLogo} alt="Lacer" className="h-8 md:h-10 w-auto" />
         </div>
+        <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight leading-none">
+          Recomendaciones
+        </h1>
+        <p className="text-base md:text-lg text-muted-foreground mt-2">
+          Material para tus pacientes
+        </p>
 
         {/* Filter pills */}
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2 flex-wrap mt-6">
           {filterOptions.map((opt) => {
-            const Icon = opt.icon;
             const isActive = activeFilter === opt.value;
             return (
               <button
                 key={opt.value}
                 onClick={() => setActiveFilter(opt.value)}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                  isActive ? "bg-secondary text-secondary-foreground shadow-sm" : "bg-muted text-muted-foreground hover:bg-muted/80"
-                }`}
+                className={cn(
+                  "px-5 py-2 rounded-full text-sm font-medium border transition-all duration-200 active:scale-95",
+                  isActive
+                    ? "border-primary text-primary bg-background shadow-sm"
+                    : "border-border text-muted-foreground bg-background hover:border-muted-foreground/40"
+                )}
               >
-                <Icon className="w-3.5 h-3.5" />
                 {opt.label}
               </button>
             );
@@ -149,86 +151,105 @@ export const SurgeryRecommendations = () => {
       </div>
 
       {/* Grid */}
-      <div className="px-4">
+      <div className="px-5">
         {isLoading ? (
           <div className="flex justify-center py-16">
-            <Loader2 className="w-6 h-6 animate-spin text-secondary" />
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
           </div>
         ) : filtered.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground py-12">No hay recomendaciones disponibles.</p>
         ) : (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map((rec) => {
               const Icon = ICONS[rec.icon ?? 'FileText'] ?? FileText;
               const isVideo = rec.kind === 'video';
               return (
-                <Card
+                <article
                   key={rec.id}
-                  className="group overflow-hidden border-border/50 hover:border-secondary/30 transition-all duration-200 hover:shadow-lg active:scale-[0.98]"
+                  className="group bg-card rounded-3xl overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300 border border-border/40"
                 >
-                  <CardContent className="p-0">
-                    <div
-                      className="relative aspect-[4/3] overflow-hidden bg-muted cursor-pointer"
-                      onClick={() => openResource(rec)}
-                    >
-                      {rec.image_url ? (
-                        <img
-                          src={rec.image_url}
-                          alt={rec.title}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-secondary/20 to-secondary/5 flex items-center justify-center">
-                          <Icon className="w-10 h-10 text-secondary/40" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                      <div className="absolute bottom-2 left-2 w-8 h-8 rounded-lg bg-gradient-to-br from-secondary to-secondary/80 flex items-center justify-center shadow-md">
-                        <Icon className="w-4 h-4 text-white" />
+                  {/* Image */}
+                  <div
+                    className="relative aspect-[16/10] overflow-hidden bg-muted cursor-pointer"
+                    onClick={() => openResource(rec)}
+                  >
+                    {rec.image_url ? (
+                      <img
+                        src={rec.image_url}
+                        alt={rec.title}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center">
+                        <Icon className="w-12 h-12 text-primary/40" />
                       </div>
-                      {isVideo && (
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                          <div className="w-10 h-10 rounded-full bg-white/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                            <Play className="w-5 h-5 text-secondary ml-0.5" fill="currentColor" />
-                          </div>
-                        </div>
-                      )}
-                      <div className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-black/40 backdrop-blur-sm text-[10px] font-medium text-white">
-                        {typeLabel(rec.kind)}
-                      </div>
+                    )}
+
+                    {/* Type badge */}
+                    <div className="absolute top-3 right-3 px-3 py-1 rounded-full bg-background/90 backdrop-blur-md text-xs font-semibold text-foreground shadow-sm">
+                      {typeLabel(rec.kind)}
                     </div>
 
-                    <div className="p-3 space-y-2">
-                      <h4 className="font-semibold text-foreground text-sm leading-tight">{rec.title}</h4>
-                      {rec.description && <p className="text-xs text-muted-foreground mt-0.5">{rec.description}</p>}
-                      <div className="flex gap-1.5">
-                        <Button variant="outline" size="sm" className="flex-1 gap-1 text-[10px] h-7 px-2"
-                          onClick={() => openResource(rec)}>
-                          {isVideo ? <Play className="w-3 h-3" /> : <ExternalLink className="w-3 h-3" />}
-                          Ver
-                        </Button>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-7 w-7 p-0">
-                              <Share2 className="w-3 h-3" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48 bg-popover border border-border shadow-lg z-50">
-                            <DropdownMenuItem onClick={() => handleShareWhatsApp(rec)} className="gap-2 cursor-pointer">
-                              <MessageCircle className="w-4 h-4 text-green-600" />
-                              Compartir por WhatsApp
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleShareEmail(rec)} className="gap-2 cursor-pointer">
-                              <Mail className="w-4 h-4 text-secondary" />
-                              Enviar por Email
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                    {/* Video play overlay */}
+                    {isVideo && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="w-16 h-16 rounded-full bg-background/95 flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+                          <Play className="w-7 h-7 text-primary ml-1" fill="currentColor" />
+                        </div>
                       </div>
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-5 space-y-3">
+                    <div className="space-y-1.5 min-h-[72px]">
+                      <h3 className="font-bold text-lg text-foreground leading-tight tracking-tight">
+                        {rec.title}
+                      </h3>
+                      {rec.description && (
+                        <p className="text-sm text-muted-foreground leading-snug line-clamp-2">
+                          {rec.description}
+                        </p>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
+
+                    {/* Actions */}
+                    <div className="flex items-center gap-3 pt-1">
+                      <Button
+                        onClick={() => openResource(rec)}
+                        className="flex-1 h-11 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm gap-2 shadow-sm"
+                      >
+                        {isVideo ? (
+                          <Play className="w-4 h-4" fill="currentColor" />
+                        ) : (
+                          <ExternalLink className="w-4 h-4" />
+                        )}
+                        Ver
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button
+                            className="w-11 h-11 rounded-full border border-primary/40 text-primary hover:bg-primary/5 flex items-center justify-center transition-colors active:scale-95"
+                            aria-label="Compartir"
+                          >
+                            <Share2 className="w-4 h-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 bg-popover border border-border shadow-lg z-50">
+                          <DropdownMenuItem onClick={() => handleShareWhatsApp(rec)} className="gap-2 cursor-pointer">
+                            <MessageCircle className="w-4 h-4 text-green-600" />
+                            Compartir por WhatsApp
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleShareEmail(rec)} className="gap-2 cursor-pointer">
+                            <Mail className="w-4 h-4 text-primary" />
+                            Enviar por Email
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                </article>
               );
             })}
           </div>
@@ -290,11 +311,11 @@ export const SurgeryRecommendations = () => {
               <X className="w-5 h-5" />
             </button>
 
-            <div className="flex md:hidden items-center justify-center gap-2 px-4 py-2.5 bg-secondary/10 border-b border-secondary/20 landscape:hidden">
+            <div className="flex md:hidden items-center justify-center gap-2 px-4 py-2.5 bg-primary/10 border-b border-primary/20 landscape:hidden">
               <div className="animate-rotate-phone">
-                <Smartphone className="w-5 h-5 text-secondary" />
+                <Smartphone className="w-5 h-5 text-primary" />
               </div>
-              <span className="text-xs text-secondary font-medium">Gira el móvil para una mejor experiencia</span>
+              <span className="text-xs text-primary font-medium">Gira el móvil para una mejor experiencia</span>
             </div>
 
             <div style={{ padding: "56.25% 0 0 0", position: "relative" }}>
