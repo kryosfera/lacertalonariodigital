@@ -610,22 +610,24 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
           <div className="flex-1 px-3 md:px-0">
             <TooltipProvider delayDuration={300}>
               {selectedProducts.size > 0 ? (
-                <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+                <div className="bg-card rounded-2xl border border-border/40 shadow-sm overflow-hidden">
                   {/* Compact header */}
-                  <div className="flex items-center justify-between px-3 py-2 border-b bg-muted/30">
-                    <div className="flex items-center gap-2">
-                      <Badge className="bg-secondary text-secondary-foreground font-bold">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-7 h-7 rounded-full bg-secondary text-white text-sm font-bold flex items-center justify-center flex-shrink-0">
                         {selectedProducts.size}
-                      </Badge>
-                      <span className="text-sm font-medium text-foreground">
-                        producto{selectedProducts.size !== 1 ? 's' : ''}
+                      </div>
+                      <span className="text-sm font-semibold text-foreground truncate">
+                        {selectedProducts.size === 1
+                          ? selectedProductsData[0]?.name
+                          : `${selectedProducts.size} productos`}
                       </span>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={clearSelection}
-                      className="h-7 text-xs text-muted-foreground hover:text-destructive"
+                      className="h-7 px-3 rounded-full bg-muted text-xs text-muted-foreground hover:text-destructive hover:bg-muted"
                     >
                       Limpiar
                     </Button>
