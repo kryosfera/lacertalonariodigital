@@ -157,7 +157,7 @@ export const HomeScreenBento = ({
       </motion.div>
 
       {/* Actions Area */}
-      <div className="flex-1 flex flex-col items-center w-full max-w-sm mx-auto pt-5 md:pt-4 pb-4 gap-2.5">
+      <div className="flex-1 flex flex-col items-center w-full max-w-sm mx-auto pt-7 md:pt-6 pb-3 gap-2.5">
 
         {/* Primary CTA */}
         <motion.button
