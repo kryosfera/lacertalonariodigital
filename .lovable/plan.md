@@ -1,50 +1,76 @@
-# Rediseño Pantalla Recomendaciones
 
-Adaptar `src/components/SurgeryRecommendations.tsx` al nuevo diseño visual minimalista tipo Apple con identidad Lacer.
+# Rediseño de Historial y Pacientes
 
-## Cambios visuales clave
+Aplicar el mismo lenguaje visual de la pantalla de Recomendaciones a las pantallas de **Historial de Recetas** (`RecipeHistory.tsx`) y **Pacientes** (`PatientList.tsx`), maximizando la densidad de información en la vista inicial.
 
-**Header (mobile):**
-- Logo Lacer rojo centrado en la parte superior (como en screen-2)
-- Título "Recomendaciones" en tipografía bold MUY grande (text-4xl/5xl), alineado a la izquierda
-- Subtítulo "Material para tus pacientes" debajo en gris
-- Eliminar el icono cuadrado rojo actual junto al título
+## Objetivo
 
-**Filtros (pills):**
-- Estilo "outline" redondeado con borde fino
-- Pill activo: borde rojo Lacer + texto rojo + fondo blanco (no relleno rojo sólido)
-- Pills inactivos: borde gris claro, texto gris, fondo blanco
-- Sin iconos dentro de los pills (solo texto: Todos / PDF / Vídeo / Enlace)
-- Mayor padding horizontal y tamaño más generoso
+- Encabezado centrado, compacto y consistente con Recomendaciones.
+- Fila única de filtros + selector de vista (tarjeta / lista).
+- Por defecto, **vista de lista** para que se vean más datos en pantalla.
+- Vista de tarjeta como alternativa para quien prefiera más detalle visual.
 
-**Tarjetas (Bento style):**
-- Una tarjeta por fila en mobile (grid-cols-1), no dos
-- Imagen grande arriba ocupando todo el ancho de la tarjeta (aspect ratio ~16/10)
-- Badge "PDF/Vídeo/Enlace" arriba a la derecha sobre la imagen, fondo blanco translúcido con texto oscuro (no negro/40)
-- Eliminar el icono pequeño rojo flotante en la esquina inferior izquierda de la imagen
-- Para vídeos: mantener botón play circular blanco grande centrado
-- Bordes redondeados grandes (rounded-3xl), sombra suave
-- Padding interno generoso (p-5/p-6)
-- Título en bold grande (text-xl), descripción en gris claro debajo
-- **CTA "Ver" como botón rojo Lacer pill grande** (no outline) con icono play/external a la izquierda
-- Botón compartir como **círculo outline rojo** separado a la derecha (no junto al Ver)
-- Layout de acciones: `[ ▶ Ver  pill ancho ] ............... [ ⚇ ]`
+---
 
-**Desktop (md+):**
-- Mantener grid de 2-3 columnas pero con el mismo estilo de tarjeta grande
-- Header alineado a la izquierda con logo a la izquierda también
+## 1. Pantalla "Historial de Recetas"
+
+### Encabezado (replicando Recomendaciones)
+- Título compacto `text-2xl md:text-3xl` "Historial".
+- Subtítulo `text-sm` "Recetas enviadas y dispensadas".
+- **Buscador** con icono lupa, full width, redondeado.
+- **Fila única**: chips de filtro (Todos · WhatsApp · Email · PDF · Pendientes · Retiradas) con scroll horizontal `overflow-x-auto scrollbar-none`, y a la derecha el toggle `LayoutGrid` / `List`.
+
+### Vista LISTA (por defecto, alta densidad)
+Cada receta es una fila `<li>` compacta con dos líneas:
+- **Línea 1**: Nombre paciente (bold) · fecha corta · badge canal envío (icono pequeño) · badge estado (Pendiente/Retirada).
+- **Línea 2**: Resumen productos `2x Lacer · Bexident · +3` (text-xs muted) y a la derecha mini-iconos acción: Duplicar, PDF.
+- Tap en la fila abre acciones; foco/hover con anillo accesible.
+
+### Vista TARJETA
+Mantener estructura actual de `Card` pero más compacta: grid `md:grid-cols-2 lg:grid-cols-3`, padding reducido, badges en una fila.
+
+### "Cargar más"
+Se mantiene tal cual al final, fuera del listado.
+
+---
+
+## 2. Pantalla "Pacientes"
+
+### Encabezado
+- Título `text-2xl md:text-3xl` "Pacientes".
+- Subtítulo `text-sm` "Tu base de pacientes".
+- **Buscador** con icono lupa.
+- **Fila única**: a la izquierda chips de filtro rápido (Todos · Con recetas · Sin visitas · Recientes), a la derecha el toggle vista + botón **"+ Nuevo"** compacto (icono `Plus`).
+
+### Vista LISTA (por defecto)
+Cada paciente como fila `<li>` con dos líneas:
+- **Línea 1**: Nombre paciente · badge `N recetas` · última visita (fecha corta).
+- **Línea 2**: Teléfono · email truncado · iconos acción a la derecha (Ver recetas, Editar, Eliminar) en botones circulares pequeños.
+- Click en la fila → `onViewPatient`.
+
+### Vista TARJETA
+Grid `md:grid-cols-2 lg:grid-cols-3` con la `Card` actual ligeramente compactada (avatar/inicial opcional, padding reducido).
+
+### Diálogos
+Se conservan los diálogos existentes (crear/editar/eliminar) sin cambios funcionales.
+
+---
 
 ## Detalles técnicos
 
-- Archivo único a editar: `src/components/SurgeryRecommendations.tsx`
-- Usar logo Lacer existente (buscar en `src/assets/` o `public/`) — si no existe, dejar TODO con placeholder
-- Colores via tokens: `text-primary`, `border-primary`, `bg-primary` (rojo Lacer ya configurado)
-- Animaciones: mantener fade-in + scale on hover
-- WhatsApp dialog y video modal: sin cambios funcionales
-- Responsive: `grid-cols-1 md:grid-cols-2 lg:grid-cols-3`
+- Nuevo estado en cada componente: `viewMode: 'card' | 'list'` (default `'list'`) y `activeFilter`.
+- Iconos `LayoutGrid` y `List` de `lucide-react` (ya usados en Recomendaciones).
+- Reutilizar utilidades `cn` y clases del toggle ya validadas en `SurgeryRecommendations.tsx` (`bg-muted rounded-full p-0.5`, botones `w-8 h-8`).
+- Listas semánticas: `<ul role="list">` + `<li>`, `aria-label` en botones de acción, anillos `focus-visible:ring-2 ring-ring`.
+- Mantener intactos hooks (`useRecipes`, `usePatients`), tipos y handlers existentes — solo se reemplaza la capa de presentación.
+- Sin cambios de DB ni de rutas.
+
+## Archivos a modificar
+
+- `src/components/RecipeHistory.tsx`
+- `src/components/PatientList.tsx`
 
 ## Fuera de alcance
 
-- No tocar el badge "Premium" del mockup (no existe en datos actuales)
-- No cambiar lógica de compartir, filtrado o fetching
-- No tocar bottom navigation (ya coincide con el diseño)
+- No se cambia la lógica de paginación, filtros de datos del servidor, ni el `RecipeCreator`.
+- No se modifica el `PatientDetail`.
