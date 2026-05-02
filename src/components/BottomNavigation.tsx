@@ -73,10 +73,12 @@ export const BottomNavigation = ({ activeTab, onTabChange, userMode = 'basic' }:
                   : "text-muted-foreground"
               )}
             >
-              <Icon className={cn(
-                "w-6 h-6 transition-transform",
-                isActive && "scale-105"
-              )} strokeWidth={isActive ? 2.5 : 2} />
+              {Icon && (
+                <Icon className={cn(
+                  "w-6 h-6 transition-transform",
+                  isActive && "scale-105"
+                )} strokeWidth={isActive ? 2.5 : 2} />
+              )}
               <span className={cn(
                 "text-[10px] mt-1 font-medium",
                 isActive && "font-semibold"
