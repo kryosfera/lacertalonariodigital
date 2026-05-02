@@ -1,16 +1,16 @@
-# Plan: usar logo "petalo" Lacer sin fondo blanco en el FAB
+## Cambiar logo del FAB central
 
-## Cambio
-El logo actual (`lacer-logo.png`) es solo el wordmark rojo, por eso necesitaba un círculo blanco detrás para verse. El usuario aporta el logo completo con el "petalo" rojo de fondo, que ya es autosuficiente.
+De los 3 logos adjuntos, el mejor para el botón central circular es **`logo-lacer.png`**: solo el pétalo Lacer, sin texto "Italfarmaco Group", con fondo transparente real (no cuadrícula blanca como el actual `lacer-logo.png`).
 
-## Archivos
-- **Nuevo asset**: copiar `user-uploads://lacer-logo-color.png` → `src/assets/lacer-logo-petal.png` (ya copiado).
-- **`src/components/BottomNavigation.tsx`**:
-  - Cambiar import a `lacer-logo-petal.png`.
-  - Quitar el círculo blanco (`bg-white`, `border-2`, `border-secondary`) del contenedor del FAB central.
-  - Sustituirlo por una sombra roja difusa (`drop-shadow` con `hsl(var(--secondary)/0.35)`) para que el petalo flote sobre la barra y se siga distinguiendo en claro/oscuro.
-  - Aumentar el tamaño del logo a `w-14 h-14` (ocupa todo el espacio del FAB) ya que su forma triangular orgánica funciona como botón en sí mismo.
-  - Conservar el `scale-110` cuando está activo y `active:scale-95` al pulsar.
+### Pasos
 
-## Resultado
-Botón central con la forma reconocible del petalo Lacer flotando sobre la barra, sin marco blanco artificial, manteniendo legibilidad y peso visual en ambos modos.
+1. Copiar `user-uploads://logo-lacer.png` → `src/assets/lacer-logo-clean.png`.
+2. En `src/components/BottomNavigation.tsx`:
+   - Cambiar el import a `lacer-logo-clean.png`.
+   - Mantener el círculo blanco actual con sombra roja sutil.
+   - El pétalo rojo encajará limpiamente dentro del círculo, sin bordes blancos visibles ni cuadrícula de fondo.
+
+### Por qué este logo
+- `Lacer-1.png`: tiene mucho padding blanco alrededor → el pétalo se vería pequeño dentro del círculo.
+- `logo-lacer-italfarmaco-group.png`: incluye texto "ITALFARMACO GROUP" debajo → ilegible en 48px.
+- `logo-lacer.png` (elegido): pétalo recortado al borde con transparencia → ocupa el círculo de forma óptima.
