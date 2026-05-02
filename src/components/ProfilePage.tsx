@@ -425,6 +425,7 @@ export const ProfilePage = () => {
           </Button>
         </div>
       )}
+      </div>
     </div>
   );
 };
