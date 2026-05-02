@@ -1,11 +1,10 @@
-import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Search, Plus, Phone, Mail, FileText, Trash2, Edit, Loader2, 
-  UserPlus, Calendar 
+import {
+  Search, Plus, Phone, Mail, FileText, Trash2, Edit, Loader2,
+  UserPlus, Calendar, LayoutGrid, List,
 } from "lucide-react";
 import {
   Dialog,
@@ -27,27 +26,40 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { usePatients, useCreatePatient, useUpdatePatient, useDeletePatient, Patient } from "@/hooks/usePatients";
-import { format } from "date-fns";
+import {
+  usePatients, useCreatePatient, useUpdatePatient, useDeletePatient, Patient,
+} from "@/hooks/usePatients";
+import { format, isAfter, subDays } from "date-fns";
 import { es } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 interface PatientListProps {
   onViewPatient?: (patient: Patient) => void;
 }
 
+type FilterType = "all" | "with_recipes" | "no_visits" | "recent";
+
+const filterOptions: { value: FilterType; label: string }[] = [
+  { value: "all", label: "Todos" },
+  { value: "with_recipes", label: "Con recetas" },
+  { value: "no_visits", label: "Sin visitas" },
+  { value: "recent", label: "Recientes" },
+];
+
 export const PatientList = ({ onViewPatient }: PatientListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+  const [viewMode, setViewMode] = useState<"card" | "list">("list");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null);
-  
-  // Form state
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     email: "",
-    notes: ""
+    notes: "",
   });
 
   const { data: patients = [], isLoading, error } = usePatients();
@@ -55,11 +67,24 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
   const updatePatient = useUpdatePatient();
   const deletePatient = useDeletePatient();
 
-  const filteredPatients = patients.filter((patient) =>
-    patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    patient.phone?.includes(searchTerm)
-  );
+  const filteredPatients = useMemo(() => {
+    const sevenDaysAgo = subDays(new Date(), 7);
+    return patients.filter((patient) => {
+      const matchesSearch =
+        patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patient.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        patient.phone?.includes(searchTerm);
+      if (!matchesSearch) return false;
+
+      if (activeFilter === "with_recipes") return (patient.recipe_count || 0) > 0;
+      if (activeFilter === "no_visits") return !patient.last_recipe_date;
+      if (activeFilter === "recent")
+        return patient.last_recipe_date
+          ? isAfter(new Date(patient.last_recipe_date), sevenDaysAgo)
+          : false;
+      return true;
+    });
+  }, [patients, searchTerm, activeFilter]);
 
   const handleOpenCreate = () => {
     setEditingPatient(null);
@@ -73,7 +98,7 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
       name: patient.name,
       phone: patient.phone || "",
       email: patient.email || "",
-      notes: patient.notes || ""
+      notes: patient.notes || "",
     });
     setIsDialogOpen(true);
   };
@@ -85,12 +110,8 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
 
   const handleSubmit = async () => {
     if (!formData.name.trim()) return;
-
     if (editingPatient) {
-      await updatePatient.mutateAsync({
-        id: editingPatient.id,
-        data: formData
-      });
+      await updatePatient.mutateAsync({ id: editingPatient.id, data: formData });
     } else {
       await createPatient.mutateAsync(formData);
     }
@@ -105,135 +126,280 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
     }
   };
 
-  const formatDate = (dateString: string | null) => {
+  const formatShortDate = (dateString: string | null) => {
+    if (!dateString) return "Sin visitas";
+    return format(new Date(dateString), "dd MMM yy", { locale: es });
+  };
+  const formatLongDate = (dateString: string | null) => {
     if (!dateString) return "Sin visitas";
     return format(new Date(dateString), "dd MMM yyyy", { locale: es });
   };
 
+  const initial = (name: string) => name.trim().charAt(0).toUpperCase() || "?";
+
   if (error) {
     return (
-      <Card>
-        <CardContent className="py-12 text-center">
-          <p className="text-destructive">Error al cargar los pacientes</p>
-        </CardContent>
-      </Card>
+      <div className="py-12 text-center">
+        <p className="text-destructive">Error al cargar los pacientes</p>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Pacientes</CardTitle>
-              <CardDescription>Gestiona tu base de datos de pacientes</CardDescription>
-            </div>
-            <Button onClick={handleOpenCreate}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nuevo Paciente
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-            <Input
-              placeholder="Buscar paciente..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-5 pb-24 md:pb-8 pt-safe">
+      {/* Header */}
+      <div className="px-5 pt-4 text-center">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight leading-none">
+          Pacientes
+        </h1>
+        <p className="text-sm md:text-base text-muted-foreground mt-1">
+          Tu base de pacientes
+        </p>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        {/* Search */}
+        <div className="relative mt-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Input
+            placeholder="Buscar por nombre, email o teléfono..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 h-10 rounded-full bg-background"
+          />
         </div>
-      ) : filteredPatients.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
+
+        {/* Filters + view toggle + add */}
+        <div className="flex items-center gap-2 mt-3">
+          <div className="flex gap-1.5 flex-1 min-w-0 overflow-x-auto scrollbar-none">
+            {filterOptions.map((opt) => {
+              const isActive = activeFilter === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => setActiveFilter(opt.value)}
+                  className={cn(
+                    "shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 active:scale-95",
+                    isActive
+                      ? "border-primary text-primary bg-background shadow-sm"
+                      : "border-border text-muted-foreground bg-background hover:border-muted-foreground/40"
+                  )}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="shrink-0 flex items-center bg-muted rounded-full p-0.5">
+            <button
+              onClick={() => setViewMode("card")}
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                viewMode === "card" ? "bg-background text-primary shadow-sm" : "text-muted-foreground"
+              )}
+              aria-label="Vista tarjetas"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                viewMode === "list" ? "bg-background text-primary shadow-sm" : "text-muted-foreground"
+              )}
+              aria-label="Vista lista"
+            >
+              <List className="w-4 h-4" />
+            </button>
+          </div>
+
+          <button
+            onClick={handleOpenCreate}
+            aria-label="Nuevo paciente"
+            className="shrink-0 h-8 px-3 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1 shadow-sm hover:bg-primary/90 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+            <span className="hidden sm:inline">Nuevo</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="px-5">
+        {isLoading ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        ) : filteredPatients.length === 0 ? (
+          <div className="py-12 text-center">
             <UserPlus className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-            <p className="text-muted-foreground">
-              {searchTerm 
-                ? "No se encontraron pacientes" 
+            <p className="text-sm text-muted-foreground">
+              {searchTerm || activeFilter !== "all"
+                ? "No se encontraron pacientes"
                 : "Aún no tienes pacientes. ¡Añade tu primer paciente!"}
             </p>
-            {!searchTerm && (
-              <Button onClick={handleOpenCreate} variant="outline" className="mt-4">
+            {!searchTerm && activeFilter === "all" && (
+              <Button
+                onClick={handleOpenCreate}
+                variant="outline"
+                className="mt-4 rounded-full"
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 Añadir paciente
               </Button>
             )}
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {filteredPatients.map((patient) => (
-            <Card key={patient.id} className="transition-smooth hover:shadow-medical">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{patient.name}</CardTitle>
-                    <CardDescription className="mt-1 flex items-center gap-1">
+          </div>
+        ) : viewMode === "list" ? (
+          <ul className="flex flex-col gap-2" role="list" aria-label="Listado de pacientes">
+            {filteredPatients.map((patient) => {
+              const titleId = `patient-title-${patient.id}`;
+              return (
+                <li key={patient.id}>
+                  <article
+                    aria-labelledby={titleId}
+                    className="bg-card rounded-2xl border border-border/40 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:border-border focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background transition-all duration-200 px-4 py-3"
+                  >
+                    {/* Row 1 */}
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0">
+                        {initial(patient.name)}
+                      </div>
+                      <h3
+                        id={titleId}
+                        className="font-semibold text-sm text-foreground leading-tight flex-1 truncate"
+                      >
+                        {patient.name}
+                      </h3>
+                      <Badge
+                        variant="secondary"
+                        className="text-[10px] px-1.5 py-0 shrink-0"
+                      >
+                        {patient.recipe_count || 0} recetas
+                      </Badge>
+                    </div>
+                    {/* Row 2 */}
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-muted-foreground flex-1 truncate flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          {formatShortDate(patient.last_recipe_date)}
+                        </span>
+                        {patient.phone && (
+                          <span className="inline-flex items-center gap-1 truncate">
+                            <Phone className="w-3 h-3" />
+                            {patient.phone}
+                          </span>
+                        )}
+                        {patient.email && (
+                          <span className="inline-flex items-center gap-1 truncate min-w-0">
+                            <Mail className="w-3 h-3 shrink-0" />
+                            <span className="truncate">{patient.email}</span>
+                          </span>
+                        )}
+                      </p>
+                      <div className="shrink-0 flex items-center gap-1">
+                        <button
+                          onClick={() => onViewPatient?.(patient)}
+                          aria-label={`Ver recetas de ${patient.name}`}
+                          className="w-8 h-8 rounded-full border border-primary/40 text-primary hover:bg-primary/5 hover:border-primary flex items-center justify-center active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-all"
+                        >
+                          <FileText className="w-3.5 h-3.5" aria-hidden="true" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenEdit(patient)}
+                          aria-label={`Editar ${patient.name}`}
+                          className="w-8 h-8 rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/60 flex items-center justify-center active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-all"
+                        >
+                          <Edit className="w-3.5 h-3.5" aria-hidden="true" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenDelete(patient)}
+                          aria-label={`Eliminar ${patient.name}`}
+                          className="w-8 h-8 rounded-full border border-border text-destructive hover:bg-destructive/5 hover:border-destructive/40 flex items-center justify-center active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-all"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          // CARD VIEW
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {filteredPatients.map((patient) => (
+              <article
+                key={patient.id}
+                className="bg-card rounded-2xl border border-border/40 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300 p-4"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center shrink-0">
+                    {initial(patient.name)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-sm text-foreground truncate">
+                      {patient.name}
+                    </h3>
+                    <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
                       <Calendar className="w-3 h-3" />
-                      Última visita: {formatDate(patient.last_recipe_date)}
-                    </CardDescription>
+                      {formatLongDate(patient.last_recipe_date)}
+                    </p>
                   </div>
-                  <Badge variant="secondary">{patient.recipe_count || 0} recetas</Badge>
+                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                    {patient.recipe_count || 0}
+                  </Badge>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {patient.phone && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Phone className="w-4 h-4" />
-                    <span>{patient.phone}</span>
-                  </div>
-                )}
-                {patient.email && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="w-4 h-4" />
-                    <span>{patient.email}</span>
-                  </div>
-                )}
-                {patient.notes && (
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {patient.notes}
-                  </p>
-                )}
-                <div className="flex gap-2 pt-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1"
+
+                <div className="space-y-1 mb-3 min-h-[2.5rem]">
+                  {patient.phone && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1.5 truncate">
+                      <Phone className="w-3 h-3 shrink-0" />
+                      {patient.phone}
+                    </p>
+                  )}
+                  {patient.email && (
+                    <p className="text-xs text-muted-foreground flex items-center gap-1.5 truncate">
+                      <Mail className="w-3 h-3 shrink-0" />
+                      <span className="truncate">{patient.email}</span>
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex gap-1.5">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 h-8 rounded-full text-xs"
                     onClick={() => onViewPatient?.(patient)}
                   >
-                    <FileText className="w-4 h-4 mr-2" />
-                    Ver recetas
+                    <FileText className="w-3.5 h-3.5 mr-1.5" />
+                    Recetas
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
+                    className="h-8 w-8 p-0 rounded-full"
                     onClick={() => handleOpenEdit(patient)}
+                    aria-label={`Editar ${patient.name}`}
                   >
-                    <Edit className="w-4 h-4" />
+                    <Edit className="w-3.5 h-3.5" />
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
+                    className="h-8 w-8 p-0 rounded-full text-destructive hover:text-destructive"
                     onClick={() => handleOpenDelete(patient)}
-                    className="text-destructive hover:text-destructive"
+                    aria-label={`Eliminar ${patient.name}`}
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-3.5 h-3.5" />
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+              </article>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -243,8 +409,8 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
               {editingPatient ? "Editar Paciente" : "Nuevo Paciente"}
             </DialogTitle>
             <DialogDescription>
-              {editingPatient 
-                ? "Actualiza los datos del paciente" 
+              {editingPatient
+                ? "Actualiza los datos del paciente"
                 : "Introduce los datos del nuevo paciente"}
             </DialogDescription>
           </DialogHeader>
@@ -291,9 +457,13 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
             <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button 
+            <Button
               onClick={handleSubmit}
-              disabled={!formData.name.trim() || createPatient.isPending || updatePatient.isPending}
+              disabled={
+                !formData.name.trim() ||
+                createPatient.isPending ||
+                updatePatient.isPending
+              }
             >
               {(createPatient.isPending || updatePatient.isPending) && (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -310,7 +480,7 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
           <AlertDialogHeader>
             <AlertDialogTitle>¿Eliminar paciente?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se eliminará permanentemente el paciente 
+              Esta acción no se puede deshacer. Se eliminará permanentemente el paciente
               "{patientToDelete?.name}" y todos sus datos asociados.
             </AlertDialogDescription>
           </AlertDialogHeader>

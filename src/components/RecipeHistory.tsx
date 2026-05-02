@@ -1,74 +1,84 @@
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Search, Download, Mail, MessageSquare, Calendar, Loader2, FileText, ChevronDown, Copy, CheckCircle2, Clock } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Search, Download, Mail, MessageSquare, Calendar, Loader2, FileText,
+  ChevronDown, Copy, CheckCircle2, Clock, LayoutGrid, List,
+} from "lucide-react";
 import { useRecipes, Recipe, PAGE_SIZE } from "@/hooks/useRecipes";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { downloadPDF } from "@/lib/recipeUtils";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface RecipeHistoryProps {
   onDuplicate?: (recipe: Recipe) => void;
 }
 
+type FilterType = "all" | "whatsapp" | "email" | "pdf" | "pending" | "dispensed";
+
+const filterOptions: { value: FilterType; label: string }[] = [
+  { value: "all", label: "Todos" },
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "email", label: "Email" },
+  { value: "pdf", label: "PDF" },
+  { value: "pending", label: "Pendientes" },
+  { value: "dispensed", label: "Retiradas" },
+];
+
 export const RecipeHistory = ({ onDuplicate }: RecipeHistoryProps) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterSentVia, setFilterSentVia] = useState("all");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+  const [viewMode, setViewMode] = useState<"card" | "list">("list");
   const [page, setPage] = useState(0);
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
 
   const { data, isLoading, error, isFetching } = useRecipes(page);
 
-  // Accumulate recipes across pages
   const currentPageRecipes = data?.recipes ?? [];
   const hasMore = data?.hasMore ?? false;
 
-  // Merge new page into accumulated list (avoid duplicates by id)
-  const accumulatedIds = new Set(allRecipes.map(r => r.id));
+  const accumulatedIds = new Set(allRecipes.map((r) => r.id));
   const mergedRecipes = [
     ...allRecipes,
-    ...currentPageRecipes.filter(r => !accumulatedIds.has(r.id))
+    ...currentPageRecipes.filter((r) => !accumulatedIds.has(r.id)),
   ];
 
   const handleLoadMore = () => {
-    // Update accumulated list before changing page
-    const currentIds = new Set(allRecipes.map(r => r.id));
-    const newOnes = currentPageRecipes.filter(r => !currentIds.has(r.id));
-    setAllRecipes(prev => [...prev, ...newOnes]);
-    setPage(p => p + 1);
+    const currentIds = new Set(allRecipes.map((r) => r.id));
+    const newOnes = currentPageRecipes.filter((r) => !currentIds.has(r.id));
+    setAllRecipes((prev) => [...prev, ...newOnes]);
+    setPage((p) => p + 1);
   };
 
-  // Use merged list for display
   const displayRecipes = page === 0 ? currentPageRecipes : mergedRecipes;
 
-  const getStatusBadge = (sentVia: string | null) => {
-    const variants: Record<string, { label: string; className: string }> = {
+  const channelBadge = (sentVia: string | null) => {
+    const map: Record<string, { label: string; className: string }> = {
       whatsapp: { label: "WhatsApp", className: "bg-[#25D366]/10 text-[#25D366]" },
       email: { label: "Email", className: "bg-primary/10 text-primary" },
       both: { label: "Ambos", className: "bg-accent/10 text-accent" },
       pdf: { label: "PDF", className: "bg-muted text-muted-foreground" },
       print: { label: "Impresa", className: "bg-muted text-muted-foreground" },
     };
-    const variant = variants[sentVia || 'pdf'] || variants.pdf;
-    return <Badge className={variant.className}>{variant.label}</Badge>;
+    const v = map[sentVia || "pdf"] || map.pdf;
+    return <Badge className={cn("text-[10px] px-1.5 py-0", v.className)}>{v.label}</Badge>;
   };
 
-  const getSentViaIcon = (via: string | null) => {
-    if (via === "both") {
+  const channelIcon = (via: string | null) => {
+    if (via === "both")
       return (
-        <div className="flex gap-1">
-          <Mail className="w-4 h-4 text-primary" />
-          <MessageSquare className="w-4 h-4 text-[#25D366]" />
-        </div>
+        <span className="flex gap-0.5">
+          <Mail className="w-3.5 h-3.5 text-primary" />
+          <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />
+        </span>
       );
-    }
-    if (via === "email") return <Mail className="w-4 h-4 text-primary" />;
-    if (via === "whatsapp") return <MessageSquare className="w-4 h-4 text-[#25D366]" />;
-    return <FileText className="w-4 h-4 text-muted-foreground" />;
+    if (via === "email") return <Mail className="w-3.5 h-3.5 text-primary" />;
+    if (via === "whatsapp") return <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />;
+    return <FileText className="w-3.5 h-3.5 text-muted-foreground" />;
   };
 
   const handleDownloadPDF = async (recipe: Recipe) => {
@@ -76,15 +86,15 @@ export const RecipeHistory = ({ onDuplicate }: RecipeHistoryProps) => {
       await downloadPDF({
         patientName: recipe.patient_name,
         date: format(new Date(recipe.created_at), "dd/MM/yyyy", { locale: es }),
-        products: recipe.products.map(p => ({
+        products: recipe.products.map((p) => ({
           id: p.id,
           name: p.name,
           reference: p.reference,
           quantity: p.quantity,
           thumbnail_url: p.thumbnail_url || null,
-          category_id: null
+          category_id: null,
         })),
-        notes: recipe.notes || ""
+        notes: recipe.notes || "",
       });
       toast.success("PDF descargado");
     } catch {
@@ -96,13 +106,17 @@ export const RecipeHistory = ({ onDuplicate }: RecipeHistoryProps) => {
     const matchesSearch =
       recipe.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       recipe.id.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter = filterSentVia === "all" || recipe.sent_via === filterSentVia;
+    let matchesFilter = true;
+    if (activeFilter === "pending") matchesFilter = !recipe.dispensed_at;
+    else if (activeFilter === "dispensed") matchesFilter = !!recipe.dispensed_at;
+    else if (activeFilter !== "all") matchesFilter = recipe.sent_via === activeFilter;
     return matchesSearch && matchesFilter;
   });
 
-  const formatDate = (dateString: string) => {
-    return format(new Date(dateString), "dd MMM yyyy, HH:mm", { locale: es });
-  };
+  const formatShortDate = (dateString: string) =>
+    format(new Date(dateString), "dd MMM, HH:mm", { locale: es });
+  const formatLongDate = (dateString: string) =>
+    format(new Date(dateString), "dd MMM yyyy, HH:mm", { locale: es });
 
   if (error) {
     return (
@@ -115,156 +129,260 @@ export const RecipeHistory = ({ onDuplicate }: RecipeHistoryProps) => {
   }
 
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Historial de Recetas</CardTitle>
-          <CardDescription>Consulta y gestiona todas las recetas enviadas</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="Buscar por paciente..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={filterSentVia} onValueChange={setFilterSentVia}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Filtrar por envío" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                <SelectItem value="email">Email</SelectItem>
-                <SelectItem value="pdf">PDF</SelectItem>
-                <SelectItem value="print">Impresa</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="space-y-5 pb-24 md:pb-8 pt-safe">
+      {/* Header */}
+      <div className="px-5 pt-4 text-center">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight leading-none">
+          Historial
+        </h1>
+        <p className="text-sm md:text-base text-muted-foreground mt-1">
+          Recetas enviadas y dispensadas
+        </p>
 
-      {isLoading && page === 0 ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        {/* Search */}
+        <div className="relative mt-4">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-4 h-4" />
+          <Input
+            placeholder="Buscar paciente o ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 h-10 rounded-full bg-background"
+          />
         </div>
-      ) : filteredRecipes.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
+
+        {/* Filters + view toggle */}
+        <div className="flex items-center gap-2 mt-3">
+          <div className="flex gap-1.5 flex-1 min-w-0 overflow-x-auto scrollbar-none">
+            {filterOptions.map((opt) => {
+              const isActive = activeFilter === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => setActiveFilter(opt.value)}
+                  className={cn(
+                    "shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 active:scale-95",
+                    isActive
+                      ? "border-primary text-primary bg-background shadow-sm"
+                      : "border-border text-muted-foreground bg-background hover:border-muted-foreground/40"
+                  )}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="shrink-0 flex items-center bg-muted rounded-full p-0.5">
+            <button
+              onClick={() => setViewMode("card")}
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                viewMode === "card" ? "bg-background text-primary shadow-sm" : "text-muted-foreground"
+              )}
+              aria-label="Vista tarjetas"
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center transition-all",
+                viewMode === "list" ? "bg-background text-primary shadow-sm" : "text-muted-foreground"
+              )}
+              aria-label="Vista lista"
+            >
+              <List className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="px-5">
+        {isLoading && page === 0 ? (
+          <div className="flex justify-center py-16">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        ) : filteredRecipes.length === 0 ? (
+          <div className="py-12 text-center">
             <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-            <p className="text-muted-foreground">
-              {searchTerm || filterSentVia !== "all"
+            <p className="text-sm text-muted-foreground">
+              {searchTerm || activeFilter !== "all"
                 ? "No se encontraron recetas"
                 : "Aún no has enviado ninguna receta"}
             </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {filteredRecipes.map((recipe) => (
-            <Card key={recipe.id} className="transition-smooth hover:shadow-medical">
-              <CardContent className="pt-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="space-y-3 flex-1">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold text-foreground">{recipe.patient_name}</h3>
-                          {getStatusBadge(recipe.sent_via)}
-                          {recipe.dispensed_at ? (
-                            <Badge className="bg-green-500/10 text-green-600 gap-1">
-                              <CheckCircle2 className="w-3 h-3" />
-                              Retirada
-                            </Badge>
-                          ) : (
-                            <Badge className="bg-orange-500/10 text-orange-600 gap-1">
-                              <Clock className="w-3 h-3" />
-                              Pendiente
-                            </Badge>
-                          )}
-                        </div>
-                        <p className="text-sm text-muted-foreground">
-                          ID: {recipe.id.slice(0, 8)}...
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-4 text-sm">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Calendar className="w-4 h-4" />
-                        <span>{formatDate(recipe.created_at)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {getSentViaIcon(recipe.sent_via)}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {recipe.products.slice(0, 3).map((product, index) => (
-                        <Badge key={index} variant="outline">
-                          {product.quantity > 1 && `${product.quantity}x `}{product.name}
+          </div>
+        ) : viewMode === "list" ? (
+          <ul className="flex flex-col gap-2" role="list" aria-label="Listado de recetas">
+            {filteredRecipes.map((recipe) => {
+              const productsSummary = recipe.products
+                .slice(0, 3)
+                .map((p) => `${p.quantity > 1 ? `${p.quantity}x ` : ""}${p.name}`)
+                .join(" · ");
+              const extra = recipe.products.length > 3 ? ` +${recipe.products.length - 3}` : "";
+              const titleId = `recipe-title-${recipe.id}`;
+              return (
+                <li key={recipe.id}>
+                  <article
+                    aria-labelledby={titleId}
+                    className="bg-card rounded-2xl border border-border/40 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:border-border focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background transition-all duration-200 px-4 py-3"
+                  >
+                    {/* Row 1 */}
+                    <div className="flex items-center gap-2 mb-1.5">
+                      {channelIcon(recipe.sent_via)}
+                      <h3
+                        id={titleId}
+                        className="font-semibold text-sm text-foreground leading-tight flex-1 truncate"
+                      >
+                        {recipe.patient_name}
+                      </h3>
+                      {channelBadge(recipe.sent_via)}
+                      {recipe.dispensed_at ? (
+                        <Badge className="text-[10px] px-1.5 py-0 bg-green-500/10 text-green-600 gap-0.5">
+                          <CheckCircle2 className="w-2.5 h-2.5" />
+                          Retirada
                         </Badge>
-                      ))}
-                      {recipe.products.length > 3 && (
-                        <Badge variant="outline">+{recipe.products.length - 3} más</Badge>
+                      ) : (
+                        <Badge className="text-[10px] px-1.5 py-0 bg-orange-500/10 text-orange-600 gap-0.5">
+                          <Clock className="w-2.5 h-2.5" />
+                          Pendiente
+                        </Badge>
                       )}
                     </div>
+                    {/* Row 2 */}
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs text-muted-foreground flex-1 truncate">
+                        <span className="inline-flex items-center gap-1 mr-2">
+                          <Calendar className="w-3 h-3" />
+                          {formatShortDate(recipe.created_at)}
+                        </span>
+                        {productsSummary}
+                        {extra}
+                      </p>
+                      <div className="shrink-0 flex items-center gap-1">
+                        {onDuplicate && (
+                          <button
+                            onClick={() => onDuplicate(recipe)}
+                            aria-label={`Duplicar receta de ${recipe.patient_name}`}
+                            className="w-8 h-8 rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/60 flex items-center justify-center active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-all"
+                          >
+                            <Copy className="w-3.5 h-3.5" aria-hidden="true" />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDownloadPDF(recipe)}
+                          aria-label={`Descargar PDF de ${recipe.patient_name}`}
+                          className="w-8 h-8 rounded-full border border-primary/40 text-primary hover:bg-primary/5 hover:border-primary flex items-center justify-center active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-all"
+                        >
+                          <Download className="w-3.5 h-3.5" aria-hidden="true" />
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          // CARD VIEW
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {filteredRecipes.map((recipe) => (
+              <article
+                key={recipe.id}
+                className="bg-card rounded-2xl border border-border/40 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300 p-4"
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-sm text-foreground truncate">
+                      {recipe.patient_name}
+                    </h3>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      {formatLongDate(recipe.created_at)}
+                    </p>
                   </div>
+                  {channelIcon(recipe.sent_via)}
+                </div>
 
-                  <div className="flex gap-2">
-                    {onDuplicate && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onDuplicate(recipe)}
-                      >
-                        <Copy className="w-4 h-4 mr-2" />
-                        Duplicar
-                      </Button>
-                    )}
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {channelBadge(recipe.sent_via)}
+                  {recipe.dispensed_at ? (
+                    <Badge className="text-[10px] px-1.5 py-0 bg-green-500/10 text-green-600 gap-0.5">
+                      <CheckCircle2 className="w-2.5 h-2.5" />
+                      Retirada
+                    </Badge>
+                  ) : (
+                    <Badge className="text-[10px] px-1.5 py-0 bg-orange-500/10 text-orange-600 gap-0.5">
+                      <Clock className="w-2.5 h-2.5" />
+                      Pendiente
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {recipe.products.slice(0, 3).map((p, i) => (
+                    <Badge key={i} variant="outline" className="text-[10px] px-1.5 py-0">
+                      {p.quantity > 1 && `${p.quantity}x `}
+                      {p.name}
+                    </Badge>
+                  ))}
+                  {recipe.products.length > 3 && (
+                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                      +{recipe.products.length - 3}
+                    </Badge>
+                  )}
+                </div>
+
+                <div className="flex gap-2">
+                  {onDuplicate && (
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDownloadPDF(recipe)}
+                      className="flex-1 h-8 rounded-full text-xs"
+                      onClick={() => onDuplicate(recipe)}
                     >
-                      <Download className="w-4 h-4 mr-2" />
-                      PDF
+                      <Copy className="w-3.5 h-3.5 mr-1.5" />
+                      Duplicar
                     </Button>
-                  </div>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 h-8 rounded-full text-xs"
+                    onClick={() => handleDownloadPDF(recipe)}
+                  >
+                    <Download className="w-3.5 h-3.5 mr-1.5" />
+                    PDF
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </article>
+            ))}
+          </div>
+        )}
 
-          {hasMore && (
-            <div className="flex justify-center pt-2">
-              <Button
-                variant="outline"
-                onClick={handleLoadMore}
-                disabled={isFetching}
-                className="gap-2"
-              >
-                {isFetching ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <ChevronDown className="w-4 h-4" />
-                )}
-                {isFetching ? "Cargando..." : `Cargar más (${PAGE_SIZE} por página)`}
-              </Button>
-            </div>
-          )}
+        {hasMore && filteredRecipes.length > 0 && (
+          <div className="flex justify-center pt-4">
+            <Button
+              variant="outline"
+              onClick={handleLoadMore}
+              disabled={isFetching}
+              className="gap-2 rounded-full"
+            >
+              {isFetching ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+              {isFetching ? "Cargando..." : `Cargar más`}
+            </Button>
+          </div>
+        )}
 
-          {!hasMore && displayRecipes.length > PAGE_SIZE && (
-            <p className="text-center text-sm text-muted-foreground py-2">
-              Has visto todas las recetas
-            </p>
-          )}
-        </div>
-      )}
+        {!hasMore && displayRecipes.length > PAGE_SIZE && (
+          <p className="text-center text-xs text-muted-foreground py-3">
+            Has visto todas las recetas
+          </p>
+        )}
+      </div>
     </div>
   );
 };
