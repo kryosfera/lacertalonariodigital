@@ -4,8 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Search, Download, Mail, MessageSquare, Calendar, Loader2, FileText,
-  ChevronDown, Copy, CheckCircle2, Clock, LayoutGrid, List,
+  Search, Mail, MessageSquare, Loader2, FileText,
+  ChevronDown, ChevronRight, CheckCircle2, Clock, LayoutGrid, List, Download, Copy,
 } from "lucide-react";
 import { useRecipes, Recipe, PAGE_SIZE } from "@/hooks/useRecipes";
 import { format } from "date-fns";
@@ -13,6 +13,7 @@ import { es } from "date-fns/locale";
 import { downloadPDF } from "@/lib/recipeUtils";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { RecipeDetailSheet } from "@/components/RecipeDetailSheet";
 
 interface RecipeHistoryProps {
   onDuplicate?: (recipe: Recipe) => void;
@@ -35,6 +36,8 @@ export const RecipeHistory = ({ onDuplicate }: RecipeHistoryProps) => {
   const [viewMode, setViewMode] = useState<"card" | "list">("list");
   const [page, setPage] = useState(0);
   const [allRecipes, setAllRecipes] = useState<Recipe[]>([]);
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const { data, isLoading, error, isFetching } = useRecipes(page);
 
@@ -56,29 +59,17 @@ export const RecipeHistory = ({ onDuplicate }: RecipeHistoryProps) => {
 
   const displayRecipes = page === 0 ? currentPageRecipes : mergedRecipes;
 
-  const channelBadge = (sentVia: string | null) => {
-    const map: Record<string, { label: string; className: string }> = {
-      whatsapp: { label: "WhatsApp", className: "bg-[#25D366]/10 text-[#25D366]" },
-      email: { label: "Email", className: "bg-primary/10 text-primary" },
-      both: { label: "Ambos", className: "bg-accent/10 text-accent" },
-      pdf: { label: "PDF", className: "bg-muted text-muted-foreground" },
-      print: { label: "Impresa", className: "bg-muted text-muted-foreground" },
-    };
-    const v = map[sentVia || "pdf"] || map.pdf;
-    return <Badge className={cn("text-[10px] px-1.5 py-0", v.className)}>{v.label}</Badge>;
-  };
-
   const channelIcon = (via: string | null) => {
     if (via === "both")
       return (
-        <span className="flex gap-0.5">
+        <span className="flex gap-0.5 shrink-0">
           <Mail className="w-3.5 h-3.5 text-primary" />
           <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />
         </span>
       );
-    if (via === "email") return <Mail className="w-3.5 h-3.5 text-primary" />;
-    if (via === "whatsapp") return <MessageSquare className="w-3.5 h-3.5 text-[#25D366]" />;
-    return <FileText className="w-3.5 h-3.5 text-muted-foreground" />;
+    if (via === "email") return <Mail className="w-3.5 h-3.5 text-primary shrink-0" />;
+    if (via === "whatsapp") return <MessageSquare className="w-3.5 h-3.5 text-[#25D366] shrink-0" />;
+    return <FileText className="w-3.5 h-3.5 text-muted-foreground shrink-0" />;
   };
 
   const handleDownloadPDF = async (recipe: Recipe) => {
@@ -102,6 +93,11 @@ export const RecipeHistory = ({ onDuplicate }: RecipeHistoryProps) => {
     }
   };
 
+  const openDetail = (recipe: Recipe) => {
+    setSelectedRecipe(recipe);
+    setSheetOpen(true);
+  };
+
   const filteredRecipes = displayRecipes.filter((recipe) => {
     const matchesSearch =
       recipe.patient_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -114,9 +110,9 @@ export const RecipeHistory = ({ onDuplicate }: RecipeHistoryProps) => {
   });
 
   const formatShortDate = (dateString: string) =>
-    format(new Date(dateString), "dd MMM, HH:mm", { locale: es });
+    format(new Date(dateString), "dd MMM", { locale: es });
   const formatLongDate = (dateString: string) =>
-    format(new Date(dateString), "dd MMM yyyy, HH:mm", { locale: es });
+    format(new Date(dateString), "dd MMM yyyy", { locale: es });
 
   if (error) {
     return (
@@ -131,7 +127,7 @@ export const RecipeHistory = ({ onDuplicate }: RecipeHistoryProps) => {
   return (
     <div className="space-y-5 pb-24 md:pb-8 pt-safe">
       {/* Header */}
-      <div className="px-5 pt-4 text-center">
+      <div className="px-3 md:px-5 pt-4 text-center">
         <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight leading-none">
           Historial
         </h1>
@@ -198,7 +194,7 @@ export const RecipeHistory = ({ onDuplicate }: RecipeHistoryProps) => {
       </div>
 
       {/* Content */}
-      <div className="px-5">
+      <div className="px-3 md:px-5">
         {isLoading && page === 0 ? (
           <div className="flex justify-center py-16">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -215,70 +211,39 @@ export const RecipeHistory = ({ onDuplicate }: RecipeHistoryProps) => {
         ) : viewMode === "list" ? (
           <ul className="flex flex-col gap-2" role="list" aria-label="Listado de recetas">
             {filteredRecipes.map((recipe) => {
-              const productsSummary = recipe.products
-                .slice(0, 3)
-                .map((p) => `${p.quantity > 1 ? `${p.quantity}x ` : ""}${p.name}`)
-                .join(" · ");
-              const extra = recipe.products.length > 3 ? ` +${recipe.products.length - 3}` : "";
               const titleId = `recipe-title-${recipe.id}`;
               return (
                 <li key={recipe.id}>
-                  <article
+                  <button
+                    onClick={() => openDetail(recipe)}
                     aria-labelledby={titleId}
-                    className="bg-card rounded-2xl border border-border/40 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:border-border focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background transition-all duration-200 px-4 py-3"
+                    className="w-full text-left bg-card rounded-2xl border border-border/40 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.99] transition-all duration-200 px-3 py-2.5 flex items-center gap-2.5"
                   >
-                    {/* Row 1 */}
-                    <div className="flex items-center gap-2 mb-1.5">
-                      {channelIcon(recipe.sent_via)}
+                    {channelIcon(recipe.sent_via)}
+                    <div className="flex-1 min-w-0">
                       <h3
                         id={titleId}
-                        className="font-semibold text-sm text-foreground leading-tight flex-1 truncate"
+                        className="font-semibold text-sm text-foreground leading-tight break-words"
                       >
                         {recipe.patient_name}
                       </h3>
-                      {channelBadge(recipe.sent_via)}
-                      {recipe.dispensed_at ? (
-                        <Badge className="text-[10px] px-1.5 py-0 bg-green-500/10 text-green-600 gap-0.5">
-                          <CheckCircle2 className="w-2.5 h-2.5" />
-                          Retirada
-                        </Badge>
-                      ) : (
-                        <Badge className="text-[10px] px-1.5 py-0 bg-orange-500/10 text-orange-600 gap-0.5">
-                          <Clock className="w-2.5 h-2.5" />
-                          Pendiente
-                        </Badge>
-                      )}
-                    </div>
-                    {/* Row 2 */}
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs text-muted-foreground flex-1 truncate">
-                        <span className="inline-flex items-center gap-1 mr-2">
-                          <Calendar className="w-3 h-3" />
-                          {formatShortDate(recipe.created_at)}
-                        </span>
-                        {productsSummary}
-                        {extra}
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {formatShortDate(recipe.created_at)}
                       </p>
-                      <div className="shrink-0 flex items-center gap-1">
-                        {onDuplicate && (
-                          <button
-                            onClick={() => onDuplicate(recipe)}
-                            aria-label={`Duplicar receta de ${recipe.patient_name}`}
-                            className="w-8 h-8 rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/60 flex items-center justify-center active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-all"
-                          >
-                            <Copy className="w-3.5 h-3.5" aria-hidden="true" />
-                          </button>
-                        )}
-                        <button
-                          onClick={() => handleDownloadPDF(recipe)}
-                          aria-label={`Descargar PDF de ${recipe.patient_name}`}
-                          className="w-8 h-8 rounded-full border border-primary/40 text-primary hover:bg-primary/5 hover:border-primary flex items-center justify-center active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-all"
-                        >
-                          <Download className="w-3.5 h-3.5" aria-hidden="true" />
-                        </button>
-                      </div>
                     </div>
-                  </article>
+                    {recipe.dispensed_at ? (
+                      <Badge className="text-[10px] px-1.5 py-0 bg-green-500/10 text-green-600 gap-0.5 shrink-0">
+                        <CheckCircle2 className="w-2.5 h-2.5" />
+                        Retirada
+                      </Badge>
+                    ) : (
+                      <Badge className="text-[10px] px-1.5 py-0 bg-orange-500/10 text-orange-600 gap-0.5 shrink-0">
+                        <Clock className="w-2.5 h-2.5" />
+                        Pendiente
+                      </Badge>
+                    )}
+                    <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
+                  </button>
                 </li>
               );
             })}
@@ -289,50 +254,43 @@ export const RecipeHistory = ({ onDuplicate }: RecipeHistoryProps) => {
             {filteredRecipes.map((recipe) => (
               <article
                 key={recipe.id}
-                className="bg-card rounded-2xl border border-border/40 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300 p-4"
+                className="bg-card rounded-2xl border border-border/40 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300 p-3 flex flex-col"
               >
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-sm text-foreground truncate">
-                      {recipe.patient_name}
-                    </h3>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                      {formatLongDate(recipe.created_at)}
-                    </p>
+                <button
+                  onClick={() => openDetail(recipe)}
+                  className="text-left flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-sm text-foreground break-words">
+                        {recipe.patient_name}
+                      </h3>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {formatLongDate(recipe.created_at)}
+                      </p>
+                    </div>
+                    {channelIcon(recipe.sent_via)}
                   </div>
-                  {channelIcon(recipe.sent_via)}
-                </div>
 
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {channelBadge(recipe.sent_via)}
-                  {recipe.dispensed_at ? (
-                    <Badge className="text-[10px] px-1.5 py-0 bg-green-500/10 text-green-600 gap-0.5">
-                      <CheckCircle2 className="w-2.5 h-2.5" />
-                      Retirada
-                    </Badge>
-                  ) : (
-                    <Badge className="text-[10px] px-1.5 py-0 bg-orange-500/10 text-orange-600 gap-0.5">
-                      <Clock className="w-2.5 h-2.5" />
-                      Pendiente
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {recipe.products.slice(0, 3).map((p, i) => (
-                    <Badge key={i} variant="outline" className="text-[10px] px-1.5 py-0">
-                      {p.quantity > 1 && `${p.quantity}x `}
-                      {p.name}
-                    </Badge>
-                  ))}
-                  {recipe.products.length > 3 && (
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {recipe.dispensed_at ? (
+                      <Badge className="text-[10px] px-1.5 py-0 bg-green-500/10 text-green-600 gap-0.5">
+                        <CheckCircle2 className="w-2.5 h-2.5" />
+                        Retirada
+                      </Badge>
+                    ) : (
+                      <Badge className="text-[10px] px-1.5 py-0 bg-orange-500/10 text-orange-600 gap-0.5">
+                        <Clock className="w-2.5 h-2.5" />
+                        Pendiente
+                      </Badge>
+                    )}
                     <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                      +{recipe.products.length - 3}
+                      {recipe.products.length} prod.
                     </Badge>
-                  )}
-                </div>
+                  </div>
+                </button>
 
-                <div className="flex gap-2">
+                <div className="flex gap-1.5">
                   {onDuplicate && (
                     <Button
                       variant="outline"
@@ -383,6 +341,14 @@ export const RecipeHistory = ({ onDuplicate }: RecipeHistoryProps) => {
           </p>
         )}
       </div>
+
+      <RecipeDetailSheet
+        recipe={selectedRecipe}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onDuplicate={onDuplicate}
+        onDownloadPDF={handleDownloadPDF}
+      />
     </div>
   );
 };
