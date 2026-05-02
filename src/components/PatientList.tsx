@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
-  Search, Plus, Phone, Mail, FileText, Trash2, Edit, Loader2,
-  UserPlus, Calendar, LayoutGrid, List,
+  Search, Plus, FileText, Trash2, Edit, Loader2,
+  UserPlus, LayoutGrid, List, ChevronRight, Calendar, Phone, Mail,
 } from "lucide-react";
 import {
   Dialog,
@@ -32,6 +32,7 @@ import {
 import { format, isAfter, subDays } from "date-fns";
 import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { PatientDetailSheet } from "@/components/PatientDetailSheet";
 
 interface PatientListProps {
   onViewPatient?: (patient: Patient) => void;
@@ -54,6 +55,8 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
   const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -126,10 +129,11 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
     }
   };
 
-  const formatShortDate = (dateString: string | null) => {
-    if (!dateString) return "Sin visitas";
-    return format(new Date(dateString), "dd MMM yy", { locale: es });
+  const openDetail = (patient: Patient) => {
+    setSelectedPatient(patient);
+    setSheetOpen(true);
   };
+
   const formatLongDate = (dateString: string | null) => {
     if (!dateString) return "Sin visitas";
     return format(new Date(dateString), "dd MMM yyyy", { locale: es });
@@ -148,7 +152,7 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
   return (
     <div className="space-y-5 pb-24 md:pb-8 pt-safe">
       {/* Header */}
-      <div className="px-5 pt-4 text-center">
+      <div className="px-3 md:px-5 pt-4 text-center">
         <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight leading-none">
           Pacientes
         </h1>
@@ -224,7 +228,7 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
       </div>
 
       {/* Content */}
-      <div className="px-5">
+      <div className="px-3 md:px-5">
         {isLoading ? (
           <div className="flex justify-center py-16">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -254,73 +258,25 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
               const titleId = `patient-title-${patient.id}`;
               return (
                 <li key={patient.id}>
-                  <article
+                  <button
+                    onClick={() => openDetail(patient)}
                     aria-labelledby={titleId}
-                    className="bg-card rounded-2xl border border-border/40 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:border-border focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background transition-all duration-200 px-4 py-3"
+                    className="w-full text-left bg-card rounded-2xl border border-border/40 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:scale-[0.99] transition-all duration-200 px-3 py-2.5 flex items-center gap-2.5"
                   >
-                    {/* Row 1 */}
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <div className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0">
-                        {initial(patient.name)}
-                      </div>
-                      <h3
-                        id={titleId}
-                        className="font-semibold text-sm text-foreground leading-tight flex-1 truncate"
-                      >
-                        {patient.name}
-                      </h3>
-                      <Badge
-                        variant="secondary"
-                        className="text-[10px] px-1.5 py-0 shrink-0"
-                      >
-                        {patient.recipe_count || 0} recetas
-                      </Badge>
+                    <div className="w-8 h-8 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center shrink-0">
+                      {initial(patient.name)}
                     </div>
-                    {/* Row 2 */}
-                    <div className="flex items-center gap-2">
-                      <p className="text-xs text-muted-foreground flex-1 truncate flex items-center gap-2">
-                        <span className="inline-flex items-center gap-1">
-                          <Calendar className="w-3 h-3" />
-                          {formatShortDate(patient.last_recipe_date)}
-                        </span>
-                        {patient.phone && (
-                          <span className="inline-flex items-center gap-1 truncate">
-                            <Phone className="w-3 h-3" />
-                            {patient.phone}
-                          </span>
-                        )}
-                        {patient.email && (
-                          <span className="inline-flex items-center gap-1 truncate min-w-0">
-                            <Mail className="w-3 h-3 shrink-0" />
-                            <span className="truncate">{patient.email}</span>
-                          </span>
-                        )}
-                      </p>
-                      <div className="shrink-0 flex items-center gap-1">
-                        <button
-                          onClick={() => onViewPatient?.(patient)}
-                          aria-label={`Ver recetas de ${patient.name}`}
-                          className="w-8 h-8 rounded-full border border-primary/40 text-primary hover:bg-primary/5 hover:border-primary flex items-center justify-center active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-all"
-                        >
-                          <FileText className="w-3.5 h-3.5" aria-hidden="true" />
-                        </button>
-                        <button
-                          onClick={() => handleOpenEdit(patient)}
-                          aria-label={`Editar ${patient.name}`}
-                          className="w-8 h-8 rounded-full border border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/60 flex items-center justify-center active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-all"
-                        >
-                          <Edit className="w-3.5 h-3.5" aria-hidden="true" />
-                        </button>
-                        <button
-                          onClick={() => handleOpenDelete(patient)}
-                          aria-label={`Eliminar ${patient.name}`}
-                          className="w-8 h-8 rounded-full border border-border text-destructive hover:bg-destructive/5 hover:border-destructive/40 flex items-center justify-center active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-all"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-                        </button>
-                      </div>
-                    </div>
-                  </article>
+                    <h3
+                      id={titleId}
+                      className="font-semibold text-sm text-foreground leading-tight flex-1 break-words"
+                    >
+                      {patient.name}
+                    </h3>
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">
+                      {patient.recipe_count || 0}
+                    </Badge>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" aria-hidden="true" />
+                  </button>
                 </li>
               );
             })}
@@ -331,40 +287,30 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
             {filteredPatients.map((patient) => (
               <article
                 key={patient.id}
-                className="bg-card rounded-2xl border border-border/40 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300 p-4"
+                className="bg-card rounded-2xl border border-border/40 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300 p-3 flex flex-col"
               >
-                <div className="flex items-start gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center shrink-0">
-                    {initial(patient.name)}
+                <button
+                  onClick={() => openDetail(patient)}
+                  className="text-left flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-xl"
+                >
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center shrink-0">
+                      {initial(patient.name)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-sm text-foreground break-words">
+                        {patient.name}
+                      </h3>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {formatLongDate(patient.last_recipe_date)}
+                      </p>
+                    </div>
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                      {patient.recipe_count || 0}
+                    </Badge>
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-sm text-foreground truncate">
-                      {patient.name}
-                    </h3>
-                    <p className="text-[11px] text-muted-foreground mt-0.5 flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      {formatLongDate(patient.last_recipe_date)}
-                    </p>
-                  </div>
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
-                    {patient.recipe_count || 0}
-                  </Badge>
-                </div>
-
-                <div className="space-y-1 mb-3 min-h-[2.5rem]">
-                  {patient.phone && (
-                    <p className="text-xs text-muted-foreground flex items-center gap-1.5 truncate">
-                      <Phone className="w-3 h-3 shrink-0" />
-                      {patient.phone}
-                    </p>
-                  )}
-                  {patient.email && (
-                    <p className="text-xs text-muted-foreground flex items-center gap-1.5 truncate">
-                      <Mail className="w-3 h-3 shrink-0" />
-                      <span className="truncate">{patient.email}</span>
-                    </p>
-                  )}
-                </div>
+                </button>
 
                 <div className="flex gap-1.5">
                   <Button
@@ -400,6 +346,16 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
           </div>
         )}
       </div>
+
+      {/* Detail Sheet */}
+      <PatientDetailSheet
+        patient={selectedPatient}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+        onViewRecipes={(p) => onViewPatient?.(p)}
+        onEdit={handleOpenEdit}
+        onDelete={handleOpenDelete}
+      />
 
       {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
