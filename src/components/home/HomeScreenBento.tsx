@@ -1,7 +1,7 @@
 import { FileText, Clock, Users, Scissors, TrendingUp, ChevronRight, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import lacerLogo from "@/assets/lacer-logo.png";
+import lacerLogo from "@/assets/lacer-logo-clean.png";
 import { UserMode } from "@/hooks/useUserMode";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LegalFooter } from "@/components/LegalFooter";
