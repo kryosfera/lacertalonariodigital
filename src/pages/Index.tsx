@@ -178,15 +178,7 @@ const Index = () => {
       
       case "pacientes":
         if (!isProfessional) return null;
-        return (
-          <div className="space-y-4 pb-20 md:pb-0 px-4">
-            <div className="space-y-1">
-              <h2 className="text-xl md:text-2xl font-semibold text-foreground">Pacientes</h2>
-              <p className="text-sm text-muted-foreground">Gestiona tu base de datos</p>
-            </div>
-            <PatientList onViewPatient={handleViewPatient} />
-          </div>
-        );
+        return <PatientList onViewPatient={handleViewPatient} />;
       
       case "paciente-detalle":
         if (!isProfessional || !selectedPatient) return null;
@@ -203,15 +195,7 @@ const Index = () => {
       
       case "historial":
         if (!isProfessional) return null;
-        return (
-          <div className="space-y-4 pb-20 md:pb-0 px-4">
-            <div className="space-y-1">
-              <h2 className="text-xl md:text-2xl font-semibold text-foreground">Historial</h2>
-              <p className="text-sm text-muted-foreground">Consulta las recetas enviadas</p>
-            </div>
-            <RecipeHistory onDuplicate={handleDuplicateRecipe} />
-          </div>
-        );
+        return <RecipeHistory onDuplicate={handleDuplicateRecipe} />;
       
       case "perfil":
         if (!isProfessional) return null;
