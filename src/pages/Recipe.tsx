@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Home, AlertCircle, Clock, Barcode, Play, MapPin, Award, CheckCircle2, ShieldCheck } from "lucide-react";
-import lacerLogo from "@/assets/lacer-logo-color.png";
+import lacerLogo from "@/assets/lacer-logo-clean.png";
 import { decodeRecipeData } from "@/lib/recipeUtils";
 import { BarcodeDisplay } from "@/components/BarcodeDisplay";
 import { RotatePhoneHint } from "@/components/RotatePhoneHint";

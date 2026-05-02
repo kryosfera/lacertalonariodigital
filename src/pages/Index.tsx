@@ -25,7 +25,7 @@ import { OnboardingTour } from "@/components/OnboardingTour";
 import { LegalFooter } from "@/components/LegalFooter";
 import { Recipe } from "@/hooks/useRecipes";
 import { Patient } from "@/hooks/usePatients";
-import lacerLogo from "@/assets/lacer-logo.png";
+import lacerLogo from "@/assets/lacer-logo-clean.png";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import lacerLogo from "@/assets/lacer-logo-color.png";
+import lacerLogo from "@/assets/lacer-logo-clean.png";
 
 interface SplashScreenProps {
   onFinish: () => void;

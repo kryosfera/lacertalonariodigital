@@ -6,7 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "./ProductCard";
 import { useIsMobile } from "@/hooks/use-mobile";
-import lacerIcon from "@/assets/lacer-logo.png";
+import lacerIcon from "@/assets/lacer-logo-clean.png";
 
 interface Product {
   id: string;

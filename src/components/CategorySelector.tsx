@@ -2,7 +2,7 @@ import { useState } from "react";
 import lacerLogoBocasSanas from "@/assets/lacer-logo-bocas_sanas.jpg";
 import { useQuery } from "@tanstack/react-query";
 import { X, FolderOpen, Package, ShoppingCart, FileText, ArrowLeft } from "lucide-react";
-import lacerIcon from "@/assets/lacer-logo.png";
+import lacerIcon from "@/assets/lacer-logo-clean.png";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";

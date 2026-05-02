@@ -1,7 +1,7 @@
 import ExcelJS from 'exceljs';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import logoUrl from '@/assets/lacer-logo-color.png';
+import logoUrl from '@/assets/lacer-logo-clean.png';
 import type { RangeBounds } from './dateRanges';
 
 export interface DashboardExportData {

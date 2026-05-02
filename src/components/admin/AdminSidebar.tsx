@@ -14,7 +14,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import lacerLogo from '@/assets/lacer-logo-color.png';
+import lacerLogo from '@/assets/lacer-logo-clean.png';
 
 export type AdminSection = 'dashboard' | 'products' | 'categories' | 'recommendations' | 'users' | 'recipes' | 'maintenance';
 

@@ -1,7 +1,7 @@
 import { FileText, Clock, Users, Scissors, Sparkles, TrendingUp, CalendarDays, UserCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import lacerLogo from "@/assets/lacer-logo-color.png";
+import lacerLogo from "@/assets/lacer-logo-clean.png";
 import homeBanner from "@/assets/home-banner.jpg";
 import { UserMode } from "@/hooks/useUserMode";
 import { ThemeToggle } from "@/components/ThemeToggle";
