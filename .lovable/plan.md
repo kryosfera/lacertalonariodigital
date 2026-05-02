@@ -1,76 +1,83 @@
+# Plan: Historial y Pacientes — limpieza y modal de detalle
 
-# Rediseño de Historial y Pacientes
+## 1. Quitar títulos duplicados (`src/pages/Index.tsx`)
 
-Aplicar el mismo lenguaje visual de la pantalla de Recomendaciones a las pantallas de **Historial de Recetas** (`RecipeHistory.tsx`) y **Pacientes** (`PatientList.tsx`), maximizando la densidad de información en la vista inicial.
+Actualmente `Index.tsx` añade un header propio (`<h2>Historial</h2>` / `<h2>Pacientes</h2>` + subtítulo) por encima de los componentes, que ya pintan su propio header centrado. Se eliminarán esos wrappers para los casos `historial`, `pacientes` y `dashboard`/`perfil` (revisar consistencia), dejando que cada componente gestione su propio encabezado.
 
-## Objetivo
+- `case "historial"`: renderizar `<RecipeHistory ... />` directo (sin div extra con `space-y-4 px-4` ni `<h2>`).
+- `case "pacientes"`: renderizar `<PatientList ... />` directo.
+- Mantener `pb-20 md:pb-0` aplicado dentro de los propios componentes (ya lo hacen con `pb-24 md:pb-8`).
 
-- Encabezado centrado, compacto y consistente con Recomendaciones.
-- Fila única de filtros + selector de vista (tarjeta / lista).
-- Por defecto, **vista de lista** para que se vean más datos en pantalla.
-- Vista de tarjeta como alternativa para quien prefiera más detalle visual.
+## 2. Aprovechar mejor el ancho (paddings)
 
----
+En móvil hoy se acumula: `main` con `container` + `px-4` del wrapper + `px-5` interno del componente = ~36px laterales.
 
-## 1. Pantalla "Historial de Recetas"
+- En `Index.tsx` quitar el `px-4` del wrapper de historial/pacientes (al eliminar el wrapper queda resuelto).
+- En `RecipeHistory.tsx` y `PatientList.tsx`:
+  - Header: `px-4` en lugar de `px-5`.
+  - Lista/contenido: `px-3 md:px-5` para ganar ancho en móvil.
+  - Items de lista: `px-3 py-2.5` en lugar de `px-4 py-3`.
 
-### Encabezado (replicando Recomendaciones)
-- Título compacto `text-2xl md:text-3xl` "Historial".
-- Subtítulo `text-sm` "Recetas enviadas y dispensadas".
-- **Buscador** con icono lupa, full width, redondeado.
-- **Fila única**: chips de filtro (Todos · WhatsApp · Email · PDF · Pendientes · Retiradas) con scroll horizontal `overflow-x-auto scrollbar-none`, y a la derecha el toggle `LayoutGrid` / `List`.
+## 3. Simplificar listados (no truncar, menos info)
 
-### Vista LISTA (por defecto, alta densidad)
-Cada receta es una fila `<li>` compacta con dos líneas:
-- **Línea 1**: Nombre paciente (bold) · fecha corta · badge canal envío (icono pequeño) · badge estado (Pendiente/Retirada).
-- **Línea 2**: Resumen productos `2x Lacer · Bexident · +3` (text-xs muted) y a la derecha mini-iconos acción: Duplicar, PDF.
-- Tap en la fila abre acciones; foco/hover con anillo accesible.
+Objetivo: que el nombre completo del paciente/receta se vea sin `truncate`, mostrando solo lo esencial. El resto va al modal de detalle.
 
-### Vista TARJETA
-Mantener estructura actual de `Card` pero más compacta: grid `md:grid-cols-2 lg:grid-cols-3`, padding reducido, badges en una fila.
+### `RecipeHistory.tsx` — vista lista
+Cada item se reduce a una sola línea visual flexible:
+- Icono de canal (pequeño)
+- Nombre del paciente con `whitespace-normal break-words` (sin `truncate`), ocupa el espacio disponible
+- Badge de estado único: Retirada / Pendiente (quitar el badge de canal redundante, ya está el icono)
+- Fecha corta a la derecha (solo `dd MMM`)
+- Botón único `chevron-right` (abre modal de detalle)
 
-### "Cargar más"
-Se mantiene tal cual al final, fuera del listado.
+Quitar de la lista: resumen de productos, badge de canal, botones de duplicar/descargar (se moverán al modal).
 
----
+### `PatientList.tsx` — vista lista
+Cada item:
+- Avatar con inicial
+- Nombre completo (`whitespace-normal break-words`, sin `truncate`)
+- Badge `N recetas`
+- Botón único `chevron-right` (abre modal de detalle)
 
-## 2. Pantalla "Pacientes"
+Quitar de la lista: teléfono, email, fecha última visita, botones editar/eliminar/recetas.
 
-### Encabezado
-- Título `text-2xl md:text-3xl` "Pacientes".
-- Subtítulo `text-sm` "Tu base de pacientes".
-- **Buscador** con icono lupa.
-- **Fila única**: a la izquierda chips de filtro rápido (Todos · Con recetas · Sin visitas · Recientes), a la derecha el toggle vista + botón **"+ Nuevo"** compacto (icono `Plus`).
+Toda la fila es clickable (`<button>` envolviendo el contenido) además del chevron explícito, para mejor target táctil.
 
-### Vista LISTA (por defecto)
-Cada paciente como fila `<li>` con dos líneas:
-- **Línea 1**: Nombre paciente · badge `N recetas` · última visita (fecha corta).
-- **Línea 2**: Teléfono · email truncado · iconos acción a la derecha (Ver recetas, Editar, Eliminar) en botones circulares pequeños.
-- Click en la fila → `onViewPatient`.
+## 4. Modal de detalle por elemento
 
-### Vista TARJETA
-Grid `md:grid-cols-2 lg:grid-cols-3` con la `Card` actual ligeramente compactada (avatar/inicial opcional, padding reducido).
+Crear dos componentes nuevos basados en `Sheet` (drawer lateral en desktop, bottom sheet en móvil — ya existe `@/components/ui/sheet`).
 
-### Diálogos
-Se conservan los diálogos existentes (crear/editar/eliminar) sin cambios funcionales.
+### `src/components/RecipeDetailSheet.tsx`
+Props: `recipe: Recipe | null`, `open`, `onOpenChange`, `onDuplicate`, `onDownloadPDF`.
 
----
+Contenido:
+- Cabecera: nombre paciente, fecha larga, badges (canal + estado dispensación)
+- Sección Productos: lista completa con cantidades (sin `+N`, todos visibles)
+- Sección Notas (si existen)
+- ID receta (monospace, pequeño)
+- Acciones al pie: `Duplicar`, `Descargar PDF`
 
-## Detalles técnicos
+### `src/components/PatientDetailSheet.tsx`
+Props: `patient: Patient | null`, `open`, `onOpenChange`, `onViewRecipes`, `onEdit`, `onDelete`.
 
-- Nuevo estado en cada componente: `viewMode: 'card' | 'list'` (default `'list'`) y `activeFilter`.
-- Iconos `LayoutGrid` y `List` de `lucide-react` (ya usados en Recomendaciones).
-- Reutilizar utilidades `cn` y clases del toggle ya validadas en `SurgeryRecommendations.tsx` (`bg-muted rounded-full p-0.5`, botones `w-8 h-8`).
-- Listas semánticas: `<ul role="list">` + `<li>`, `aria-label` en botones de acción, anillos `focus-visible:ring-2 ring-ring`.
-- Mantener intactos hooks (`useRecipes`, `usePatients`), tipos y handlers existentes — solo se reemplaza la capa de presentación.
-- Sin cambios de DB ni de rutas.
+Contenido:
+- Avatar grande + nombre
+- Badge de nº recetas, fecha última visita
+- Datos de contacto: teléfono, email (con iconos)
+- Notas si existen
+- Acciones: `Ver recetas`, `Editar`, `Eliminar` (destructivo)
+
+Nota: `PatientList` ya tiene los handlers `handleOpenEdit`, `handleOpenDelete`, y `onViewPatient`; el sheet los reutiliza. `RecipeHistory` reutilizará `onDuplicate` y `handleDownloadPDF`.
+
+## 5. Vista card
+
+Mantener la vista card existente con cambios mínimos: al pulsar la card también abre el sheet (en lugar de tener botones redundantes), conservando solo el botón principal de acción dentro de la card. Criterios pequeños de padding (`p-3` en vez de `p-4`) para coherencia.
 
 ## Archivos a modificar
+- `src/pages/Index.tsx` — quitar wrappers con título duplicado
+- `src/components/RecipeHistory.tsx` — simplificar lista, integrar sheet, ajustar padding
+- `src/components/PatientList.tsx` — simplificar lista, integrar sheet, ajustar padding
 
-- `src/components/RecipeHistory.tsx`
-- `src/components/PatientList.tsx`
-
-## Fuera de alcance
-
-- No se cambia la lógica de paginación, filtros de datos del servidor, ni el `RecipeCreator`.
-- No se modifica el `PatientDetail`.
+## Archivos nuevos
+- `src/components/RecipeDetailSheet.tsx`
+- `src/components/PatientDetailSheet.tsx`
