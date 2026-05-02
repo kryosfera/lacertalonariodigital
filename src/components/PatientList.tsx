@@ -38,13 +38,12 @@ interface PatientListProps {
   onViewPatient?: (patient: Patient) => void;
 }
 
-type FilterType = "all" | "with_recipes" | "no_visits" | "recent";
+type FilterType = "all" | "with_recipes" | "recent";
 
 const filterOptions: { value: FilterType; label: string }[] = [
   { value: "all", label: "Todos" },
-  { value: "with_recipes", label: "Con recetas" },
-  { value: "no_visits", label: "Sin visitas" },
   { value: "recent", label: "Recientes" },
+  { value: "with_recipes", label: "Con recetas" },
 ];
 
 export const PatientList = ({ onViewPatient }: PatientListProps) => {
@@ -80,7 +79,6 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
       if (!matchesSearch) return false;
 
       if (activeFilter === "with_recipes") return (patient.recipe_count || 0) > 0;
-      if (activeFilter === "no_visits") return !patient.last_recipe_date;
       if (activeFilter === "recent")
         return patient.last_recipe_date
           ? isAfter(new Date(patient.last_recipe_date), sevenDaysAgo)
@@ -171,29 +169,30 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
           />
         </div>
 
-        {/* Filters + view toggle + add */}
-        <div className="flex items-center gap-2 mt-3">
-          <div className="flex gap-1.5 flex-1 min-w-0 overflow-x-auto scrollbar-none">
-            {filterOptions.map((opt) => {
-              const isActive = activeFilter === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  onClick={() => setActiveFilter(opt.value)}
-                  className={cn(
-                    "shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 active:scale-95",
-                    isActive
-                      ? "border-primary text-primary bg-background shadow-sm"
-                      : "border-border text-muted-foreground bg-background hover:border-muted-foreground/40"
-                  )}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
+        {/* Filter chips - own row, all visible */}
+        <div className="flex gap-1.5 mt-3 overflow-x-auto scrollbar-none justify-center">
+          {filterOptions.map((opt) => {
+            const isActive = activeFilter === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => setActiveFilter(opt.value)}
+                className={cn(
+                  "shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 active:scale-95",
+                  isActive
+                    ? "border-primary text-primary bg-background shadow-sm"
+                    : "border-border text-muted-foreground bg-background hover:border-muted-foreground/40"
+                )}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
 
-          <div className="shrink-0 flex items-center bg-muted rounded-full p-0.5">
+        {/* View toggle + Add new */}
+        <div className="flex items-center justify-between gap-2 mt-2.5">
+          <div className="flex items-center bg-muted rounded-full p-0.5">
             <button
               onClick={() => setViewMode("card")}
               className={cn(
@@ -219,10 +218,10 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
           <button
             onClick={handleOpenCreate}
             aria-label="Nuevo paciente"
-            className="shrink-0 h-8 px-3 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1 shadow-sm hover:bg-primary/90 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="h-8 px-3.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold flex items-center gap-1.5 shadow-sm hover:bg-primary/90 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             <Plus className="w-3.5 h-3.5" aria-hidden="true" />
-            <span className="hidden sm:inline">Nuevo</span>
+            Nuevo paciente
           </button>
         </div>
       </div>
