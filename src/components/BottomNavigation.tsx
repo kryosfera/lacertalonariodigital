@@ -1,7 +1,7 @@
 import { Home, Clock, User, Scissors } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserMode } from "@/hooks/useUserMode";
-import lacerLogo from "@/assets/lacer-logo-petal.png";
+import lacerLogo from "@/assets/lacer-logo.png";
 
 interface BottomNavigationProps {
   activeTab: string;
@@ -44,10 +44,10 @@ export const BottomNavigation = ({ activeTab, onTabChange, userMode = 'basic' }:
                 className="flex flex-col items-center justify-center -mt-6"
               >
                 <div className={cn(
-                  "w-14 h-14 flex items-center justify-center transition-all duration-200",
+                  "w-14 h-14 rounded-full flex items-center justify-center bg-white transition-all duration-200 overflow-hidden",
                   isActive
-                    ? "scale-110 drop-shadow-[0_8px_16px_hsl(var(--secondary)/0.45)]"
-                    : "drop-shadow-[0_6px_14px_hsl(var(--secondary)/0.35)] active:scale-95"
+                    ? "scale-110 shadow-[0_8px_20px_hsl(var(--secondary)/0.35)]"
+                    : "shadow-[0_4px_14px_hsl(var(--secondary)/0.25)] active:scale-95"
                 )}>
                   <img
                     src={lacerLogo}
@@ -55,7 +55,7 @@ export const BottomNavigation = ({ activeTab, onTabChange, userMode = 'basic' }:
                     loading="lazy"
                     width={56}
                     height={56}
-                    className="w-14 h-14 object-contain"
+                    className="w-12 h-12 object-contain"
                   />
                 </div>
               </button>
