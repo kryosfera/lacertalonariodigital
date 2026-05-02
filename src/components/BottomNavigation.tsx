@@ -1,7 +1,7 @@
 import { Home, Clock, User, Scissors } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserMode } from "@/hooks/useUserMode";
-import lacerLogo from "@/assets/lacer-logo.png";
+import lacerLogo from "@/assets/lacer-logo-clean.png";
 
 interface BottomNavigationProps {
   activeTab: string;
