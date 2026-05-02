@@ -124,37 +124,50 @@ export const ProfilePage = () => {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
-      {/* Account Info */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="w-5 h-5 text-primary" />
+    <div className="space-y-5 pb-24 md:pb-8 pt-safe">
+      {/* Header — same pattern as PatientList / RecipeHistory */}
+      <div className="px-3 md:px-5 pt-4 text-center">
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight leading-none">
+          Perfil
+        </h1>
+        <p className="text-sm md:text-base text-muted-foreground mt-1">
+          Configuración de tu cuenta
+        </p>
+      </div>
+
+      {/* Content */}
+      <div className="px-3 md:px-5 space-y-4 max-w-2xl mx-auto w-full">
+        {/* Account Info */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <User className="w-5 h-5 text-primary" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <CardTitle>Cuenta</CardTitle>
+                <CardDescription className="truncate">{user?.email}</CardDescription>
+              </div>
             </div>
-            <div>
-              <CardTitle>Cuenta</CardTitle>
-              <CardDescription>{user?.email}</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="flex gap-2">
-          <Button variant="outline" onClick={async () => { switchToBasic(); await signOut(); }}>
-            Cerrar sesión
-          </Button>
-          <Button 
-            variant="ghost" 
-            onClick={() => {
-              localStorage.removeItem("onboarding_pro_done");
-              localStorage.removeItem("onboarding_basic_done");
-              window.location.reload();
-            }}
-          >
-            <RotateCcw className="w-4 h-4 mr-2" />
-            Repetir tutorial
-          </Button>
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" onClick={async () => { switchToBasic(); await signOut(); }}>
+              Cerrar sesión
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                localStorage.removeItem("onboarding_pro_done");
+                localStorage.removeItem("onboarding_basic_done");
+                window.location.reload();
+              }}
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              Repetir tutorial
+            </Button>
+          </CardContent>
+        </Card>
 
       {/* Clinic Info */}
       <Card>
