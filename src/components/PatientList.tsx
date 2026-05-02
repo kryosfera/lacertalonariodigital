@@ -38,13 +38,12 @@ interface PatientListProps {
   onViewPatient?: (patient: Patient) => void;
 }
 
-type FilterType = "all" | "with_recipes" | "no_visits" | "recent";
+type FilterType = "all" | "with_recipes" | "recent";
 
 const filterOptions: { value: FilterType; label: string }[] = [
   { value: "all", label: "Todos" },
-  { value: "with_recipes", label: "Con recetas" },
-  { value: "no_visits", label: "Sin visitas" },
   { value: "recent", label: "Recientes" },
+  { value: "with_recipes", label: "Con recetas" },
 ];
 
 export const PatientList = ({ onViewPatient }: PatientListProps) => {
@@ -80,7 +79,6 @@ export const PatientList = ({ onViewPatient }: PatientListProps) => {
       if (!matchesSearch) return false;
 
       if (activeFilter === "with_recipes") return (patient.recipe_count || 0) > 0;
-      if (activeFilter === "no_visits") return !patient.last_recipe_date;
       if (activeFilter === "recent")
         return patient.last_recipe_date
           ? isAfter(new Date(patient.last_recipe_date), sevenDaysAgo)
