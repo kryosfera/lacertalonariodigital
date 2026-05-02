@@ -1,6 +1,7 @@
-import { Home, Plus, Clock, User, Scissors } from "lucide-react";
+import { Home, Clock, User, Scissors } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserMode } from "@/hooks/useUserMode";
+import lacerLogo from "@/assets/lacer-logo.png";
 
 interface BottomNavigationProps {
   activeTab: string;
@@ -10,14 +11,14 @@ interface BottomNavigationProps {
 
 const basicNavItems = [
   { id: "home", label: "Inicio", icon: Home },
-  { id: "nueva-receta", label: "Nueva", icon: Plus, isCenter: true },
+  { id: "nueva-receta", label: "Nueva", icon: null, isCenter: true },
   { id: "recomendaciones", label: "Recomendaciones", icon: Scissors },
 ];
 
 const professionalNavItems = [
   { id: "home", label: "Inicio", icon: Home },
   { id: "recomendaciones", label: "Recomendaciones", icon: Scissors },
-  { id: "nueva-receta", label: "Crear", icon: Plus, isCenter: true },
+  { id: "nueva-receta", label: "Crear", icon: null, isCenter: true },
   { id: "historial", label: "Historial", icon: Clock },
   { id: "perfil", label: "Perfil", icon: User },
 ];
@@ -39,15 +40,23 @@ export const BottomNavigation = ({ activeTab, onTabChange, userMode = 'basic' }:
               <button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
+                aria-label={`${item.label} receta`}
                 className="flex flex-col items-center justify-center -mt-6"
               >
                 <div className={cn(
-                  "w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-all duration-200",
-                  isActive 
-                    ? "bg-secondary scale-110 shadow-secondary/30" 
-                    : "bg-secondary/90 active:scale-95"
+                  "w-14 h-14 rounded-full flex items-center justify-center bg-white border-2 transition-all duration-200",
+                  isActive
+                    ? "border-secondary scale-110 shadow-[0_8px_24px_hsl(var(--secondary)/0.35)]"
+                    : "border-secondary/80 shadow-[0_4px_14px_hsl(var(--secondary)/0.25)] active:scale-95"
                 )}>
-                  <Icon className="w-6 h-6 text-white" strokeWidth={2.5} />
+                  <img
+                    src={lacerLogo}
+                    alt="Lacer"
+                    loading="lazy"
+                    width={48}
+                    height={48}
+                    className="w-9 h-9 object-contain"
+                  />
                 </div>
               </button>
             );
@@ -64,10 +73,12 @@ export const BottomNavigation = ({ activeTab, onTabChange, userMode = 'basic' }:
                   : "text-muted-foreground"
               )}
             >
-              <Icon className={cn(
-                "w-6 h-6 transition-transform",
-                isActive && "scale-105"
-              )} strokeWidth={isActive ? 2.5 : 2} />
+              {Icon && (
+                <Icon className={cn(
+                  "w-6 h-6 transition-transform",
+                  isActive && "scale-105"
+                )} strokeWidth={isActive ? 2.5 : 2} />
+              )}
               <span className={cn(
                 "text-[10px] mt-1 font-medium",
                 isActive && "font-semibold"
