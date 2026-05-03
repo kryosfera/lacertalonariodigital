@@ -408,6 +408,58 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
 
             <VideoUrlsField videoUrls={videoUrls} onChange={setVideoUrls} />
 
+            {/* Image upload section */}
+            <div className="space-y-2">
+              <p className="text-sm font-medium leading-none">Imagen del producto</p>
+              {pendingThumbnailUrl ? (
+                <div className="relative inline-block">
+                  <img
+                    src={pendingThumbnailUrl}
+                    alt="Vista previa"
+                    className="h-24 w-auto max-w-full object-contain rounded border border-border bg-muted p-2"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute -top-2 -right-2 h-6 w-6"
+                    onClick={handleRemoveImage}
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="h-24 w-full rounded border border-dashed border-border bg-muted flex items-center justify-center text-muted-foreground text-sm">
+                  Sin imagen
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageFileChange}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingImage}
+              >
+                {isUploadingImage ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="mr-2 h-4 w-4" />
+                )}
+                {isUploadingImage ? 'Subiendo...' : 'Subir imagen'}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Se sube al storage con el EAN (o referencia) como nombre de archivo.
+              </p>
+            </div>
+
+
             <div className="flex gap-6">
               <FormField
                 control={form.control}
