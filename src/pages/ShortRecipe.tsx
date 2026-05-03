@@ -23,6 +23,17 @@ export default function ShortRecipe() {
       const data = await getShortUrlData(code);
       
       if (data) {
+        // Preload Vimeo player ASAP, before redirecting to /receta
+        const videoUrls = new Set<string>();
+        data.products.forEach(p => p.video_urls?.forEach(u => videoUrls.add(u)));
+        videoUrls.forEach(u => {
+          const l = document.createElement('link');
+          l.rel = 'preload';
+          l.as = 'document';
+          l.href = `${u}${u.includes('?') ? '&' : '?'}autoplay=0&title=0&byline=0&portrait=0&dnt=1`;
+          document.head.appendChild(l);
+        });
+
         // Encode the data and redirect to the recipe page
         const minimalData = {
           p: data.patientName,

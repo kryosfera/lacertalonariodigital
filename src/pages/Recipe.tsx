@@ -156,6 +156,24 @@ export default function Recipe() {
     loadRecipe();
   }, [code, encodedData]);
 
+  // Preload Vimeo player iframes as soon as we know the recipe has videos
+  useEffect(() => {
+    if (!recipe?.products) return;
+    const urls = new Set<string>();
+    recipe.products.forEach(p => p.video_urls?.forEach(u => urls.add(u)));
+    if (urls.size === 0) return;
+    const links: HTMLLinkElement[] = [];
+    urls.forEach(u => {
+      const l = document.createElement('link');
+      l.rel = 'preload';
+      l.as = 'document';
+      l.href = `${u}${u.includes('?') ? '&' : '?'}autoplay=0&title=0&byline=0&portrait=0&dnt=1`;
+      document.head.appendChild(l);
+      links.push(l);
+    });
+    return () => { links.forEach(l => l.remove()); };
+  }, [recipe]);
+
   const handleDispense = async () => {
     if (!recipe?.id) return;
     setDispensing(true);
@@ -357,10 +375,12 @@ export default function Recipe() {
                       <div key={vIdx} className="rounded-lg overflow-hidden border bg-black">
                         <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                           <iframe
-                            src={`${videoUrl}?autoplay=0&title=0&byline=0&portrait=0`}
+                            src={`${videoUrl}${videoUrl.includes('?') ? '&' : '?'}autoplay=0&title=0&byline=0&portrait=0&dnt=1`}
                             className="absolute inset-0 w-full h-full"
                             allow="fullscreen; picture-in-picture; autoplay"
                             allowFullScreen
+                            loading={vIdx === 0 ? "eager" : "lazy"}
+                            {...(vIdx === 0 ? { fetchPriority: "high" as const } : {})}
                             style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
                             title={`Vídeo de ${product.name}`}
                           />

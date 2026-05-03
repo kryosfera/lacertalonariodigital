@@ -1,40 +1,78 @@
-## Contexto
-
-- **Categorías**: el panel admin (`CategoriesAdmin.tsx`) **ya** permite subir/sustituir/eliminar la imagen (sube al bucket `category-images` con el slug como nombre). No requiere cambios.
-- **Productos**: el `ProductDialog.tsx` **no** tiene aún UI para gestionar imagen — solo se pueden sincronizar masivamente vía la función Sync.
-
 ## Objetivo
 
-Añadir en el diálogo de edición/creación de producto la capacidad de subir, sustituir y eliminar la `thumbnail_url` (imagen principal del producto), igual que ya existe para categorías.
+Que los vídeos Vimeo de los productos en la receta (`/r/:code` y `/recipe/:id`) empiecen a cargar y a reproducirse lo antes posible, reduciendo el tiempo hasta que el paciente pueda darle al play.
 
-## Cambios
+## Diagnóstico actual
 
-**`src/components/admin/ProductDialog.tsx`**
+En `src/pages/Recipe.tsx` (líneas 351‑380) cada vídeo se renderiza con un `<iframe>` directo a `player.vimeo.com`. Sin optimización, el iframe:
 
-1. Estado nuevo:
-   - `pendingThumbnailUrl: string | null` — URL actual o recién subida.
-   - `isUploadingImage: boolean`.
-   - `fileInputRef` para `<input type="file" hidden>`.
+- Espera al render para empezar la conexión TCP/TLS con Vimeo (~300‑800 ms extra en 4G).
+- Carga el reproductor JS completo aunque el usuario aún no haya hecho scroll.
+- No usa hints del navegador para precalentar la conexión.
 
-2. En el `useEffect` que carga `fullProduct`, inicializar `pendingThumbnailUrl` con `fullProduct.thumbnail_url`. Resetear a `null` al crear nuevo.
+Solo hay 3 vídeos en el catálogo (memoria `product-video-catalog`), por lo que el coste de precargar es bajo.
 
-3. Handler `handleImageFileChange`:
-   - Requiere que exista `ean` o `reference` en el formulario (preferir EAN, fallback CN/reference). Si no, toast de error.
-   - Nombre de fichero: `{ean || reference}.{ext}` en bucket `product-images`.
-   - `remove` previo + `upload` con `upsert: true`.
-   - Obtener public URL + cache-bust `?t=Date.now()`.
-   - Guardar en `pendingThumbnailUrl`.
+## Cambios propuestos
 
-4. Handler `handleRemoveImage` → setea `null`.
+### 1. Resource hints en `index.html`
 
-5. UI: nueva sección "Imagen del producto" antes de los switches activo/visible, replicando el patrón visual de `CategoriesAdmin` (preview 24h, botón X para eliminar, botón "Subir imagen", placeholder con borde dashed).
+Añadir en `<head>`, antes del `<script>` principal, hints para que el navegador resuelva DNS y abra TLS con Vimeo desde el primer byte:
 
-6. En el `payload` de la mutación incluir `thumbnail_url: pendingThumbnailUrl`.
+```html
+<link rel="preconnect" href="https://player.vimeo.com" crossorigin>
+<link rel="preconnect" href="https://i.vimeocdn.com" crossorigin>
+<link rel="preconnect" href="https://f.vimeocdn.com" crossorigin>
+<link rel="dns-prefetch" href="https://player.vimeo.com">
+```
 
-7. Deshabilitar botón "Guardar" mientras `isUploadingImage`.
+Impacto: ahorra ~200‑500 ms en la primera petición del iframe sin coste perceptible.
 
-## Notas
+### 2. Parámetros de iframe optimizados
 
-- El bucket `product-images` ya es público y la sincronización masiva (`sync-product-images`) seguirá funcionando: usamos la misma convención de nombres (EAN o CN como nombre de archivo).
-- No se tocan migraciones ni RLS — `thumbnail_url` ya existe en la tabla `products` y los admins ya tienen permiso de UPDATE vía RLS.
-- No se modifica `CategoriesAdmin.tsx` (ya tiene la funcionalidad).
+En `src/pages/Recipe.tsx`, ajustar el `src` del iframe del vídeo de producto para:
+
+- Añadir `dnt=1` (no rastreo, payload más ligero).
+- Añadir `transparent=0` (un repaint menos).
+- Forzar `preload` mediante `loading="eager"` en el primer vídeo visible y `loading="lazy"` en los siguientes (en la práctica solo hay 1 vídeo por receta normalmente, pero es seguro).
+- Añadir `fetchpriority="high"` al primer iframe.
+
+### 3. Precarga selectiva con `<link rel="preload">` dinámico
+
+Cuando la receta cargue y detectemos que algún producto tiene `video_urls`, inyectar dinámicamente desde React (en el `useEffect` que carga la receta en `Recipe.tsx` y `ShortRecipe.tsx`) un `<link rel="preload" as="document" href="<vimeo_url>">` por cada vídeo único. Eso fuerza al navegador a empezar a descargar el HTML del player en paralelo con el resto del render.
+
+```tsx
+useEffect(() => {
+  const urls = new Set(products.flatMap(p => p.video_urls ?? []));
+  const links: HTMLLinkElement[] = [];
+  urls.forEach(u => {
+    const l = document.createElement('link');
+    l.rel = 'preload';
+    l.as = 'document';
+    l.href = u;
+    document.head.appendChild(l);
+    links.push(l);
+  });
+  return () => links.forEach(l => l.remove());
+}, [products]);
+```
+
+### 4. Render del iframe sin esperar layout
+
+Actualmente el iframe está envuelto en un contenedor con padding-bottom 56.25%. Mantenemos esa estructura (necesaria para aspect ratio) pero quitamos cualquier render condicional adicional para que el iframe entre en el árbol lo antes posible (revisar que no esté detrás de un `Suspense`, `lazy`, o un toggle "ver más"). Tras revisar el código, ya se renderiza directamente; no hace falta cambio adicional aquí.
+
+### 5. Aplicar lo mismo en `ProductDetailDialog.tsx`
+
+Los vídeos también aparecen en el diálogo de detalle de producto (`src/components/ProductDetailDialog.tsx`, línea 96+). Aplicar los mismos parámetros de iframe optimizados para coherencia.
+
+## Archivos a modificar
+
+- `index.html` — añadir preconnect/dns-prefetch a Vimeo.
+- `src/pages/Recipe.tsx` — parámetros de iframe + preload dinámico en `useEffect`.
+- `src/pages/ShortRecipe.tsx` — preload dinámico en `useEffect`.
+- `src/components/ProductDetailDialog.tsx` — parámetros de iframe coherentes.
+
+## Lo que NO cambiamos
+
+- Seguimos usando el iframe estándar de Vimeo (no añadimos el SDK `@vimeo/player`, que añadiría peso).
+- No cambiamos el comportamiento de autoplay (sigue desactivado para que el paciente decida).
+- No tocamos el modal de Recomendaciones de cirugía (ya carga solo bajo demanda).
