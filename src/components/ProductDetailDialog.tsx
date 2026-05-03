@@ -53,13 +53,6 @@ export const ProductDetailDialog = ({
           ) : (
             <Package className="w-16 h-16 text-muted-foreground/40" />
           )}
-          <button
-            onClick={onClose}
-            className="absolute top-3 right-3 w-9 h-9 rounded-full bg-background/90 backdrop-blur flex items-center justify-center shadow-sm hover:bg-background"
-            aria-label="Cerrar"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
         <ScrollArea className="flex-1">
