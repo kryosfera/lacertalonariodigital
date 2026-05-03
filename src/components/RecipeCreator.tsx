@@ -1121,24 +1121,26 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
             {sendMethod === "whatsapp" ? (
               <div className="space-y-2">
                 <Label htmlFor="phone" className="text-base font-semibold text-foreground">
-                  Teléfono (opcional)
+                  Teléfono <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="phone"
                   type="tel"
+                  inputMode="tel"
                   placeholder="+34 600 000 000"
                   value={patientPhone}
                   onChange={(e) => setPatientPhone(e.target.value)}
                   className="h-12 rounded-xl text-base"
+                  required
                 />
                 <p className="text-sm text-muted-foreground">
-                  Si no introduces un número, se abrirá WhatsApp para que lo selecciones
+                  Necesario para enviar la receta por WhatsApp
                 </p>
               </div>
             ) : (
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-base font-semibold text-foreground">
-                  Email (opcional)
+                  Email <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="email"
@@ -1147,6 +1149,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                   value={patientEmail}
                   onChange={(e) => setPatientEmail(e.target.value)}
                   className="h-12 rounded-xl text-base"
+                  required
                 />
               </div>
             )}
@@ -1154,6 +1157,12 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
             <Button
               className="w-full h-14 rounded-2xl text-base font-semibold shadow-[0_8px_24px_-8px_hsl(var(--primary)/0.55)]"
               onClick={sendMethod === "whatsapp" ? handleSendWhatsApp : handleSendEmail}
+              disabled={
+                isSending ||
+                (sendMethod === "whatsapp"
+                  ? patientPhone.replace(/\D/g, "").length < 6
+                  : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(patientEmail.trim()))
+              }
             >
               <Send className="w-5 h-5 mr-2" />
               Enviar receta ({selectedProducts.size} productos)
