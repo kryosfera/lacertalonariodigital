@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ChevronLeft, Search, Package, X, Check, Home, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "./ProductCard";
+import { ProductDetailDialog } from "./ProductDetailDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import lacerIcon from "@/assets/lacer-logo-clean.png";
 
