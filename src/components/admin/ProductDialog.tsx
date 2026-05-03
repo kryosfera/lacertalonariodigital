@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Upload, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -70,6 +70,9 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [videoUrls, setVideoUrls] = useState<string[]>([]);
+  const [pendingThumbnailUrl, setPendingThumbnailUrl] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
@@ -131,6 +134,7 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
         is_visible: fullProduct.is_visible ?? true,
       });
       setVideoUrls(fullProduct.video_urls || []);
+      setPendingThumbnailUrl(fullProduct.thumbnail_url || null);
     } else if (!product) {
       form.reset({
         name: '',
@@ -146,8 +150,58 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
         is_visible: true,
       });
       setVideoUrls([]);
+      setPendingThumbnailUrl(null);
     }
   }, [fullProduct, product, form]);
+
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const ean = form.getValues('ean')?.trim();
+    const reference = form.getValues('reference')?.trim();
+    const baseName = ean || reference;
+    if (!baseName) {
+      toast({
+        title: 'Falta EAN o Referencia',
+        description: 'Introduce primero el EAN o la referencia (C.N.) del producto.',
+        variant: 'destructive',
+      });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const filePath = `${baseName}.${fileExt}`;
+
+    setIsUploadingImage(true);
+    try {
+      await supabase.storage.from('product-images').remove([filePath]);
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file, { upsert: true, contentType: file.type });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(uploadData.path);
+
+      setPendingThumbnailUrl(`${publicUrl}?t=${Date.now()}`);
+      toast({ title: 'Imagen subida correctamente' });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+      toast({ title: 'Error al subir imagen', description: message, variant: 'destructive' });
+    } finally {
+      setIsUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setPendingThumbnailUrl(null);
+  };
 
   const mutation = useMutation({
     mutationFn: async (data: ProductFormData) => {
@@ -164,6 +218,7 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
         is_active: data.is_active,
         is_visible: data.is_visible,
         video_urls: videoUrls.length > 0 ? videoUrls : null,
+        thumbnail_url: pendingThumbnailUrl,
       };
 
       if (product?.id) {
@@ -353,6 +408,58 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
 
             <VideoUrlsField videoUrls={videoUrls} onChange={setVideoUrls} />
 
+            {/* Image upload section */}
+            <div className="space-y-2">
+              <p className="text-sm font-medium leading-none">Imagen del producto</p>
+              {pendingThumbnailUrl ? (
+                <div className="relative inline-block">
+                  <img
+                    src={pendingThumbnailUrl}
+                    alt="Vista previa"
+                    className="h-24 w-auto max-w-full object-contain rounded border border-border bg-muted p-2"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute -top-2 -right-2 h-6 w-6"
+                    onClick={handleRemoveImage}
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="h-24 w-full rounded border border-dashed border-border bg-muted flex items-center justify-center text-muted-foreground text-sm">
+                  Sin imagen
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageFileChange}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingImage}
+              >
+                {isUploadingImage ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="mr-2 h-4 w-4" />
+                )}
+                {isUploadingImage ? 'Subiendo...' : 'Subir imagen'}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                Se sube al storage con el EAN (o referencia) como nombre de archivo.
+              </p>
+            </div>
+
+
             <div className="flex gap-6">
               <FormField
                 control={form.control}
@@ -384,7 +491,7 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
               <Button type="button" variant="outline" onClick={onOpenChange}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
+              <Button type="submit" disabled={mutation.isPending || isUploadingImage}>
                 {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {product ? 'Guardar' : 'Crear'}
               </Button>
