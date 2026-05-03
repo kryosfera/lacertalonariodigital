@@ -19,6 +19,7 @@ interface HomeScreenBentoProps {
   statsLoading?: boolean;
   statsError?: boolean;
   onRetryStats?: () => void;
+  onLaunchTour?: () => void;
 }
 
 const containerVariants = {
