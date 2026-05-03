@@ -70,6 +70,9 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [videoUrls, setVideoUrls] = useState<string[]>([]);
+  const [pendingThumbnailUrl, setPendingThumbnailUrl] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<ProductFormData>({
     resolver: zodResolver(productSchema),
