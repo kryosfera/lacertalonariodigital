@@ -297,6 +297,19 @@ export const HomeScreenBento = ({
         )}
       </div>
 
+      {/* Tutorial relaunch */}
+      {onLaunchTour && (
+        <motion.div className="mt-3 flex justify-center" variants={itemVariants}>
+          <button
+            onClick={onLaunchTour}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 text-primary text-xs font-semibold hover:bg-primary/5 transition-colors"
+          >
+            <PlayCircle className="w-4 h-4" />
+            Ver tutorial
+          </button>
+        </motion.div>
+      )}
+
       {/* Footer */}
       <div className="mt-auto pb-2 text-center">
         <p className="text-[10px] text-muted-foreground/40 tracking-widest uppercase mb-1">
