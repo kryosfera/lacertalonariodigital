@@ -1,78 +1,63 @@
 ## Objetivo
 
-Que los vídeos Vimeo de los productos en la receta (`/r/:code` y `/recipe/:id`) empiecen a cargar y a reproducirse lo antes posible, reduciendo el tiempo hasta que el paciente pueda darle al play.
+En modo Profesional, cuando el dentista escribe un nombre de paciente que no existe (o no tiene pacientes guardados todavía), poder crear el paciente desde el mismo desplegable de búsqueda, sin salir del flujo de creación de receta.
 
-## Diagnóstico actual
+## Estado actual
 
-En `src/pages/Recipe.tsx` (líneas 351‑380) cada vídeo se renderiza con un `<iframe>` directo a `player.vimeo.com`. Sin optimización, el iframe:
+`src/components/RecipeCreator.tsx` ya tiene:
 
-- Espera al render para empezar la conexión TCP/TLS con Vimeo (~300‑800 ms extra en 4G).
-- Carga el reproductor JS completo aunque el usuario aún no haya hecho scroll.
-- No usa hints del navegador para precalentar la conexión.
+- Input de búsqueda de paciente (línea 770‑836) con dropdown personalizado.
+- Hook `usePatients()` para listar y `useCreatePatient` disponible en `src/hooks/usePatients.tsx`.
+- Estados `patientName`, `patientPhone`, `patientEmail`, `selectedPatient`.
 
-Solo hay 3 vídeos en el catálogo (memoria `product-video-catalog`), por lo que el coste de precargar es bajo.
+Si el texto escrito no coincide con ningún paciente, el dropdown simplemente no muestra nada — no hay forma de guardar.
 
-## Cambios propuestos
+## Cambios
 
-### 1. Resource hints en `index.html`
+### 1. Importar `useCreatePatient` e icono `UserPlus`
 
-Añadir en `<head>`, antes del `<script>` principal, hints para que el navegador resuelva DNS y abra TLS con Vimeo desde el primer byte:
+En `src/components/RecipeCreator.tsx`:
 
-```html
-<link rel="preconnect" href="https://player.vimeo.com" crossorigin>
-<link rel="preconnect" href="https://i.vimeocdn.com" crossorigin>
-<link rel="preconnect" href="https://f.vimeocdn.com" crossorigin>
-<link rel="dns-prefetch" href="https://player.vimeo.com">
-```
+- Añadir `UserPlus` al import de `lucide-react`.
+- Importar `useCreatePatient` desde `@/hooks/usePatients`.
+- Instanciarlo: `const createPatient = useCreatePatient();`
 
-Impacto: ahorra ~200‑500 ms en la primera petición del iframe sin coste perceptible.
+### 2. Mostrar opción "Crear paciente" en el dropdown
 
-### 2. Parámetros de iframe optimizados
+Modificar el dropdown del paciente (líneas 808‑834) para que **siempre** se renderice cuando esté abierto y haya texto escrito que no corresponde exactamente a un paciente existente. La lista mostrará:
 
-En `src/pages/Recipe.tsx`, ajustar el `src` del iframe del vídeo de producto para:
+- Los pacientes coincidentes (igual que ahora).
+- Una fila final "+ Crear paciente «<texto escrito>»" cuando `patientName.trim()` no coincida exactamente con ningún `patient.name` (case-insensitive).
 
-- Añadir `dnt=1` (no rastreo, payload más ligero).
-- Añadir `transparent=0` (un repaint menos).
-- Forzar `preload` mediante `loading="eager"` en el primer vídeo visible y `loading="lazy"` en los siguientes (en la práctica solo hay 1 vídeo por receta normalmente, pero es seguro).
-- Añadir `fetchpriority="high"` al primer iframe.
+Si no hay pacientes guardados todavía y el campo está vacío, mostrar un mensaje sutil "Aún no tienes pacientes — escribe un nombre para crear el primero."
 
-### 3. Precarga selectiva con `<link rel="preload">` dinámico
+### 3. Handler `handleCreatePatientInline`
 
-Cuando la receta cargue y detectemos que algún producto tiene `video_urls`, inyectar dinámicamente desde React (en el `useEffect` que carga la receta en `Recipe.tsx` y `ShortRecipe.tsx`) un `<link rel="preload" as="document" href="<vimeo_url>">` por cada vídeo único. Eso fuerza al navegador a empezar a descargar el HTML del player en paralelo con el resto del render.
+Nueva función que:
 
-```tsx
-useEffect(() => {
-  const urls = new Set(products.flatMap(p => p.video_urls ?? []));
-  const links: HTMLLinkElement[] = [];
-  urls.forEach(u => {
-    const l = document.createElement('link');
-    l.rel = 'preload';
-    l.as = 'document';
-    l.href = u;
-    document.head.appendChild(l);
-    links.push(l);
-  });
-  return () => links.forEach(l => l.remove());
-}, [products]);
-```
+1. Llama a `createPatient.mutateAsync({ name: patientName.trim(), phone: patientPhone || undefined, email: patientEmail || undefined })`.
+2. Al resolver, hace `handleSelectPatient(newPatient)` para marcarlo como seleccionado.
+3. Cierra el dropdown.
+4. Si falla, ya `useCreatePatient` muestra toast de error.
 
-### 4. Render del iframe sin esperar layout
+Se ejecuta en `onMouseDown` del nuevo item (igual patrón que las filas existentes para evitar conflicto con `onBlur` del input).
 
-Actualmente el iframe está envuelto en un contenedor con padding-bottom 56.25%. Mantenemos esa estructura (necesaria para aspect ratio) pero quitamos cualquier render condicional adicional para que el iframe entre en el árbol lo antes posible (revisar que no esté detrás de un `Suspense`, `lazy`, o un toggle "ver más"). Tras revisar el código, ya se renderiza directamente; no hace falta cambio adicional aquí.
+### 4. UX detalle
 
-### 5. Aplicar lo mismo en `ProductDetailDialog.tsx`
+- Botón visualmente diferenciado: borde superior, texto en color `secondary`/primary, icono `UserPlus`.
+- Mientras `createPatient.isPending`, mostrar spinner pequeño y texto "Creando…", y deshabilitar el botón.
+- Tras crear, `selectedPatient` queda fijo (con check verde ya existente), y el teléfono/email actuales se quedan asociados al paciente recién creado (útil porque pueden haberse rellenado luego en la pantalla de envío; si se introducen después podemos hacer un `useUpdatePatient` opcional — fuera de este alcance).
 
-Los vídeos también aparecen en el diálogo de detalle de producto (`src/components/ProductDetailDialog.tsx`, línea 96+). Aplicar los mismos parámetros de iframe optimizados para coherencia.
+### 5. Sin cambios de schema
 
-## Archivos a modificar
+La tabla `patients` ya soporta `name` + `phone`/`email` opcionales con RLS por `user_id`. No hace falta migración.
 
-- `index.html` — añadir preconnect/dns-prefetch a Vimeo.
-- `src/pages/Recipe.tsx` — parámetros de iframe + preload dinámico en `useEffect`.
-- `src/pages/ShortRecipe.tsx` — preload dinámico en `useEffect`.
-- `src/components/ProductDetailDialog.tsx` — parámetros de iframe coherentes.
+## Archivo a modificar
 
-## Lo que NO cambiamos
+- `src/components/RecipeCreator.tsx` — imports, hook, render del dropdown y handler.
 
-- Seguimos usando el iframe estándar de Vimeo (no añadimos el SDK `@vimeo/player`, que añadiría peso).
-- No cambiamos el comportamiento de autoplay (sigue desactivado para que el paciente decida).
-- No tocamos el modal de Recomendaciones de cirugía (ya carga solo bajo demanda).
+## Lo que NO cambia
+
+- Flujo de envío (WhatsApp/Email) y persistencia de la receta.
+- Pantalla `/patients` (gestión completa de pacientes).
+- Modo Quick (no profesional) sigue sin selector de pacientes.
