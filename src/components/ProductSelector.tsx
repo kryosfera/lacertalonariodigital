@@ -235,6 +235,13 @@ export const ProductSelector = ({
 
   // Desktop: Grid visual con imágenes maximizadas
   return (
+    <>
+    <ProductDetailDialog
+      productId={detailProductId}
+      isSelected={detailProductId ? selectedProducts.has(detailProductId) : false}
+      onClose={() => setDetailProductId(null)}
+      onToggle={onToggleProduct}
+    />
     <div 
       className={`fixed inset-0 z-50 bg-secondary pt-safe ${
         isClosing ? 'screen-fade-out' : 'screen-slide-in'
