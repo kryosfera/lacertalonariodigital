@@ -1,24 +1,7 @@
-import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import {
-  PlusCircle, Scissors, Send, Building2, BarChart3,
-  FilePlus, Clock, Users, QrCode, UserCog, X, ChevronLeft, ChevronRight
-} from "lucide-react";
+import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { TourStep } from "@/hooks/useOnboardingTour";
-
-const iconMap: Record<string, React.ElementType> = {
-  "plus-circle": PlusCircle,
-  "scissors": Scissors,
-  "send": Send,
-  "building-2": Building2,
-  "bar-chart-3": BarChart3,
-  "file-plus": FilePlus,
-  "clock": Clock,
-  "users": Users,
-  "qr-code": QrCode,
-  "user-cog": UserCog,
-};
 
 interface OnboardingTourProps {
   isActive: boolean;
@@ -28,7 +11,6 @@ interface OnboardingTourProps {
   onNext: () => void;
   onPrev: () => void;
   onSkip: () => void;
-  onNavigate: (tab: string) => void;
 }
 
 export const OnboardingTour = ({
@@ -39,16 +21,7 @@ export const OnboardingTour = ({
   onNext,
   onPrev,
   onSkip,
-  onNavigate,
 }: OnboardingTourProps) => {
-  // Navigate to the correct tab when step changes
-  useEffect(() => {
-    if (isActive && step) {
-      onNavigate(step.tab);
-    }
-  }, [isActive, step, onNavigate]);
-
-  const Icon = iconMap[step?.icon] || PlusCircle;
   const isLast = currentStep === totalSteps - 1;
   const isFirst = currentStep === 0;
 
@@ -60,7 +33,7 @@ export const OnboardingTour = ({
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 z-[100] flex items-end md:items-center justify-center"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 pt-safe"
         >
           {/* Backdrop */}
           <div
@@ -68,40 +41,44 @@ export const OnboardingTour = ({
             onClick={onSkip}
           />
 
-          {/* Tooltip card */}
+          {/* Card */}
           <motion.div
             key={step.id}
-            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            initial={{ opacity: 0, y: 30, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 40, scale: 0.95 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="relative z-10 w-full max-w-md mx-4 mb-24 md:mb-0 bg-card rounded-2xl shadow-2xl border border-border/50 overflow-hidden"
+            exit={{ opacity: 0, y: 30, scale: 0.96 }}
+            transition={{ type: "spring", damping: 26, stiffness: 320 }}
+            className="relative z-10 w-full max-w-md bg-card rounded-3xl shadow-2xl border border-border/50 overflow-hidden flex flex-col max-h-[92vh]"
           >
-            {/* Header with icon */}
-            <div className="bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 px-6 pt-6 pb-4 flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
-                <Icon className="w-6 h-6 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-semibold text-foreground leading-tight">
-                  {step.title}
-                </h3>
-                <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
-                  {step.description}
-                </p>
-              </div>
-              <button
-                onClick={onSkip}
-                className="shrink-0 p-1 rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <X className="w-4 h-4 text-muted-foreground" />
-              </button>
+            {/* Close */}
+            <button
+              onClick={onSkip}
+              aria-label="Cerrar"
+              className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-background/80 backdrop-blur flex items-center justify-center hover:bg-background transition-colors"
+            >
+              <X className="w-4 h-4 text-foreground" />
+            </button>
+
+            {/* Image */}
+            <div className="w-full aspect-square bg-muted overflow-hidden">
+              <img
+                src={step.image}
+                alt={step.title}
+                className="w-full h-full object-cover"
+              />
             </div>
 
-            {/* Progress + buttons */}
-            <div className="px-6 py-4 flex items-center justify-between gap-3">
+            {/* Content */}
+            <div className="px-6 pt-5 pb-5 text-center flex flex-col gap-3">
+              <h3 className="text-2xl font-bold text-foreground leading-tight">
+                {step.title}
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {step.description}
+              </p>
+
               {/* Progress dots */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center justify-center gap-1.5 mt-1">
                 {Array.from({ length: totalSteps }).map((_, i) => (
                   <div
                     key={i}
@@ -109,40 +86,53 @@ export const OnboardingTour = ({
                       i === currentStep
                         ? "w-6 bg-primary"
                         : i < currentStep
-                        ? "w-1.5 bg-primary/40"
-                        : "w-1.5 bg-muted-foreground/20"
+                        ? "w-1.5 bg-primary/60"
+                        : "w-1.5 bg-primary/20"
                     }`}
                   />
                 ))}
               </div>
+            </div>
 
-              {/* Navigation buttons */}
-              <div className="flex items-center gap-2">
-                {!isFirst && (
-                  <Button variant="ghost" size="sm" onClick={onPrev}>
-                    <ChevronLeft className="w-4 h-4 mr-1" />
-                    Anterior
-                  </Button>
-                )}
-                <Button size="sm" onClick={onNext} className="min-w-[100px]">
-                  {isLast ? (
-                    "¡Empezar!"
-                  ) : (
-                    <>
-                      Siguiente
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </>
-                  )}
+            {/* Buttons */}
+            <div className="px-6 pb-4 flex items-center gap-3">
+              {isLast ? (
+                <Button
+                  size="lg"
+                  onClick={onNext}
+                  className="flex-1 rounded-full h-12 text-base font-semibold"
+                >
+                  Comenzar ahora
                 </Button>
-              </div>
+              ) : (
+                <>
+                  {!isFirst ? (
+                    <Button
+                      variant="ghost"
+                      onClick={onPrev}
+                      className="text-primary hover:text-primary hover:bg-primary/5 font-semibold"
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      Anterior
+                    </Button>
+                  ) : (
+                    <div className="flex-1" />
+                  )}
+                  <Button
+                    size="lg"
+                    onClick={onNext}
+                    className="ml-auto rounded-full h-12 px-8 font-semibold"
+                  >
+                    Siguiente
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </>
+              )}
             </div>
 
-            {/* Step counter */}
-            <div className="px-6 pb-3">
-              <p className="text-xs text-muted-foreground text-center">
-                Paso {currentStep + 1} de {totalSteps}
-              </p>
-            </div>
+            <p className="text-xs text-muted-foreground text-center pb-4">
+              Paso {currentStep + 1} de {totalSteps}
+            </p>
           </motion.div>
         </motion.div>
       )}

@@ -132,6 +132,7 @@ const Index = () => {
             statsLoading={homeStatsLoading}
             statsError={homeStatsError}
             onRetryStats={() => refetchHomeStats()}
+            onLaunchTour={tour.startTour}
           />
         );
       
@@ -258,7 +259,6 @@ const Index = () => {
         onNext={handleTourNext}
         onPrev={tour.prevStep}
         onSkip={handleTourSkip}
-        onNavigate={setActiveTab}
       />
     </div>
   );

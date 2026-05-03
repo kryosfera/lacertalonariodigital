@@ -1,4 +1,4 @@
-import { FileText, Clock, Users, Scissors, TrendingUp, ChevronRight, Sparkles, AlertCircle, RefreshCw } from "lucide-react";
+import { FileText, Clock, Users, Scissors, TrendingUp, ChevronRight, Sparkles, AlertCircle, RefreshCw, PlayCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import lacerLogo from "@/assets/lacer-logo-clean.png";
@@ -19,6 +19,7 @@ interface HomeScreenBentoProps {
   statsLoading?: boolean;
   statsError?: boolean;
   onRetryStats?: () => void;
+  onLaunchTour?: () => void;
 }
 
 const containerVariants = {
@@ -54,6 +55,7 @@ export const HomeScreenBento = ({
   statsLoading = false,
   statsError = false,
   onRetryStats,
+  onLaunchTour,
 }: HomeScreenBentoProps) => {
   const isProfessional = userMode === 'professional';
   const hasClinicInfo = isProfessional && profile && (profile.clinic_name || profile.professional_name);
@@ -294,6 +296,19 @@ export const HomeScreenBento = ({
           </motion.div>
         )}
       </div>
+
+      {/* Tutorial relaunch */}
+      {onLaunchTour && (
+        <motion.div className="mt-3 flex justify-center" variants={itemVariants}>
+          <button
+            onClick={onLaunchTour}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/30 text-primary text-xs font-semibold hover:bg-primary/5 transition-colors"
+          >
+            <PlayCircle className="w-4 h-4" />
+            Ver tutorial
+          </button>
+        </motion.div>
+      )}
 
       {/* Footer */}
       <div className="mt-auto pb-2 text-center">
