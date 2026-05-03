@@ -45,6 +45,7 @@ export const ProductSelector = ({
   isClosing = false,
 }: ProductSelectorProps) => {
   const isMobile = useIsMobile();
+  const [detailProductId, setDetailProductId] = useState<string | null>(null);
 
   const filteredProducts = useMemo(() => {
     let filtered = products.filter((p) => {
