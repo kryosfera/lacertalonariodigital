@@ -119,6 +119,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
 
   // Professional mode hooks
   const { data: patients = [] } = usePatients();
+  const createPatient = useCreatePatient();
   const createRecipe = useCreateRecipe();
   const { data: profileData } = useProfile();
 
