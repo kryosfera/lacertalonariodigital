@@ -116,43 +116,36 @@ export const SurgeryRecommendations = () => {
   const typeLabel = (k: string) => k === 'pdf' ? 'PDF' : k === 'video' ? 'Vídeo' : 'Enlace';
 
   return (
-    <div className="space-y-6 pb-24 md:pb-8 pt-safe">
+    <div className="screen-wrapper">
       {/* Header */}
-      <div className="px-5 pt-4 text-center">
-        <div className="flex justify-center mb-4">
-          <img src={lacerLogo} alt="Lacer" className="h-7 md:h-9 w-auto" />
+      <div className="screen-header">
+        <h1 className="screen-title">Recomendaciones</h1>
+        <p className="screen-subtitle">Material para tus pacientes</p>
+
+        {/* Filter chips */}
+        <div className="flex gap-1.5 mt-4 overflow-x-auto scrollbar-none justify-center">
+          {filterOptions.map((opt) => {
+            const isActive = activeFilter === opt.value;
+            return (
+              <button
+                key={opt.value}
+                onClick={() => setActiveFilter(opt.value)}
+                className={cn(
+                  "shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 active:scale-95",
+                  isActive
+                    ? "border-primary text-primary bg-background shadow-sm"
+                    : "border-border text-muted-foreground bg-background hover:border-muted-foreground/40"
+                )}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight leading-none">
-          Recomendaciones
-        </h1>
-        <p className="text-sm md:text-base text-muted-foreground mt-1">
-          Material para tus pacientes
-        </p>
 
-        {/* Filters + view toggle on one line */}
-        <div className="flex items-center gap-2 mt-5">
-          <div className="flex gap-1.5 flex-1 min-w-0 overflow-x-auto scrollbar-none">
-            {filterOptions.map((opt) => {
-              const isActive = activeFilter === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  onClick={() => setActiveFilter(opt.value)}
-                  className={cn(
-                    "shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all duration-200 active:scale-95",
-                    isActive
-                      ? "border-primary text-primary bg-background shadow-sm"
-                      : "border-border text-muted-foreground bg-background hover:border-muted-foreground/40"
-                  )}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* View mode toggle */}
-          <div className="shrink-0 flex items-center bg-muted rounded-full p-0.5">
+        {/* View toggle */}
+        <div className="flex items-center justify-end mt-2.5">
+          <div className="flex items-center bg-muted rounded-full p-0.5">
             <button
               onClick={() => setViewMode('card')}
               className={cn(
@@ -178,7 +171,7 @@ export const SurgeryRecommendations = () => {
       </div>
 
       {/* Grid */}
-      <div className="px-5">
+      <div className="screen-body">
         {isLoading ? (
           <div className="flex justify-center py-16">
             <Loader2 className="w-6 h-6 animate-spin text-primary" />
