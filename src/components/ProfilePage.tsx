@@ -298,7 +298,7 @@ export const ProfilePage = () => {
         {/* Logo */}
         <SectionCard
           icon={<ImageIcon className="w-4 h-4" />}
-          iconBg="bg-accent/10 text-accent"
+          
           title="Logotipo"
           description="Se mostrará en el encabezado de tus recetas"
         >
