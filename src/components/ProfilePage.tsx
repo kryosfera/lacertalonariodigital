@@ -139,19 +139,15 @@ export const ProfilePage = () => {
   }
 
   return (
-    <div className="space-y-5 pb-24 md:pb-8 pt-safe">
-      {/* Header — same pattern as PatientList / RecipeHistory */}
-      <div className="px-3 md:px-5 pt-4 text-center">
-        <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight leading-none">
-          Perfil
-        </h1>
-        <p className="text-sm md:text-base text-muted-foreground mt-1">
-          Configuración de tu cuenta
-        </p>
+    <div className="screen-wrapper">
+      {/* Header */}
+      <div className="screen-header">
+        <h1 className="screen-title">Perfil</h1>
+        <p className="screen-subtitle">Configuración de tu cuenta</p>
       </div>
 
       {/* Content */}
-      <div className="px-3 md:px-5 space-y-3 max-w-2xl mx-auto w-full">
+      <div className="screen-body space-y-2 max-w-2xl mx-auto w-full">
         {/* Account */}
         <SectionCard
           icon={<User className="w-4 h-4" />}
@@ -187,7 +183,6 @@ export const ProfilePage = () => {
         {/* Clinic */}
         <SectionCard
           icon={<Building2 className="w-4 h-4" />}
-          iconBg="bg-secondary/10 text-secondary"
           title="Datos de la clínica"
           description="Esta información aparecerá en tus recetas"
         >
@@ -303,7 +298,7 @@ export const ProfilePage = () => {
         {/* Logo */}
         <SectionCard
           icon={<ImageIcon className="w-4 h-4" />}
-          iconBg="bg-accent/10 text-accent"
+          
           title="Logotipo"
           description="Se mostrará en el encabezado de tus recetas"
         >

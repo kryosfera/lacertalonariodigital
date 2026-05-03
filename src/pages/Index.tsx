@@ -138,43 +138,38 @@ const Index = () => {
       case "dashboard":
         if (!isProfessional) return null;
         return (
-          <div className="space-y-4 pb-20 md:pb-0 px-4">
-            <div className="space-y-1">
-              <h2 className="text-xl md:text-2xl font-semibold text-foreground">Dashboard</h2>
-              <p className="text-sm text-muted-foreground">Vista general de tu actividad</p>
+          <div className="screen-wrapper">
+            <div className="screen-header">
+              <h1 className="screen-title">Dashboard</h1>
+              <p className="screen-subtitle">Vista general de tu actividad</p>
             </div>
-            <DashboardStats />
+            <div className="screen-body">
+              <DashboardStats />
+            </div>
           </div>
         );
       
       case "nueva-receta":
         return (
-          <div className="space-y-3 pb-20 md:pb-0 px-4">
-            <div className="text-center py-2 space-y-2">
-              <div className="inline-flex items-center justify-center rounded-lg bg-background px-4 py-1.5">
-                <img src={lacerLogo} alt="Lacer" className="h-8 md:h-10 object-contain" />
-              </div>
-              <div>
-                <h2 className="text-lg md:text-2xl font-semibold text-foreground">Nueva Receta</h2>
-                <p className="text-sm text-muted-foreground hidden md:block">Crea y envía recetas a tus pacientes de forma rápida</p>
-              </div>
+          <div className="screen-wrapper">
+            <div className="screen-header">
+              <h1 className="screen-title">Nueva receta</h1>
+              <p className="screen-subtitle">Crea y envía recetas a tus pacientes</p>
             </div>
-            <RecipeCreator 
-              startWithCategories={startWithCategories} 
-              onCategoriesShown={() => setStartWithCategories(false)}
-              onGoHome={() => setActiveTab("home")}
-              initialRecipe={duplicateRecipe}
-              onInitialRecipeLoaded={() => setDuplicateRecipe(null)}
-            />
+            <div className="screen-body">
+              <RecipeCreator 
+                startWithCategories={startWithCategories} 
+                onCategoriesShown={() => setStartWithCategories(false)}
+                onGoHome={() => setActiveTab("home")}
+                initialRecipe={duplicateRecipe}
+                onInitialRecipeLoaded={() => setDuplicateRecipe(null)}
+              />
+            </div>
           </div>
         );
       
       case "recomendaciones":
-        return (
-          <div className="pb-20 md:pb-0 px-4">
-            <SurgeryRecommendations />
-          </div>
-        );
+        return <SurgeryRecommendations />;
       
       case "pacientes":
         if (!isProfessional) return null;
@@ -183,14 +178,12 @@ const Index = () => {
       case "paciente-detalle":
         if (!isProfessional || !selectedPatient) return null;
         return (
-          <div className="space-y-4 pb-20 md:pb-0 px-4">
-            <PatientDetail
-              patient={selectedPatient}
-              onBack={() => setActiveTab("pacientes")}
-              onNewRecipe={handleNewRecipeForPatient}
-              onDuplicate={handleDuplicateRecipe}
-            />
-          </div>
+          <PatientDetail
+            patient={selectedPatient}
+            onBack={() => setActiveTab("pacientes")}
+            onNewRecipe={handleNewRecipeForPatient}
+            onDuplicate={handleDuplicateRecipe}
+          />
         );
       
       case "historial":
