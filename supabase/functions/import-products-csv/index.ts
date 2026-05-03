@@ -137,18 +137,40 @@ Deno.serve(async (req) => {
       const batch = rows.slice(i, i + BATCH);
       const upsertPayload = [];
 
+      const sanitize = (val: string | null | undefined): string | null => {
+        if (val == null) return null;
+        const s = String(val);
+        if (!s) return null;
+        // Prevent CSV formula injection in re-exports
+        return /^[=+\-@]/.test(s) ? "'" + s : s;
+      };
+
       for (const row of batch) {
-        const name = row['name'] || row['nombre'] || row['producto'] || '';
-        if (!name) {
-          results.errors.push(`Fila ${i + upsertPayload.length + 1}: sin nombre`);
+        const rawName = row['name'] || row['nombre'] || row['producto'] || '';
+        const name = sanitize(rawName) || '';
+        if (!name || name.length > 500) {
+          results.errors.push(`Fila ${i + upsertPayload.length + 1}: nombre inválido`);
           continue;
         }
 
-        const slug =
-          row['slug'] ||
-          generateSlug(name);
+        const slug = (row['slug'] || generateSlug(name)).toLowerCase();
+        if (!/^[a-z0-9-]+$/.test(slug) || slug.length > 200) {
+          results.errors.push(`Fila ${i + upsertPayload.length + 1}: slug inválido`);
+          continue;
+        }
 
-        // Resolve category
+        const ean = row['ean'] || null;
+        if (ean && !/^\d{8,14}$/.test(ean)) {
+          results.errors.push(`Fila ${i + upsertPayload.length + 1}: EAN inválido`);
+          continue;
+        }
+
+        const reference = row['reference'] || row['referencia'] || row['cn'] || null;
+        if (reference && reference.length > 50) {
+          results.errors.push(`Fila ${i + upsertPayload.length + 1}: referencia demasiado larga`);
+          continue;
+        }
+
         const catRaw = (row['category'] || row['categoria'] || row['categoría'] || '').toLowerCase();
         let category_id: string | null = null;
         if (catRaw) {
@@ -157,14 +179,20 @@ Deno.serve(async (req) => {
 
         const sort_order = row['sort_order'] || row['orden'] ? parseInt(row['sort_order'] || row['orden'], 10) : 0;
 
+        const descHtml = row['description'] || row['descripcion'] || null;
+        if (descHtml && descHtml.length > 50000) {
+          results.errors.push(`Fila ${i + upsertPayload.length + 1}: descripción demasiado larga`);
+          continue;
+        }
+
         upsertPayload.push({
           name,
           slug,
-          reference: row['reference'] || row['referencia'] || row['cn'] || null,
-          ean: row['ean'] || null,
-          seo_title: row['seo_title'] || row['titulo_seo'] || null,
-          seo_description: row['seo_description'] || row['descripcion_seo'] || null,
-          description_html: row['description'] || row['descripcion'] || null,
+          reference: sanitize(reference),
+          ean,
+          seo_title: sanitize(row['seo_title'] || row['titulo_seo'])?.slice(0, 200) || null,
+          seo_description: sanitize(row['seo_description'] || row['descripcion_seo'])?.slice(0, 500) || null,
+          description_html: descHtml,
           category_id,
           sort_order: isNaN(sort_order) ? 0 : sort_order,
           is_active: row['is_active'] !== 'false' && row['activo'] !== 'false',
