@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, FileText, Users, Package, TrendingUp, CheckCircle, Send, Calendar, ShoppingBag, MapPin, Activity } from 'lucide-react';
+import { Loader2, FileText, Users, Package, TrendingUp, CheckCircle, Send, Calendar, ShoppingBag, MapPin, Activity, LifeBuoy, AlertCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Line, ComposedChart } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { KpiCard } from './KpiCard';
@@ -160,6 +160,27 @@ export function AdminDashboard() {
       if (error) throw error;
       return data;
     },
+  });
+
+  const { data: ticketsStats } = useQuery({
+    queryKey: ['admin-tickets-stats'],
+    queryFn: async () => {
+      const [openRes, inProgRes, resolvedRes, totalRes, recentRes] = await Promise.all([
+        supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+        supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
+        supabase.from('tickets').select('*', { count: 'exact', head: true }).in('status', ['resolved', 'closed']),
+        supabase.from('tickets').select('*', { count: 'exact', head: true }),
+        supabase.from('tickets').select('id, title, status, priority, category, created_at, updated_at').order('updated_at', { ascending: false }).limit(5),
+      ]);
+      return {
+        open: openRes.count ?? 0,
+        in_progress: inProgRes.count ?? 0,
+        resolved: resolvedRes.count ?? 0,
+        total: totalRes.count ?? 0,
+        recent: (recentRes.data ?? []) as Array<{ id: string; title: string; status: string; priority: string; category: string; created_at: string; updated_at: string }>,
+      };
+    },
+    staleTime: 30_000,
   });
 
   const periodCount = kpis?.period_count ?? 0;
@@ -478,6 +499,84 @@ export function AdminDashboard() {
             </Card>
           </motion.div>
         </div>
+
+        {/* Tickets / Incidencias */}
+        <motion.div {...fadeUp(0.42)}>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="p-4 pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <LifeBuoy className="h-3.5 w-3.5 text-primary" />
+                Incidencias
+                <span className="text-[10px] text-muted-foreground font-normal ml-1">(global)</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0 space-y-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div className="rounded-lg border bg-card p-2.5">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Abiertas</p>
+                  <p className="text-lg font-bold text-foreground tabular-nums">{ticketsStats?.open ?? 0}</p>
+                </div>
+                <div className="rounded-lg border bg-card p-2.5">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">En curso</p>
+                  <p className="text-lg font-bold text-foreground tabular-nums">{ticketsStats?.in_progress ?? 0}</p>
+                </div>
+                <div className="rounded-lg border bg-card p-2.5">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Resueltas</p>
+                  <p className="text-lg font-bold text-foreground tabular-nums">{ticketsStats?.resolved ?? 0}</p>
+                </div>
+                <div className="rounded-lg border bg-card p-2.5">
+                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Total</p>
+                  <p className="text-lg font-bold text-foreground tabular-nums">{ticketsStats?.total ?? 0}</p>
+                </div>
+              </div>
+              {ticketsStats?.recent && ticketsStats.recent.length > 0 ? (
+                <div className="max-h-64 overflow-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="text-xs h-8">Título</TableHead>
+                        <TableHead className="text-xs h-8">Categoría</TableHead>
+                        <TableHead className="text-xs h-8">Prioridad</TableHead>
+                        <TableHead className="text-xs h-8">Estado</TableHead>
+                        <TableHead className="text-xs h-8">Actualizada</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {ticketsStats.recent.map((t) => {
+                        const statusStyle =
+                          t.status === 'open' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                          : t.status === 'in_progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                          : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+                        const priorityStyle =
+                          t.priority === 'urgent' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                          : t.priority === 'high' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400'
+                          : 'bg-muted text-muted-foreground';
+                        return (
+                          <TableRow key={t.id}>
+                            <TableCell className="font-medium text-xs py-1.5 max-w-[280px] truncate">{t.title}</TableCell>
+                            <TableCell className="text-[11px] capitalize text-muted-foreground py-1.5">{t.category}</TableCell>
+                            <TableCell className="py-1.5">
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium capitalize ${priorityStyle}`}>{t.priority}</span>
+                            </TableCell>
+                            <TableCell className="py-1.5">
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-medium capitalize ${statusStyle}`}>{t.status.replace('_', ' ')}</span>
+                            </TableCell>
+                            <TableCell className="text-[11px] text-muted-foreground py-1.5">{new Date(t.updated_at).toLocaleDateString('es-ES')}</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-xs text-muted-foreground py-6 justify-center">
+                  <AlertCircle className="w-4 h-4" />
+                  Sin incidencias registradas
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Recent Activity (global feed) */}
         <motion.div {...fadeUp(0.45)}>
