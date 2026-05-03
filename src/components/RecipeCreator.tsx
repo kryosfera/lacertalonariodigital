@@ -212,6 +212,27 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     setPatientSearchOpen(false);
   };
 
+  // Check if typed name matches an existing patient exactly (case-insensitive)
+  const trimmedPatientName = patientName.trim();
+  const exactMatchExists = useMemo(() => {
+    if (!trimmedPatientName) return false;
+    return patients.some(p => p.name.toLowerCase() === trimmedPatientName.toLowerCase());
+  }, [patients, trimmedPatientName]);
+
+  const handleCreatePatientInline = async () => {
+    if (!trimmedPatientName || createPatient.isPending) return;
+    try {
+      const newPatient = await createPatient.mutateAsync({
+        name: trimmedPatientName,
+        phone: patientPhone || undefined,
+        email: patientEmail || undefined,
+      });
+      handleSelectPatient(newPatient as Patient);
+    } catch (e) {
+      // toast handled in hook
+    }
+  };
+
   const toggleProduct = (productId: string) => {
     setSelectedProducts((prev) => {
       const next = new Map(prev);
