@@ -55,6 +55,7 @@ export const HomeScreenBento = ({
   statsLoading = false,
   statsError = false,
   onRetryStats,
+  onLaunchTour,
 }: HomeScreenBentoProps) => {
   const isProfessional = userMode === 'professional';
   const hasClinicInfo = isProfessional && profile && (profile.clinic_name || profile.professional_name);
