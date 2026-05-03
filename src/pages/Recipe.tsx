@@ -357,10 +357,12 @@ export default function Recipe() {
                       <div key={vIdx} className="rounded-lg overflow-hidden border bg-black">
                         <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
                           <iframe
-                            src={`${videoUrl}?autoplay=0&title=0&byline=0&portrait=0`}
+                            src={`${videoUrl}${videoUrl.includes('?') ? '&' : '?'}autoplay=0&title=0&byline=0&portrait=0&dnt=1`}
                             className="absolute inset-0 w-full h-full"
                             allow="fullscreen; picture-in-picture; autoplay"
                             allowFullScreen
+                            loading={vIdx === 0 ? "eager" : "lazy"}
+                            {...(vIdx === 0 ? { fetchPriority: "high" as const } : {})}
                             style={{ WebkitOverflowScrolling: 'touch' } as React.CSSProperties}
                             title={`Vídeo de ${product.name}`}
                           />
