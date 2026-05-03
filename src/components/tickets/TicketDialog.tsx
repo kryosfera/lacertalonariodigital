@@ -18,7 +18,7 @@ const ticketSchema = z.object({
   description: z.string().trim().min(10, 'Describe mejor la incidencia').max(5000, 'Máximo 5000 caracteres'),
   category: z.enum(['bug', 'feature', 'question', 'other']),
   priority: z.enum(['low', 'medium', 'high']),
-  screenshot_url: z.string().optional().nullable(),
+  screenshot_url: z.string().nullable().optional(),
 });
 
 type TicketFormValues = z.infer<typeof ticketSchema>;
@@ -79,7 +79,14 @@ export function TicketDialog({ open, onOpenChange }: TicketDialogProps) {
   };
 
   const handleSubmit = async (values: TicketFormValues) => {
-    await createTicket.mutateAsync(values);
+    await createTicket.mutateAsync({
+      title: values.title,
+      description: values.description,
+      category: values.category,
+      priority: values.priority,
+      screenshot_url: values.screenshot_url ?? null,
+      status: 'open',
+    });
     form.reset();
     setAttachmentName(null);
     onOpenChange(false);
