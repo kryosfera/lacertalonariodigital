@@ -1,39 +1,24 @@
-## Reset de datos para lanzamiento limpio
+# Añadir paso de "Incidencias" al tour de onboarding
 
-Voy a borrar los datos transaccionales de prueba conservando catálogo (productos, categorías, recomendaciones), perfiles profesionales, roles y cuentas de usuario.
+Insertar un nuevo paso entre el paso de **Envío instantáneo** y el de **Enhorabuena** explicando cómo reportar incidencias desde el perfil.
 
-### Datos a eliminar
+## Cambios
 
-| Tabla / Bucket | Registros actuales | Acción |
-|---|---|---|
-| `ticket_messages` | 1 | DELETE total |
-| `tickets` | 1 | DELETE total |
-| Storage `ticket-attachments` | — | Vaciado completo |
-| `recipes` | 19 | DELETE total |
-| `short_urls` | 43 | DELETE total |
-| `patients` | 3 | DELETE total |
+### `src/hooks/useOnboardingTour.ts`
+Añadir un nuevo objeto al array `STEPS` justo antes del paso `fin`:
 
-### Datos que se conservan
+```ts
+{
+  id: "incidencias",
+  image: step6, // reutiliza imagen existente (perfil) hasta tener una propia
+  title: "Reporta incidencias",
+  description: "Si encuentras algún problema o tienes una sugerencia, envíanos una incidencia desde tu perfil. Te responderemos lo antes posible.",
+},
+```
 
-- `profiles` (datos de clínica, firma, logo)
-- `user_roles` (admin se mantiene)
-- `auth.users` (cuentas)
-- `products`, `categories`, `recommendations`, `recipe_templates`
+El total de pasos pasará de 8 a 9. El componente `OnboardingTour` ya usa `totalSteps` dinámico, por lo que dots y contador "Paso X de Y" se actualizan solos.
 
-### Implementación técnica
+## Notas
+- Se reutiliza `step6.png` (imagen del perfil) por ser donde se accede a las incidencias. Si prefieres una imagen específica para este paso, súbela como `step9.png` y la importamos en su lugar.
 
-1. Migración SQL en orden seguro respetando dependencias lógicas:
-   ```sql
-   DELETE FROM ticket_messages;
-   DELETE FROM tickets;
-   DELETE FROM short_urls;
-   DELETE FROM recipes;
-   DELETE FROM patients;
-   ```
-2. Vaciar bucket `ticket-attachments` con `DELETE FROM storage.objects WHERE bucket_id = 'ticket-attachments';`.
-
-### Notas
-
-- Operación irreversible. Los contadores del dashboard admin volverán a cero automáticamente.
-- No se modifican esquemas ni RLS.
-- Tras la migración, recomiendo refrescar la pestaña de admin para invalidar la caché de TanStack Query.
+¿Quieres que use `step6.png` reutilizada o prefieres subir una imagen nueva para el paso de incidencias?
