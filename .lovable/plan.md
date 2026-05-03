@@ -1,63 +1,62 @@
-## Objetivo
+## Problema
 
-En modo Profesional, cuando el dentista escribe un nombre de paciente que no existe (o no tiene pacientes guardados todavía), poder crear el paciente desde el mismo desplegable de búsqueda, sin salir del flujo de creación de receta.
+En el desplegable de búsqueda de paciente del modo Profesional, al pulsar "Crear paciente «...»" se guarda el paciente solo con el nombre. El teléfono no se persiste porque el campo `patientPhone` que aparece más abajo (en la sección de envío) todavía está vacío en ese momento. Resultado: pacientes creados sin teléfono, sin posibilidad de enviarles la receta por WhatsApp después.
 
-## Estado actual
+## Solución
 
-`src/components/RecipeCreator.tsx` ya tiene:
+Convertir la fila "Crear paciente «X»" en un mini-formulario inline dentro del propio desplegable, que pide **nombre (ya escrito) + teléfono (obligatorio)** antes de guardar. El email queda fuera (lo pediremos solo si el dentista decide enviar por email).
 
-- Input de búsqueda de paciente (línea 770‑836) con dropdown personalizado.
-- Hook `usePatients()` para listar y `useCreatePatient` disponible en `src/hooks/usePatients.tsx`.
-- Estados `patientName`, `patientPhone`, `patientEmail`, `selectedPatient`.
+## Cambios en `src/components/RecipeCreator.tsx`
 
-Si el texto escrito no coincide con ningún paciente, el dropdown simplemente no muestra nada — no hay forma de guardar.
+### 1. Nuevo estado local
 
-## Cambios
+- `inlineCreateMode: boolean` — controla si la fila "Crear paciente" se ha expandido a formulario.
+- `inlinePhone: string` — teléfono temporal del nuevo paciente.
 
-### 1. Importar `useCreatePatient` e icono `UserPlus`
+Se resetean al cerrar el dropdown, al limpiar el paciente o tras crear.
 
-En `src/components/RecipeCreator.tsx`:
+### 2. Render del dropdown (líneas 859‑883)
 
-- Añadir `UserPlus` al import de `lucide-react`.
-- Importar `useCreatePatient` desde `@/hooks/usePatients`.
-- Instanciarlo: `const createPatient = useCreatePatient();`
+Cuando `trimmedPatientName.length > 0 && !exactMatchExists`:
 
-### 2. Mostrar opción "Crear paciente" en el dropdown
+- **Estado colapsado** (`!inlineCreateMode`): botón actual "+ Crear paciente «X»". Al pulsarlo, en lugar de llamar a `handleCreatePatientInline` directamente, hace `setInlineCreateMode(true)` y enfoca el input de teléfono.
+- **Estado expandido** (`inlineCreateMode`): se sustituye por un bloque con:
+  - Cabecera: "Nuevo paciente: «X»".
+  - `Input` de teléfono (`type="tel"`, `inputMode="tel"`, autoFocus, placeholder "Teléfono móvil"). `onMouseDown`/`onClick` con `e.stopPropagation()` para que el `onBlur` del input padre no cierre el dropdown.
+  - Dos botones: "Cancelar" (vuelve a colapsado) y "Guardar" (deshabilitado si `inlinePhone.trim().length < 6` o `createPatient.isPending`).
+  - Mensaje sutil "El teléfono es necesario para enviar la receta por WhatsApp."
 
-Modificar el dropdown del paciente (líneas 808‑834) para que **siempre** se renderice cuando esté abierto y haya texto escrito que no corresponde exactamente a un paciente existente. La lista mostrará:
-
-- Los pacientes coincidentes (igual que ahora).
-- Una fila final "+ Crear paciente «<texto escrito>»" cuando `patientName.trim()` no coincida exactamente con ningún `patient.name` (case-insensitive).
-
-Si no hay pacientes guardados todavía y el campo está vacío, mostrar un mensaje sutil "Aún no tienes pacientes — escribe un nombre para crear el primero."
+Para evitar que el `onBlur` del input de búsqueda (línea 805) cierre el dropdown mientras el usuario teclea el teléfono, el contenedor del dropdown captura `onMouseDown` con `preventDefault` y, además, se mantiene abierto explícitamente cuando `inlineCreateMode === true` (añadir esa condición al `setTimeout` del onBlur o gate del render).
 
 ### 3. Handler `handleCreatePatientInline`
 
-Nueva función que:
+Se modifica para recibir/usar `inlinePhone`:
 
-1. Llama a `createPatient.mutateAsync({ name: patientName.trim(), phone: patientPhone || undefined, email: patientEmail || undefined })`.
-2. Al resolver, hace `handleSelectPatient(newPatient)` para marcarlo como seleccionado.
-3. Cierra el dropdown.
-4. Si falla, ya `useCreatePatient` muestra toast de error.
+```ts
+const phone = inlinePhone.trim();
+const newPatient = await createPatient.mutateAsync({
+  name: trimmedPatientName,
+  phone: phone || undefined,
+});
+setPatientPhone(phone);     // sincroniza con el campo de envío
+handleSelectPatient(newPatient);
+setInlineCreateMode(false);
+setInlinePhone("");
+```
 
-Se ejecuta en `onMouseDown` del nuevo item (igual patrón que las filas existentes para evitar conflicto con `onBlur` del input).
+Validación previa: si `phone.length < 6`, no continuar (botón ya deshabilitado, defensa en profundidad).
 
-### 4. UX detalle
+### 4. Limpieza al deseleccionar
 
-- Botón visualmente diferenciado: borde superior, texto en color `secondary`/primary, icono `UserPlus`.
-- Mientras `createPatient.isPending`, mostrar spinner pequeño y texto "Creando…", y deshabilitar el botón.
-- Tras crear, `selectedPatient` queda fijo (con check verde ya existente), y el teléfono/email actuales se quedan asociados al paciente recién creado (útil porque pueden haberse rellenado luego en la pantalla de envío; si se introducen después podemos hacer un `useUpdatePatient` opcional — fuera de este alcance).
-
-### 5. Sin cambios de schema
-
-La tabla `patients` ya soporta `name` + `phone`/`email` opcionales con RLS por `user_id`. No hace falta migración.
-
-## Archivo a modificar
-
-- `src/components/RecipeCreator.tsx` — imports, hook, render del dropdown y handler.
+En el botón de limpiar (línea 815‑821) y en `handleSelectPatient`, resetear también `inlineCreateMode` e `inlinePhone`.
 
 ## Lo que NO cambia
 
-- Flujo de envío (WhatsApp/Email) y persistencia de la receta.
-- Pantalla `/patients` (gestión completa de pacientes).
-- Modo Quick (no profesional) sigue sin selector de pacientes.
+- Esquema de BD (`patients` ya tiene `phone` opcional).
+- Hook `useCreatePatient`.
+- Flujo del modo Quick.
+- Edición posterior de pacientes (sigue en `/patients`).
+
+## Archivo a modificar
+
+- `src/components/RecipeCreator.tsx`
