@@ -162,6 +162,27 @@ export function AdminDashboard() {
     },
   });
 
+  const { data: ticketsStats } = useQuery({
+    queryKey: ['admin-tickets-stats'],
+    queryFn: async () => {
+      const [openRes, inProgRes, resolvedRes, totalRes, recentRes] = await Promise.all([
+        supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('status', 'open'),
+        supabase.from('tickets').select('*', { count: 'exact', head: true }).eq('status', 'in_progress'),
+        supabase.from('tickets').select('*', { count: 'exact', head: true }).in('status', ['resolved', 'closed']),
+        supabase.from('tickets').select('*', { count: 'exact', head: true }),
+        supabase.from('tickets').select('id, title, status, priority, category, created_at, updated_at').order('updated_at', { ascending: false }).limit(5),
+      ]);
+      return {
+        open: openRes.count ?? 0,
+        in_progress: inProgRes.count ?? 0,
+        resolved: resolvedRes.count ?? 0,
+        total: totalRes.count ?? 0,
+        recent: (recentRes.data ?? []) as Array<{ id: string; title: string; status: string; priority: string; category: string; created_at: string; updated_at: string }>,
+      };
+    },
+    staleTime: 30_000,
+  });
+
   const periodCount = kpis?.period_count ?? 0;
   const dispensingRate = periodCount > 0 && kpis ? Math.round((kpis.dispensed_count / periodCount) * 100) : 0;
   const variation = kpis && kpis.previous_period_count > 0
