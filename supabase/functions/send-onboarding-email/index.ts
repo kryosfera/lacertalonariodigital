@@ -1,11 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+
+const escapeHtml = (s: string) =>
+  s.replace(/[<>&"']/g, c => (
+    { '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#x27;' }[c]!
+  ));
 
 const APP_URL = "https://lacertalonariodigital.lovable.app";
 const LOGO_URL = "https://wvqqoigrslatxnbykcji.supabase.co/storage/v1/object/public/recomendaciones/email-assets/lacer-logo-bocas_sanas.jpg";
