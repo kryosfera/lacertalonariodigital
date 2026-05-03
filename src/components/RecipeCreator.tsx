@@ -69,6 +69,8 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
   const [searchTerm, setSearchTerm] = useState("");
   const [patientName, setPatientName] = useState("");
   const [patientPhone, setPatientPhone] = useState("");
+  const [inlineCreateMode, setInlineCreateMode] = useState(false);
+  const [inlinePhone, setInlinePhone] = useState("");
   const [patientEmail, setPatientEmail] = useState("");
   const [notes, setNotes] = useState("");
   const [showCategorySelector, setShowCategorySelector] = useState(false);
