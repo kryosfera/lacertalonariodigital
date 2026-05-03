@@ -285,14 +285,14 @@ export const ProductSelector = ({
       <ScrollArea className="h-[calc(100vh-130px)]">
         <div className="container mx-auto px-6 py-6">
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5">
               {filteredProducts.map((product, index) => {
                 const isSelected = selectedProducts.has(product.id);
                 
                 return (
                   <button
                     key={product.id}
-                    onClick={() => onToggleProduct(product.id)}
+                    onClick={() => setDetailProductId(product.id)}
                     className={`group relative flex flex-col bg-white rounded-xl overflow-hidden transition-all duration-200 hover:scale-105 hover:shadow-2xl card-scale-in aspect-[3/4] ${
                       isSelected 
                         ? 'ring-4 ring-white shadow-xl scale-105' 
