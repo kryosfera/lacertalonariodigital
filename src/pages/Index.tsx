@@ -258,7 +258,6 @@ const Index = () => {
         onNext={handleTourNext}
         onPrev={tour.prevStep}
         onSkip={handleTourSkip}
-        onNavigate={setActiveTab}
       />
     </div>
   );
