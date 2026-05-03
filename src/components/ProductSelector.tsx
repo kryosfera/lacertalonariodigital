@@ -122,13 +122,8 @@ export const ProductSelector = ({
           </Button>
         </div>
 
-        {/* Lacer logo + search block on muted background */}
-        <div className="bg-muted/40 px-4 pt-3 pb-3 flex flex-col items-center gap-3">
-          <img
-            src={lacerIcon}
-            alt="Lacer"
-            className="h-12 w-auto object-contain"
-          />
+        {/* Search block */}
+        <div className="bg-muted/40 px-4 pt-3 pb-3">
           <div className="relative w-full">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
             <Input
