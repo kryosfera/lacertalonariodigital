@@ -1,59 +1,39 @@
+## Reset de datos para lanzamiento limpio
 
-# Sistema de Ticketing de Incidencias
+Voy a borrar los datos transaccionales de prueba conservando catálogo (productos, categorías, recomendaciones), perfiles profesionales, roles y cuentas de usuario.
 
-Crear un sistema para que los usuarios (dentistas) reporten incidencias/bugs/sugerencias, y los admins las gestionen desde el panel.
+### Datos a eliminar
 
-## Funcionalidad
+| Tabla / Bucket | Registros actuales | Acción |
+|---|---|---|
+| `ticket_messages` | 1 | DELETE total |
+| `tickets` | 1 | DELETE total |
+| Storage `ticket-attachments` | — | Vaciado completo |
+| `recipes` | 19 | DELETE total |
+| `short_urls` | 43 | DELETE total |
+| `patients` | 3 | DELETE total |
 
-**Para usuarios autenticados (Modo Pro):**
-- Botón "Reportar incidencia" en `ProfilePage` (sustituye el espacio del tutorial eliminado).
-- Modal con formulario: título, categoría (bug/sugerencia/pregunta/otro), prioridad (baja/media/alta), descripción, captura opcional.
-- Vista "Mis incidencias" con listado de tickets propios, estado y conversación.
-- Pueden añadir comentarios y cerrar sus propios tickets.
+### Datos que se conservan
 
-**Para admins (`/admin` → nueva sección "Incidencias"):**
-- Bandeja con todos los tickets, filtros por estado/prioridad/categoría, buscador.
-- Detalle del ticket con conversación, cambio de estado (abierto/en_progreso/resuelto/cerrado), asignación de prioridad, respuesta interna.
-- KPIs: tickets abiertos, tiempo medio de respuesta, por categoría.
+- `profiles` (datos de clínica, firma, logo)
+- `user_roles` (admin se mantiene)
+- `auth.users` (cuentas)
+- `products`, `categories`, `recommendations`, `recipe_templates`
 
-## Estructura de datos
+### Implementación técnica
 
-**Tabla `tickets`:**
-- id, user_id (FK auth.users vía profile), title, description, category (enum: bug/feature/question/other), priority (enum: low/medium/high), status (enum: open/in_progress/resolved/closed), screenshot_url (nullable), created_at, updated_at, resolved_at.
+1. Migración SQL en orden seguro respetando dependencias lógicas:
+   ```sql
+   DELETE FROM ticket_messages;
+   DELETE FROM tickets;
+   DELETE FROM short_urls;
+   DELETE FROM recipes;
+   DELETE FROM patients;
+   ```
+2. Vaciar bucket `ticket-attachments` con `DELETE FROM storage.objects WHERE bucket_id = 'ticket-attachments';`.
 
-**Tabla `ticket_messages`:**
-- id, ticket_id, user_id, message, is_admin_reply (bool), created_at.
+### Notas
 
-**Bucket de Storage:** `ticket-attachments` (privado, solo lectura para owner y admin).
-
-## RLS
-
-- `tickets`: usuario ve/edita los suyos (`auth.uid() = user_id`); admin ve todos (`has_role admin`); insertar requiere `auth.uid() = user_id`.
-- `ticket_messages`: visible si el usuario es dueño del ticket o admin; insert sólo dueño o admin; trigger marca `is_admin_reply` automáticamente comprobando `has_role`.
-- Trigger que actualiza `tickets.updated_at` y `resolved_at` al cambiar status.
-- Trigger anti-escalada: usuarios no pueden cambiar `status` a otro valor que no sea `closed` ni modificar prioridad si no son admin.
-
-## Componentes a crear
-
-- `src/components/tickets/TicketDialog.tsx` — formulario de creación.
-- `src/components/tickets/MyTicketsSheet.tsx` — listado y detalle del usuario.
-- `src/components/tickets/TicketThread.tsx` — conversación reutilizable.
-- `src/components/admin/TicketsAdmin.tsx` — bandeja admin con tabla, filtros y panel de detalle.
-- `src/hooks/useTickets.tsx` — TanStack Query hooks (30s staleTime según convención).
-
-## Integración UI
-
-- `ProfilePage.tsx`: nueva sección "Soporte" con botones "Reportar incidencia" y "Mis incidencias".
-- `AdminSidebar.tsx`: añadir entrada "Incidencias" (icono `LifeBuoy`) entre "Recetas" y "Mantenimiento".
-- `Admin.tsx`: registrar la nueva sección y renderizar `TicketsAdmin`.
-- Badge con contador de tickets abiertos en el sidebar admin.
-
-## Realtime
-
-- Habilitar `supabase_realtime` para `tickets` y `ticket_messages` para que admin y usuario vean nuevas respuestas sin refrescar.
-
-## Notas
-
-- Modo Básico (sin login) NO tiene acceso al sistema de tickets — debe iniciar sesión.
-- Diseño Apple-minimal con rojo Lacer #E31937 para estados de prioridad alta.
-- Soporta dark mode.
+- Operación irreversible. Los contadores del dashboard admin volverán a cero automáticamente.
+- No se modifican esquemas ni RLS.
+- Tras la migración, recomiendo refrescar la pestaña de admin para invalidar la caché de TanStack Query.
