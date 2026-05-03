@@ -90,20 +90,20 @@ export function TicketThread({ ticket, isAdmin = false }: TicketThreadProps) {
   };
 
   return (
-    <div className="flex h-full min-h-[520px] flex-col rounded-lg border border-border bg-card">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-4">
+    <div className="flex h-full min-h-[520px] flex-col bg-card rounded-2xl border border-border/40 shadow-[0_1px_4px_rgba(0,0,0,0.03)]">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/40 p-4">
         <div className="min-w-0 space-y-2">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
             <TicketIcon className="h-3.5 w-3.5" />
             <span>{ticket.id.slice(0, 8).toUpperCase()}</span>
             <span>•</span>
             <span>{new Date(ticket.created_at).toLocaleString('es-ES')}</span>
           </div>
           <h3 className="text-base font-semibold leading-tight text-foreground">{ticket.title}</h3>
-          <div className="flex flex-wrap gap-2">
-            <Badge className={statusClassName[ticket.status]}>{statusLabels[ticket.status]}</Badge>
-            <Badge className={priorityClassName[ticket.priority]}>{priorityLabels[ticket.priority]}</Badge>
-            <Badge variant="outline">{categoryLabels[ticket.category]}</Badge>
+          <div className="flex flex-wrap gap-1.5">
+            <Badge className={`text-[10px] px-2 py-0.5 ${statusClassName[ticket.status]}`}>{statusLabels[ticket.status]}</Badge>
+            <Badge className={`text-[10px] px-2 py-0.5 ${priorityClassName[ticket.priority]}`}>{priorityLabels[ticket.priority]}</Badge>
+            <Badge variant="outline" className="text-[10px] px-2 py-0.5">{categoryLabels[ticket.category]}</Badge>
           </div>
         </div>
 
@@ -112,7 +112,7 @@ export function TicketThread({ ticket, isAdmin = false }: TicketThreadProps) {
             <div className="space-y-1">
               <Label className="text-xs">Estado</Label>
               <Select value={ticket.status} onValueChange={(value) => handleAdminStatus(value as Ticket['status'])}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-[150px] h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -125,7 +125,7 @@ export function TicketThread({ ticket, isAdmin = false }: TicketThreadProps) {
             <div className="space-y-1">
               <Label className="text-xs">Prioridad</Label>
               <Select value={ticket.priority} onValueChange={(value) => handleAdminPriority(value as Ticket['priority'])}>
-                <SelectTrigger className="w-[140px]">
+                <SelectTrigger className="w-[140px] h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -137,7 +137,7 @@ export function TicketThread({ ticket, isAdmin = false }: TicketThreadProps) {
             </div>
           </div>
         ) : ticket.status !== 'closed' ? (
-          <Button variant="outline" size="sm" className="rounded-full" onClick={handleCloseTicket}>
+          <Button variant="outline" size="sm" className="rounded-full h-8 text-xs" onClick={handleCloseTicket}>
             Cerrar ticket
           </Button>
         ) : null}
@@ -145,7 +145,7 @@ export function TicketThread({ ticket, isAdmin = false }: TicketThreadProps) {
 
       <div className="grid gap-4 p-4 lg:grid-cols-[1.15fr_0.85fr]">
         <div className="space-y-4">
-          <div className="rounded-lg bg-muted/20 p-4">
+          <div className="rounded-xl bg-muted/40 border border-border/40 p-4">
             <p className="text-sm leading-6 text-foreground whitespace-pre-wrap">{ticket.description}</p>
           </div>
 
@@ -153,7 +153,7 @@ export function TicketThread({ ticket, isAdmin = false }: TicketThreadProps) {
             <div className="flex items-center gap-2 text-sm font-medium text-foreground">
               <MessageSquare className="h-4 w-4 text-primary" /> Conversación
             </div>
-            <ScrollArea className="h-[280px] rounded-lg border border-border bg-background">
+            <ScrollArea className="h-[280px] rounded-xl border border-border/40 bg-background">
               <div className="space-y-3 p-4">
                 {isLoading ? (
                   Array.from({ length: 3 }).map((_, index) => (
@@ -170,9 +170,9 @@ export function TicketThread({ ticket, isAdmin = false }: TicketThreadProps) {
                     return (
                       <div
                         key={message.id}
-                        className={`rounded-lg border p-3 ${message.is_admin_reply ? 'border-primary/20 bg-primary/5' : mine ? 'border-border bg-muted/30' : 'border-border bg-background'}`}
+                        className={`rounded-xl border p-3 ${message.is_admin_reply ? 'border-primary/20 bg-primary/5' : mine ? 'border-border/40 bg-muted/30' : 'border-border/40 bg-background'}`}
                       >
-                        <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="mb-2 flex items-center gap-2 text-[11px] text-muted-foreground">
                           {message.is_admin_reply ? (
                             <>
                               <Shield className="h-3.5 w-3.5 text-primary" />
@@ -194,7 +194,7 @@ export function TicketThread({ ticket, isAdmin = false }: TicketThreadProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor={`ticket-reply-${ticket.id}`}>{isAdmin ? 'Responder' : 'Añadir comentario'}</Label>
+            <Label htmlFor={`ticket-reply-${ticket.id}`} className="text-xs">{isAdmin ? 'Responder' : 'Añadir comentario'}</Label>
             <Textarea
               id={`ticket-reply-${ticket.id}`}
               rows={4}
@@ -203,8 +203,8 @@ export function TicketThread({ ticket, isAdmin = false }: TicketThreadProps) {
               onChange={(event) => setDraft(event.target.value)}
             />
             <div className="flex justify-end">
-              <Button onClick={handleSend} disabled={createMessage.isPending || !draft.trim()}>
-                {createMessage.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+              <Button size="sm" className="rounded-full" onClick={handleSend} disabled={createMessage.isPending || !draft.trim()}>
+                {createMessage.isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : null}
                 Enviar mensaje
               </Button>
             </div>
@@ -212,7 +212,7 @@ export function TicketThread({ ticket, isAdmin = false }: TicketThreadProps) {
         </div>
 
         <div className="space-y-4">
-          <div className="rounded-lg border border-border bg-background p-4">
+          <div className="rounded-xl border border-border/40 bg-background p-4">
             <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
               <Clock3 className="h-4 w-4 text-primary" /> Seguimiento
             </div>
@@ -232,25 +232,25 @@ export function TicketThread({ ticket, isAdmin = false }: TicketThreadProps) {
             </div>
           </div>
 
-          <div className="rounded-lg border border-border bg-background p-4">
+          <div className="rounded-xl border border-border/40 bg-background p-4">
             <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
               <AlertCircle className="h-4 w-4 text-primary" /> Adjuntos
             </div>
             {!ticket.screenshot_url ? (
               <p className="text-sm text-muted-foreground">No hay captura adjunta.</p>
             ) : screenshotUrl ? (
-              <a href={screenshotUrl} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg border border-border">
+              <a href={screenshotUrl} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-xl border border-border/40">
                 <img src={screenshotUrl} alt="Captura adjunta de la incidencia" className="h-auto w-full object-cover" />
               </a>
             ) : (
-              <Skeleton className="h-40 w-full rounded-lg" />
+              <Skeleton className="h-40 w-full rounded-xl" />
             )}
           </div>
         </div>
       </div>
 
       <Separator />
-      <div className="flex items-center justify-between px-4 py-3 text-xs text-muted-foreground">
+      <div className="flex items-center justify-between px-4 py-3 text-[11px] text-muted-foreground">
         <span>{messages?.length ?? 0} mensajes</span>
         <span>{isAdmin ? 'Vista administración' : 'Vista profesional'}</span>
       </div>
