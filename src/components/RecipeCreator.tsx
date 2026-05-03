@@ -19,7 +19,7 @@ import { Drawer, DrawerContent } from "@/components/ui/drawer";
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useUserMode } from "@/hooks/useUserMode";
-import { usePatients, Patient } from "@/hooks/usePatients";
+import { usePatients, useCreatePatient, Patient } from "@/hooks/usePatients";
 import { useCreateRecipe, RecipeProduct } from "@/hooks/useRecipes";
 import { cn } from "@/lib/utils";
 
