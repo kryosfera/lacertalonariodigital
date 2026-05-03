@@ -60,6 +60,12 @@ const STEPS: TourStep[] = [
     description: "Envía la receta digital al instante a tus pacientes a través de WhatsApp, email o SMS.",
   },
   {
+    id: "incidencias",
+    image: step6,
+    title: "Reporta incidencias",
+    description: "Si encuentras algún problema o tienes una sugerencia, envíanos una incidencia desde tu perfil. Te responderemos lo antes posible.",
+  },
+  {
     id: "fin",
     image: step8,
     title: "Enhorabuena",
