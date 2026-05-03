@@ -1,11 +1,7 @@
 project_id = "wvqqoigrslatxnbykcji"
 
-[functions.sync-product-images]
-verify_jwt = false
-
-[functions.sync-category-images]
-verify_jwt = false
-
-
 [functions.import-products-csv]
+verify_jwt = false
+
+[functions.send-onboarding-email]
 verify_jwt = false
