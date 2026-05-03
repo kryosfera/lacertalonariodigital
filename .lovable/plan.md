@@ -1,60 +1,37 @@
 ## Objetivo
 
-Reemplazar el tutorial actual (basado en steps con icono y navegación entre tabs) por un nuevo onboarding de **8 pasos** con las imágenes y textos exactos que has subido. Al terminar, el usuario aterriza en Inicio. Se mostrará automáticamente la primera vez, y desde Inicio habrá un botón para relanzarlo cuando quiera.
+Reemplazar las 8 imágenes actuales del onboarding por las nuevas que has subido, **recortando los textos/títulos** que vienen incluidos en cada imagen para que solo quede la ilustración limpia dentro de la card del tutorial.
 
-## Pasos del tutorial (orden y contenido)
+## Mapeo imagen → paso
 
-1. **Crea recetas digitales** — "Genera recetas digitales completas y personalizadas con facilidad desde tu dispositivo." (`step1.png`)
-2. **Guías y recomendaciones** — "Accede a guías clínicas y vídeos formativos para tus pacientes." (`step2.png`)
-3. **Historial Completo** — "Accede y organiza todo el historial de recetas y pacientes en un solo lugar." (`step3.png`)
-4. **Pacientes** — "Organiza y accede fácilmente a tus pacientes y sus últimas recetas." (`step4.png`)
-5. **Dashboard** — "Visualiza tus métricas clave y el estado de tus recetas en un solo lugar." (`step5.png`)
-6. **Perfil** — "Personaliza tus recetas con el logo y la información de contacto de tu clínica." (`step6.png`)
-7. **Envío instantáneo** — "Envía la receta digital al instante a tus pacientes a través de WhatsApp, email o SMS." (`step7.png`)
-8. **Enhorabuena** — "Ya puedes empezar a usar el Talonario digital." CTA "Comenzar ahora" (`step8.png`)
+| Paso | Título actual | Imagen nueva | Recorte necesario |
+|------|---------------|--------------|-------------------|
+| 1 | Crea recetas digitales | `paso8.png` (tablet con receta) | Recortar texto inferior "Asset 1: Digital Prescription…" |
+| 2 | Guías y recomendaciones | `paso7.png` (PDF + vídeo) | Recortar texto inferior "Asset 2…" |
+| 3 | Historial Completo | `paso6.png` (carpetas) | Recortar título superior "Lacer Digital App Illustrations" y caption "History List" |
+| 4 | Pacientes | `paso5.png` (ficha paciente) | Sin recorte (limpia) |
+| 5 | Dashboard | `paso2.png` (gráficas) | Sin recorte (limpia) |
+| 6 | Perfil | `paso1.png` (grid de iconos rojos) | Sin recorte (limpia) |
+| 7 | Envío instantáneo | `paso4.png` (WhatsApp/Email/PDF) | Recortar título superior "Asset 7: Multi-channel Delivery Illustration" |
+| 8 | Enhorabuena | `psao3.png` (dentista pulgar arriba) | Sin recorte (limpia) |
 
 ## Implementación técnica
 
-**Imágenes**
-- Copiar `user-uploads://step1.png` … `step8.png` a `src/assets/onboarding/` e importarlas como módulos ES6.
-
-**`src/components/OnboardingTour.tsx` (rediseño completo)**
-- Eliminar la lógica basada en `iconMap`, `tab` navigation y `onNavigate`.
-- Nueva estructura: modal centrado (mobile y desktop) con:
-  - Imagen grande arriba (aspect ratio ~1:1, fondo rosado integrado en la propia imagen).
-  - Título en negro bold (`text-2xl`), descripción en `text-muted-foreground`.
-  - Dots de progreso (rojo Lacer activo, rojo claro inactivo, dot activo más ancho tipo "pill").
-  - Botones: "Anterior" (ghost rojo con flecha) a la izquierda y "Siguiente" (rojo pill) a la derecha. En el paso 1 sin "Anterior". En el paso 8, un único botón ancho "Comenzar ahora".
-  - "Paso X de 8" debajo.
-  - Botón X arriba a la derecha para saltar.
-- Animaciones framer-motion mantienen el patrón actual (fade + scale).
-
-**`src/hooks/useOnboardingTour.ts` (simplificado)**
-- Reemplazar `BASIC_STEPS` y `PRO_STEPS` por un único array `STEPS` de 8 elementos con `{ id, image, title, description }` (sin `tab` ni `icon`).
-- Una sola key en localStorage: `onboarding_v2_done` (renombrada para forzar la primera vez con el nuevo tour, ignorando estados antiguos).
-- Eliminar la dependencia de `userMode` en la firma (queda igual o se ignora).
-- Mantener: `isActive, currentStep, step, totalSteps, startTour, nextStep, prevStep, skipTour`.
-
-**`src/pages/Index.tsx`**
-- Quitar `onNavigate={setActiveTab}` del `OnboardingTour` (ya no cambia de pestaña).
-- `handleTourNext` y `handleTourSkip` siguen llevando a `home` al terminar (ya lo hacen).
-- Pasar `tour.startTour` a `HomeScreenBento` como prop `onLaunchTour`.
-
-**`src/components/home/HomeScreenBento.tsx`**
-- Añadir prop opcional `onLaunchTour?: () => void`.
-- Añadir un botón discreto "Ver tutorial" (icono `PlayCircle` o `Sparkles` + texto) en la zona inferior del Bento (por encima del `LegalFooter`), estilo pill outline con borde `border-primary/30` y texto `text-primary`.
-
-## Criterios de aceptación
-
-- Primera visita: el tour se lanza automáticamente con los 8 pasos exactos y aterriza en Inicio al finalizar o saltar.
-- Las imágenes subidas se ven completas dentro de la card del modal.
-- Desde Inicio, un botón "Ver tutorial" relanza el tour en cualquier momento.
-- Los usuarios que ya completaron el tour anterior verán el nuevo una vez (key renombrada).
+1. **Copiar uploads a `/tmp/`** los 8 PNGs.
+2. **Recortar con ImageMagick** (`nix run nixpkgs#imagemagick`) los que tienen texto, dejando solo la zona de la ilustración. Para cada imagen con texto:
+   - Inspeccionar dimensiones y detectar la franja blanca con texto.
+   - Aplicar `magick input.png -crop WxH+X+Y +repage output.png`.
+   - Para los que la ilustración no es centrada-cuadrada, añadir padding blanco con `-gravity center -background white -extent SxS` para conseguir un cuadrado limpio (la card del tour usa `aspect-square`).
+3. **QA visual**: abrir cada PNG resultante para verificar que no queda texto residual y que la ilustración está bien encuadrada.
+4. **Sobrescribir** los archivos en `src/assets/onboarding/step1.png` … `step8.png` con los recortes finales (mantiene los imports existentes en `useOnboardingTour.ts`, no hay que tocar código).
 
 ## Archivos a modificar
 
-- `src/hooks/useOnboardingTour.ts`
-- `src/components/OnboardingTour.tsx`
-- `src/pages/Index.tsx`
-- `src/components/home/HomeScreenBento.tsx`
-- `src/assets/onboarding/step1.png` … `step8.png` (nuevos)
+- `src/assets/onboarding/step1.png` … `step8.png` (sobrescritos con las nuevas ilustraciones recortadas)
+- No se modifica código (`useOnboardingTour.ts` y `OnboardingTour.tsx` ya importan estas rutas).
+
+## Criterios de aceptación
+
+- Las 8 imágenes del tour muestran solo la ilustración (sin "Asset N:", sin "Lacer Digital App Illustrations", sin captions).
+- Cada imagen encaja bien en la card cuadrada del modal sin quedar excesivamente pequeña ni cortada.
+- El orden y los textos de los pasos se mantienen exactamente igual.
