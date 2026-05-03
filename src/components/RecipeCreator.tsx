@@ -827,31 +827,66 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                 )}
 
                 {/* Custom dropdown — avoids Popover focus-stealing on mobile */}
-                {patientSearchOpen && filteredPatients.length > 0 && !selectedPatient && (
+                {patientSearchOpen && !selectedPatient && (filteredPatients.length > 0 || trimmedPatientName.length > 0 || patients.length === 0) && (
                   <div className="absolute left-0 right-0 top-full mt-1 z-50 bg-popover border border-border rounded-md shadow-lg overflow-hidden max-h-64 overflow-y-auto">
-                    <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground border-b border-border bg-muted/30">
-                      Pacientes guardados
-                    </div>
-                    {filteredPatients.map((patient) => (
-                      <button
-                        key={patient.id}
-                        type="button"
-                        onMouseDown={(e) => {
-                          // onMouseDown fires before input's onBlur
-                          e.preventDefault();
-                          handleSelectPatient(patient);
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 hover:bg-accent transition-colors text-left"
-                      >
-                        <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        <div className="flex flex-col min-w-0 flex-1">
-                          <span className="text-sm truncate">{patient.name}</span>
-                          {patient.phone && (
-                            <span className="text-xs text-muted-foreground truncate">{patient.phone}</span>
-                          )}
+                    {filteredPatients.length > 0 && (
+                      <>
+                        <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground border-b border-border bg-muted/30">
+                          Pacientes guardados
                         </div>
+                        {filteredPatients.map((patient) => (
+                          <button
+                            key={patient.id}
+                            type="button"
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              handleSelectPatient(patient);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 hover:bg-accent transition-colors text-left"
+                          >
+                            <User className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <div className="flex flex-col min-w-0 flex-1">
+                              <span className="text-sm truncate">{patient.name}</span>
+                              {patient.phone && (
+                                <span className="text-xs text-muted-foreground truncate">{patient.phone}</span>
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                      </>
+                    )}
+
+                    {trimmedPatientName.length > 0 && !exactMatchExists && (
+                      <button
+                        type="button"
+                        disabled={createPatient.isPending}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleCreatePatientInline();
+                        }}
+                        className={cn(
+                          "w-full flex items-center gap-2 px-3 py-2.5 hover:bg-accent transition-colors text-left text-primary font-medium disabled:opacity-60",
+                          filteredPatients.length > 0 && "border-t border-border"
+                        )}
+                      >
+                        {createPatient.isPending ? (
+                          <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
+                        ) : (
+                          <UserPlus className="h-4 w-4 flex-shrink-0" />
+                        )}
+                        <span className="text-sm truncate">
+                          {createPatient.isPending
+                            ? "Creando…"
+                            : <>Crear paciente «<span className="font-semibold">{trimmedPatientName}</span>»</>}
+                        </span>
                       </button>
-                    ))}
+                    )}
+
+                    {trimmedPatientName.length === 0 && filteredPatients.length === 0 && patients.length === 0 && (
+                      <div className="px-3 py-3 text-xs text-muted-foreground text-center">
+                        Aún no tienes pacientes — escribe un nombre para crear el primero.
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
