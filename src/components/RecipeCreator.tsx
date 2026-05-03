@@ -479,9 +479,14 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       return;
     }
     
+    const email = patientEmail.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Introduce un email válido para enviar la receta");
+      return;
+    }
+
     setIsSending(true);
     const recipeData = getRecipeData();
-    const email = patientEmail;
     let recipeUrl: string | undefined;
     
     try {
