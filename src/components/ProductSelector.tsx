@@ -136,14 +136,14 @@ export const ProductSelector = ({
         {/* Products vertical list */}
         <div className="flex-1 overflow-auto bg-muted/40 px-4 pt-3 pb-[110px]">
           {filteredProducts.length > 0 ? (
-            <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-1 gap-4">
               {filteredProducts.map((product, index) => {
                 const isSelected = selectedProducts.has(product.id);
 
                 return (
                   <button
                     key={product.id}
-                    onClick={() => onToggleProduct(product.id)}
+                    onClick={() => setDetailProductId(product.id)}
                     className={`relative flex flex-col bg-background rounded-2xl shadow-sm overflow-hidden card-scale-in transition-all duration-200 ${
                       isSelected
                         ? 'border-2 border-secondary ring-2 ring-secondary/20'
@@ -153,13 +153,13 @@ export const ProductSelector = ({
                   >
                     {/* Selection indicator */}
                     {isSelected && (
-                      <div className="absolute top-3 right-3 z-10 w-7 h-7 bg-secondary rounded-full flex items-center justify-center shadow-md">
-                        <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                      <div className="absolute top-3 right-3 z-10 w-8 h-8 bg-secondary rounded-full flex items-center justify-center shadow-md">
+                        <Check className="w-5 h-5 text-white" strokeWidth={3} />
                       </div>
                     )}
 
                     {/* Product image */}
-                    <div className="flex items-center justify-center w-full h-40 p-4">
+                    <div className="flex items-center justify-center w-full h-60 p-6">
                       {product.thumbnail_url ? (
                         <img
                           src={product.thumbnail_url}
@@ -167,13 +167,13 @@ export const ProductSelector = ({
                           className="max-h-full max-w-full object-contain"
                         />
                       ) : (
-                        <Package className="w-12 h-12 text-muted-foreground/50" />
+                        <Package className="w-16 h-16 text-muted-foreground/50" />
                       )}
                     </div>
 
                     {/* Product name */}
-                    <div className="px-3 pb-4">
-                      <span className="block text-base font-bold text-foreground text-center uppercase tracking-wide leading-tight">
+                    <div className="px-4 pb-5">
+                      <span className="block text-lg font-bold text-foreground text-center uppercase tracking-wide leading-tight">
                         {product.name}
                       </span>
                     </div>
