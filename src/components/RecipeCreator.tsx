@@ -432,14 +432,17 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       return;
     }
     
-    setIsSending(true);
-    
-    const recipeData = getRecipeData();
-    const phone = patientPhone;
+    const phone = patientPhone.trim();
+    if (phone.replace(/\D/g, "").length < 6) {
+      toast.error("Introduce un teléfono válido para enviar por WhatsApp");
+      return;
+    }
 
-    const preOpenedWindow = phone
-      ? window.open("about:blank", "_blank")
-      : null;
+    setIsSending(true);
+
+    const recipeData = getRecipeData();
+
+    const preOpenedWindow = window.open("about:blank", "_blank");
     
     // Track for auto-close on return
     if (preOpenedWindow) setPreOpenedWindowRef(preOpenedWindow);
