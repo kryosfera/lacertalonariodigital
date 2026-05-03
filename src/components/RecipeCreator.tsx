@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Send, Printer, Download, ShoppingCart, Plus, MessageCircle, Mail, User, Check, Package, Minus, Save, FolderOpen, Trash2, ChevronUp, X, CheckCircle2, RotateCcw } from "lucide-react";
+import { Send, Printer, Download, ShoppingCart, Plus, MessageCircle, Mail, User, UserPlus, Check, Package, Minus, Save, FolderOpen, Trash2, ChevronUp, X, CheckCircle2, RotateCcw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { CategorySelector } from "./CategorySelector";
