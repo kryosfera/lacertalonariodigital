@@ -196,7 +196,7 @@ export const CategorySelector = ({
                       <img
                         src={category.image_url}
                         alt={category.name}
-                        className="w-full h-full object-contain p-6"
+                        className="w-full h-full object-contain p-1"
                       />
                     ) : (
                       <span className="text-base font-bold text-foreground text-center leading-tight px-3">
