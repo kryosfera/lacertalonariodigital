@@ -132,6 +132,7 @@ const Index = () => {
             statsLoading={homeStatsLoading}
             statsError={homeStatsError}
             onRetryStats={() => refetchHomeStats()}
+            onLaunchTour={tour.startTour}
           />
         );
       
