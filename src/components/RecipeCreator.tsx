@@ -865,30 +865,83 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                       </>
                     )}
 
-                    {trimmedPatientName.length > 0 && !exactMatchExists && (
+                    {trimmedPatientName.length > 0 && !exactMatchExists && !inlineCreateMode && (
                       <button
                         type="button"
-                        disabled={createPatient.isPending}
                         onMouseDown={(e) => {
                           e.preventDefault();
-                          handleCreatePatientInline();
+                          setInlineCreateMode(true);
                         }}
                         className={cn(
-                          "w-full flex items-center gap-2 px-3 py-2.5 hover:bg-accent transition-colors text-left text-primary font-medium disabled:opacity-60",
+                          "w-full flex items-center gap-2 px-3 py-2.5 hover:bg-accent transition-colors text-left text-primary font-medium",
                           filteredPatients.length > 0 && "border-t border-border"
                         )}
                       >
-                        {createPatient.isPending ? (
-                          <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
-                        ) : (
-                          <UserPlus className="h-4 w-4 flex-shrink-0" />
-                        )}
+                        <UserPlus className="h-4 w-4 flex-shrink-0" />
                         <span className="text-sm truncate">
-                          {createPatient.isPending
-                            ? "Creando…"
-                            : <>Crear paciente «<span className="font-semibold">{trimmedPatientName}</span>»</>}
+                          Crear paciente «<span className="font-semibold">{trimmedPatientName}</span>»
                         </span>
                       </button>
+                    )}
+
+                    {trimmedPatientName.length > 0 && !exactMatchExists && inlineCreateMode && (
+                      <div
+                        onMouseDown={(e) => e.preventDefault()}
+                        className={cn(
+                          "px-3 py-3 space-y-2 bg-muted/30",
+                          filteredPatients.length > 0 && "border-t border-border"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 text-sm text-foreground">
+                          <UserPlus className="h-4 w-4 text-primary flex-shrink-0" />
+                          <span className="truncate">Nuevo paciente: <span className="font-semibold">«{trimmedPatientName}»</span></span>
+                        </div>
+                        <Input
+                          type="tel"
+                          inputMode="tel"
+                          autoFocus
+                          placeholder="Teléfono móvil"
+                          value={inlinePhone}
+                          onChange={(e) => setInlinePhone(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && inlinePhone.trim().length >= 6) {
+                              e.preventDefault();
+                              handleCreatePatientInline();
+                            }
+                          }}
+                          className="h-10 text-sm"
+                        />
+                        <p className="text-[11px] text-muted-foreground">
+                          El teléfono es necesario para enviar la receta por WhatsApp.
+                        </p>
+                        <div className="flex gap-2 pt-1">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="flex-1 h-9"
+                            onClick={() => {
+                              setInlineCreateMode(false);
+                              setInlinePhone("");
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            className="flex-1 h-9"
+                            disabled={inlinePhone.trim().length < 6 || createPatient.isPending}
+                            onClick={() => handleCreatePatientInline()}
+                          >
+                            {createPatient.isPending ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              "Guardar"
+                            )}
+                          </Button>
+                        </div>
+                      </div>
                     )}
 
                     {trimmedPatientName.length === 0 && filteredPatients.length === 0 && patients.length === 0 && (
