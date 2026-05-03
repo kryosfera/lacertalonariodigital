@@ -275,6 +275,26 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
   };
 
 
+  // Anonymous analytics insert for Quick Mode (fire-and-forget)
+  const logQuickRecipe = async (sentVia: 'whatsapp' | 'email' | 'pdf' | 'print') => {
+    try {
+      const products = selectedProductsData.map(p => ({
+        id: p.id,
+        name: p.name,
+        reference: p.reference,
+        ean: p.ean,
+        quantity: p.quantity,
+      }));
+      await supabase.from('quick_recipes').insert({
+        products: JSON.parse(JSON.stringify(products)),
+        notes: notes || null,
+        sent_via: sentVia,
+      });
+    } catch (err) {
+      console.error('Error logging quick recipe:', err);
+    }
+  };
+
   // Unified URL generation: DB recipe → short URL → base64 fallback
   const generateRecipeUrlWithFallback = async (recipeData: ReturnType<typeof getRecipeData>, sentVia: 'whatsapp' | 'email' | 'pdf' | 'print'): Promise<string | undefined> => {
     // 1. Professional: try saving to DB for shortest URL
@@ -283,6 +303,9 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       if (recipeCode) {
         return generateRecipeUrl(recipeCode);
       }
+    } else {
+      // Quick Mode: log anonymously for analytics
+      logQuickRecipe(sentVia);
     }
     // 2. Try short URL service (authenticated users)
     const shortCode = await createShortUrl(recipeData);
