@@ -134,6 +134,7 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
         is_visible: fullProduct.is_visible ?? true,
       });
       setVideoUrls(fullProduct.video_urls || []);
+      setPendingThumbnailUrl(fullProduct.thumbnail_url || null);
     } else if (!product) {
       form.reset({
         name: '',
@@ -149,8 +150,58 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
         is_visible: true,
       });
       setVideoUrls([]);
+      setPendingThumbnailUrl(null);
     }
   }, [fullProduct, product, form]);
+
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const ean = form.getValues('ean')?.trim();
+    const reference = form.getValues('reference')?.trim();
+    const baseName = ean || reference;
+    if (!baseName) {
+      toast({
+        title: 'Falta EAN o Referencia',
+        description: 'Introduce primero el EAN o la referencia (C.N.) del producto.',
+        variant: 'destructive',
+      });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const filePath = `${baseName}.${fileExt}`;
+
+    setIsUploadingImage(true);
+    try {
+      await supabase.storage.from('product-images').remove([filePath]);
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('product-images')
+        .upload(filePath, file, { upsert: true, contentType: file.type });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('product-images')
+        .getPublicUrl(uploadData.path);
+
+      setPendingThumbnailUrl(`${publicUrl}?t=${Date.now()}`);
+      toast({ title: 'Imagen subida correctamente' });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+      toast({ title: 'Error al subir imagen', description: message, variant: 'destructive' });
+    } finally {
+      setIsUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setPendingThumbnailUrl(null);
+  };
 
   const mutation = useMutation({
     mutationFn: async (data: ProductFormData) => {
@@ -167,6 +218,7 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
         is_active: data.is_active,
         is_visible: data.is_visible,
         video_urls: videoUrls.length > 0 ? videoUrls : null,
+        thumbnail_url: pendingThumbnailUrl,
       };
 
       if (product?.id) {
