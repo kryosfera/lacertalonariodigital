@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, FileText, Users, Package, TrendingUp, CheckCircle, Send, Calendar, ShoppingBag, MapPin, Activity } from 'lucide-react';
+import { Loader2, FileText, Users, Package, TrendingUp, CheckCircle, Send, Calendar, ShoppingBag, MapPin, Activity, LifeBuoy, AlertCircle } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Line, ComposedChart } from 'recharts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { KpiCard } from './KpiCard';
