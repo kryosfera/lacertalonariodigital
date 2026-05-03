@@ -216,6 +216,30 @@ export type Database = {
         }
         Relationships: []
       }
+      quick_recipes: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          products: Json
+          sent_via: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          products?: Json
+          sent_via?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          products?: Json
+          sent_via?: string | null
+        }
+        Relationships: []
+      }
       recipe_templates: {
         Row: {
           created_at: string
