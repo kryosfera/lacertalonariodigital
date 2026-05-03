@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, FolderTree, Users, FileText, Wrench, ArrowLeft, LogOut, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Package, FolderTree, Users, FileText, Wrench, ArrowLeft, LogOut, BookOpen, LifeBuoy } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
   Sidebar,
@@ -8,15 +8,15 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
 import lacerLogo from '@/assets/lacer-logo-clean.png';
 
-export type AdminSection = 'dashboard' | 'products' | 'categories' | 'recommendations' | 'users' | 'recipes' | 'maintenance';
+export type AdminSection = 'dashboard' | 'products' | 'categories' | 'recommendations' | 'users' | 'recipes' | 'tickets' | 'maintenance';
 
 const menuItems: { title: string; icon: typeof LayoutDashboard; section: AdminSection }[] = [
   { title: 'Dashboard', icon: LayoutDashboard, section: 'dashboard' },
@@ -25,6 +25,7 @@ const menuItems: { title: string; icon: typeof LayoutDashboard; section: AdminSe
   { title: 'Recomendaciones', icon: BookOpen, section: 'recommendations' },
   { title: 'Usuarios', icon: Users, section: 'users' },
   { title: 'Recetas', icon: FileText, section: 'recipes' },
+  { title: 'Incidencias', icon: LifeBuoy, section: 'tickets' },
   { title: 'Mantenimiento', icon: Wrench, section: 'maintenance' },
 ];
 
@@ -32,9 +33,10 @@ interface AdminSidebarProps {
   activeSection: AdminSection;
   onSectionChange: (section: AdminSection) => void;
   onSignOut: () => void;
+  openTicketsCount?: number;
 }
 
-export function AdminSidebar({ activeSection, onSectionChange, onSignOut }: AdminSidebarProps) {
+export function AdminSidebar({ activeSection, onSectionChange, onSignOut, openTicketsCount = 0 }: AdminSidebarProps) {
   const { state } = useSidebar();
   const collapsed = state === 'collapsed';
 
@@ -66,10 +68,14 @@ export function AdminSidebar({ activeSection, onSectionChange, onSignOut }: Admi
                     onClick={() => onSectionChange(item.section)}
                     isActive={activeSection === item.section}
                     tooltip={item.title}
+                    className="relative"
                   >
                     <item.icon className="h-4 w-4" />
                     {!collapsed && <span>{item.title}</span>}
                   </SidebarMenuButton>
+                  {item.section === 'tickets' && openTicketsCount > 0 && (
+                    <SidebarMenuBadge>{openTicketsCount > 99 ? '99+' : openTicketsCount}</SidebarMenuBadge>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
