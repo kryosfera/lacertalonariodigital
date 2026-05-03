@@ -184,22 +184,22 @@ export const CategorySelector = ({
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary"></div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 {categoriesWithProducts.map((category, index) => (
                   <button
                     key={category.id}
                     onClick={() => onSelectCategory(category.id, category.name)}
-                    className="relative flex items-center justify-center bg-white rounded-2xl border border-border/40 hover:border-secondary/50 hover:shadow-md active:scale-[0.97] transition-all duration-200 overflow-hidden card-scale-in aspect-[4/3]"
+                    className="relative flex items-center justify-center bg-white rounded-2xl border border-border/40 hover:border-secondary/50 hover:shadow-md active:scale-[0.97] transition-all duration-200 overflow-hidden card-scale-in aspect-[1/1]"
                     style={{ animationDelay: `${index * 15}ms` }}
                   >
                     {category.image_url ? (
                       <img
                         src={category.image_url}
                         alt={category.name}
-                        className="w-full h-full object-contain p-4"
+                        className="w-full h-full object-contain p-6"
                       />
                     ) : (
-                      <span className="text-sm font-bold text-foreground text-center leading-tight px-2">
+                      <span className="text-base font-bold text-foreground text-center leading-tight px-3">
                         {category.name}
                       </span>
                     )}
@@ -210,11 +210,11 @@ export const CategorySelector = ({
                 {uncategorizedCount > 0 && (
                   <button
                     onClick={() => onSelectCategory("uncategorized", "Otros productos")}
-                    className="flex items-center justify-center bg-muted/20 rounded-2xl border border-border/40 hover:border-secondary/50 hover:shadow-md active:scale-[0.97] transition-all duration-200 aspect-[4/3]"
+                    className="flex items-center justify-center bg-muted/20 rounded-2xl border border-border/40 hover:border-secondary/50 hover:shadow-md active:scale-[0.97] transition-all duration-200 aspect-[1/1]"
                   >
-                    <div className="flex flex-col items-center gap-1">
-                      <Package className="w-7 h-7 text-muted-foreground" />
-                      <span className="text-xs font-medium text-muted-foreground">
+                    <div className="flex flex-col items-center gap-2">
+                      <Package className="w-10 h-10 text-muted-foreground" />
+                      <span className="text-sm font-medium text-muted-foreground">
                         Otros
                       </span>
                     </div>

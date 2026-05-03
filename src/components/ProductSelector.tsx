@@ -1,10 +1,11 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ChevronLeft, Search, Package, X, Check, Home, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { ProductCard } from "./ProductCard";
+import { ProductDetailDialog } from "./ProductDetailDialog";
 import { useIsMobile } from "@/hooks/use-mobile";
 import lacerIcon from "@/assets/lacer-logo-clean.png";
 
@@ -44,6 +45,7 @@ export const ProductSelector = ({
   isClosing = false,
 }: ProductSelectorProps) => {
   const isMobile = useIsMobile();
+  const [detailProductId, setDetailProductId] = useState<string | null>(null);
 
   const filteredProducts = useMemo(() => {
     let filtered = products.filter((p) => {
@@ -81,6 +83,13 @@ export const ProductSelector = ({
   if (isMobile) {
     const hasSelection = selectedProducts.size > 0;
     return (
+      <>
+      <ProductDetailDialog
+        productId={detailProductId}
+        isSelected={detailProductId ? selectedProducts.has(detailProductId) : false}
+        onClose={() => setDetailProductId(null)}
+        onToggle={onToggleProduct}
+      />
       <div
         className={`fixed inset-0 z-50 bg-background flex flex-col ${
           isClosing ? 'screen-slide-out' : 'screen-slide-in'
@@ -134,14 +143,14 @@ export const ProductSelector = ({
         {/* Products vertical list */}
         <div className="flex-1 overflow-auto bg-muted/40 px-4 pt-3 pb-[110px]">
           {filteredProducts.length > 0 ? (
-            <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-1 gap-4">
               {filteredProducts.map((product, index) => {
                 const isSelected = selectedProducts.has(product.id);
 
                 return (
                   <button
                     key={product.id}
-                    onClick={() => onToggleProduct(product.id)}
+                    onClick={() => setDetailProductId(product.id)}
                     className={`relative flex flex-col bg-background rounded-2xl shadow-sm overflow-hidden card-scale-in transition-all duration-200 ${
                       isSelected
                         ? 'border-2 border-secondary ring-2 ring-secondary/20'
@@ -151,13 +160,13 @@ export const ProductSelector = ({
                   >
                     {/* Selection indicator */}
                     {isSelected && (
-                      <div className="absolute top-3 right-3 z-10 w-7 h-7 bg-secondary rounded-full flex items-center justify-center shadow-md">
-                        <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                      <div className="absolute top-3 right-3 z-10 w-8 h-8 bg-secondary rounded-full flex items-center justify-center shadow-md">
+                        <Check className="w-5 h-5 text-white" strokeWidth={3} />
                       </div>
                     )}
 
                     {/* Product image */}
-                    <div className="flex items-center justify-center w-full h-40 p-4">
+                    <div className="flex items-center justify-center w-full h-60 p-6">
                       {product.thumbnail_url ? (
                         <img
                           src={product.thumbnail_url}
@@ -165,13 +174,13 @@ export const ProductSelector = ({
                           className="max-h-full max-w-full object-contain"
                         />
                       ) : (
-                        <Package className="w-12 h-12 text-muted-foreground/50" />
+                        <Package className="w-16 h-16 text-muted-foreground/50" />
                       )}
                     </div>
 
                     {/* Product name */}
-                    <div className="px-3 pb-4">
-                      <span className="block text-base font-bold text-foreground text-center uppercase tracking-wide leading-tight">
+                    <div className="px-4 pb-5">
+                      <span className="block text-lg font-bold text-foreground text-center uppercase tracking-wide leading-tight">
                         {product.name}
                       </span>
                     </div>
@@ -220,11 +229,19 @@ export const ProductSelector = ({
           </div>
         </div>
       </div>
+      </>
     );
   }
 
   // Desktop: Grid visual con imágenes maximizadas
   return (
+    <>
+    <ProductDetailDialog
+      productId={detailProductId}
+      isSelected={detailProductId ? selectedProducts.has(detailProductId) : false}
+      onClose={() => setDetailProductId(null)}
+      onToggle={onToggleProduct}
+    />
     <div 
       className={`fixed inset-0 z-50 bg-secondary pt-safe ${
         isClosing ? 'screen-fade-out' : 'screen-slide-in'
@@ -283,14 +300,14 @@ export const ProductSelector = ({
       <ScrollArea className="h-[calc(100vh-130px)]">
         <div className="container mx-auto px-6 py-6">
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-5">
               {filteredProducts.map((product, index) => {
                 const isSelected = selectedProducts.has(product.id);
                 
                 return (
                   <button
                     key={product.id}
-                    onClick={() => onToggleProduct(product.id)}
+                    onClick={() => setDetailProductId(product.id)}
                     className={`group relative flex flex-col bg-white rounded-xl overflow-hidden transition-all duration-200 hover:scale-105 hover:shadow-2xl card-scale-in aspect-[3/4] ${
                       isSelected 
                         ? 'ring-4 ring-white shadow-xl scale-105' 
@@ -367,5 +384,6 @@ export const ProductSelector = ({
         </Button>
       </div>
     </div>
+    </>
   );
 };
