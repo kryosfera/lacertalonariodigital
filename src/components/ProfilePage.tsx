@@ -164,19 +164,6 @@ export const ProfilePage = () => {
               <LogOut className="w-3.5 h-3.5 mr-1.5" />
               Cerrar sesión
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="rounded-full h-8 text-xs"
-              onClick={() => {
-                localStorage.removeItem("onboarding_pro_done");
-                localStorage.removeItem("onboarding_basic_done");
-                window.location.reload();
-              }}
-            >
-              <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
-              Repetir tutorial
-            </Button>
           </div>
         </SectionCard>
 
