@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, UserRound } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useOpenTicketsCount } from '@/hooks/useTickets';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import { AdminSidebar, type AdminSection } from '@/components/admin/AdminSidebar';
@@ -12,11 +13,13 @@ import { CategoriesAdmin } from '@/components/admin/CategoriesAdmin';
 import { UsersAdmin } from '@/components/admin/UsersAdmin';
 import { RecipesAdmin } from '@/components/admin/RecipesAdmin';
 import { RecommendationsAdmin } from '@/components/admin/RecommendationsAdmin';
+import { TicketsAdmin } from '@/components/admin/TicketsAdmin';
 import { MaintenanceAdmin } from '@/components/admin/MaintenanceAdmin';
 
 const Admin = () => {
   const navigate = useNavigate();
   const { user, isAdmin, isLoading, signOut } = useAuth();
+  const { data: openTicketsCount = 0 } = useOpenTicketsCount();
   const [activeSection, setActiveSection] = useState<AdminSection>('dashboard');
 
   useEffect(() => {
@@ -33,7 +36,6 @@ const Admin = () => {
   };
 
   const handleSwitchToPatient = () => {
-    // Skip the auto-redirect on Index for this session
     sessionStorage.setItem('admin_skip_mobile_redirect', '1');
     navigate('/');
   };
@@ -51,7 +53,7 @@ const Admin = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
-        <AdminSidebar activeSection={activeSection} onSectionChange={setActiveSection} onSignOut={handleSignOut} />
+        <AdminSidebar activeSection={activeSection} onSectionChange={setActiveSection} onSignOut={handleSignOut} openTicketsCount={openTicketsCount} />
         <div className="flex-1 flex flex-col min-w-0">
           <header className="pt-safe flex items-center justify-between border-b bg-card/95 backdrop-blur-md px-4 sticky top-0 z-50 shadow-sm min-h-16">
             <div className="flex items-center gap-3 min-w-0">
@@ -66,6 +68,7 @@ const Admin = () => {
                   {activeSection === 'users' && 'Usuarios'}
                   {activeSection === 'recipes' && 'Recetas'}
                   {activeSection === 'recommendations' && 'Recomendaciones'}
+                  {activeSection === 'tickets' && 'Incidencias'}
                   {activeSection === 'maintenance' && 'Mantenimiento'}
                 </h1>
               </div>
@@ -102,6 +105,7 @@ const Admin = () => {
             {activeSection === 'users' && <UsersAdmin />}
             {activeSection === 'recipes' && <RecipesAdmin />}
             {activeSection === 'recommendations' && <RecommendationsAdmin />}
+            {activeSection === 'tickets' && <TicketsAdmin />}
             {activeSection === 'maintenance' && <MaintenanceAdmin />}
           </main>
         </div>
