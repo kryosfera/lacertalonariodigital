@@ -83,6 +83,13 @@ export const ProductSelector = ({
   if (isMobile) {
     const hasSelection = selectedProducts.size > 0;
     return (
+      <>
+      <ProductDetailDialog
+        productId={detailProductId}
+        isSelected={detailProductId ? selectedProducts.has(detailProductId) : false}
+        onClose={() => setDetailProductId(null)}
+        onToggle={onToggleProduct}
+      />
       <div
         className={`fixed inset-0 z-50 bg-background flex flex-col ${
           isClosing ? 'screen-slide-out' : 'screen-slide-in'
