@@ -161,7 +161,7 @@ export const ProductSelector = ({
                     )}
 
                     {/* Product image */}
-                    <div className="flex items-center justify-center w-full h-60 p-6">
+                    <div className="flex items-center justify-center w-full h-[420px] p-2">
                       {product.thumbnail_url ? (
                         <img
                           src={product.thumbnail_url}
