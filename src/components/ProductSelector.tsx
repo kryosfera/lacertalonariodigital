@@ -384,5 +384,6 @@ export const ProductSelector = ({
         </Button>
       </div>
     </div>
+    </>
   );
 };
