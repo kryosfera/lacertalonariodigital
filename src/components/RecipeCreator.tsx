@@ -222,14 +222,17 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
   }, [patients, trimmedPatientName]);
 
   const handleCreatePatientInline = async () => {
-    if (!trimmedPatientName || createPatient.isPending) return;
+    const phone = inlinePhone.trim();
+    if (!trimmedPatientName || phone.length < 6 || createPatient.isPending) return;
     try {
       const newPatient = await createPatient.mutateAsync({
         name: trimmedPatientName,
-        phone: patientPhone || undefined,
-        email: patientEmail || undefined,
+        phone: phone || undefined,
       });
+      setPatientPhone(phone);
       handleSelectPatient(newPatient as Patient);
+      setInlineCreateMode(false);
+      setInlinePhone("");
     } catch (e) {
       // toast handled in hook
     }
