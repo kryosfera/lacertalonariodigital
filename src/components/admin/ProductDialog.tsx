@@ -491,7 +491,7 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
               <Button type="button" variant="outline" onClick={onOpenChange}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
+              <Button type="submit" disabled={mutation.isPending || isUploadingImage}>
                 {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {product ? 'Guardar' : 'Crear'}
               </Button>
