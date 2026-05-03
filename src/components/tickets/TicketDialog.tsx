@@ -102,15 +102,19 @@ export function TicketDialog({ open, onOpenChange }: TicketDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Bug className="h-5 w-5 text-primary" />
-            Reportar incidencia
-          </DialogTitle>
-          <DialogDescription>
-            Comparte el problema, una duda o una mejora. Lo veremos desde administración.
-          </DialogDescription>
+      <DialogContent className="max-w-xl rounded-2xl">
+        <DialogHeader className="text-left">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Bug className="h-5 w-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <DialogTitle className="text-lg">Reportar incidencia</DialogTitle>
+              <DialogDescription className="text-xs">
+                Comparte el problema, una duda o una mejora. Lo veremos desde administración.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
 
         {!user ? (
@@ -232,12 +236,12 @@ export function TicketDialog({ open, onOpenChange }: TicketDialogProps) {
                 )}
               />
 
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
+              <DialogFooter className="gap-2">
+                <Button type="button" variant="outline" className="rounded-full" onClick={() => handleOpenChange(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={createTicket.isPending || uploadAttachment.isPending}>
-                  {createTicket.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageSquarePlus className="h-4 w-4" />}
+                <Button type="submit" className="rounded-full" disabled={createTicket.isPending || uploadAttachment.isPending}>
+                  {createTicket.isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <MessageSquarePlus className="h-4 w-4 mr-1.5" />}
                   Enviar incidencia
                 </Button>
               </DialogFooter>

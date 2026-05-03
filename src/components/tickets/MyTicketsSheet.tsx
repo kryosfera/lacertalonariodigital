@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
-import { ChevronRight, Inbox, Loader2, Search } from 'lucide-react';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Inbox, Loader2, Search, LifeBuoy, ArrowLeft } from 'lucide-react';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { useTickets, useTicketsRealtime, type Ticket } from '@/hooks/useTickets';
 import { TicketThread, categoryLabels, priorityClassName, priorityLabels, statusClassName, statusLabels } from '@/components/tickets/TicketThread';
 
@@ -20,76 +20,93 @@ export function MyTicketsSheet({ open, onOpenChange }: MyTicketsSheetProps) {
   useTicketsRealtime();
 
   const selectedTicket = useMemo<Ticket | null>(() => {
-    if (!tickets?.length) return null;
-    return tickets.find((ticket) => ticket.id === selectedId) ?? tickets[0] ?? null;
+    if (!selectedId || !tickets?.length) return null;
+    return tickets.find((ticket) => ticket.id === selectedId) ?? null;
   }, [selectedId, tickets]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full p-0 sm:max-w-6xl">
-        <div className="flex h-full flex-col">
-          <SheetHeader className="border-b px-6 py-4 text-left">
-            <SheetTitle>Mis incidencias</SheetTitle>
-            <SheetDescription>Consulta el estado de tus tickets y continúa la conversación.</SheetDescription>
-          </SheetHeader>
-
-          <div className="grid min-h-0 flex-1 lg:grid-cols-[340px_minmax(0,1fr)]">
-            <aside className="border-b border-border lg:border-b-0 lg:border-r">
-              <div className="space-y-3 p-4">
-                <div className="relative">
-                  <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar incidencia" className="pl-9" />
-                </div>
+      <SheetContent side="bottom" className="rounded-t-3xl max-h-[92vh] overflow-y-auto p-0">
+        <div className="px-5 pt-5 pb-3">
+          <SheetHeader className="text-left">
+            <div className="flex items-center gap-3">
+              {selectedTicket && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full -ml-1"
+                  onClick={() => setSelectedId(null)}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+              )}
+              <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                <LifeBuoy className="w-5 h-5" />
               </div>
-
-              <div className="max-h-[40vh] overflow-y-auto lg:max-h-none lg:h-[calc(100vh-105px)]">
-                {isLoading ? (
-                  <div className="flex items-center justify-center py-10 text-sm text-muted-foreground">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Cargando incidencias…
-                  </div>
-                ) : !tickets?.length ? (
-                  <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center text-sm text-muted-foreground">
-                    <Inbox className="h-8 w-8 text-muted-foreground/60" />
-                    <p>No has creado incidencias todavía.</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2 p-3">
-                    {tickets.map((ticket) => {
-                      const active = ticket.id === selectedTicket?.id;
-                      return (
-                        <Button
-                          key={ticket.id}
-                          variant="ghost"
-                          className={`h-auto w-full justify-start rounded-lg border px-3 py-3 text-left ${active ? 'border-primary/30 bg-primary/5' : 'border-border'}`}
-                          onClick={() => setSelectedId(ticket.id)}
-                        >
-                          <div className="w-full space-y-2">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-medium text-foreground">{ticket.title}</p>
-                                <p className="mt-1 text-xs text-muted-foreground">{new Date(ticket.updated_at).toLocaleString('es-ES')}</p>
-                              </div>
-                              <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                            </div>
-                            <div className="flex flex-wrap gap-1.5">
-                              <Badge className={statusClassName[ticket.status]}>{statusLabels[ticket.status]}</Badge>
-                              <Badge className={priorityClassName[ticket.priority]}>{priorityLabels[ticket.priority]}</Badge>
-                              <Badge variant="outline">{categoryLabels[ticket.category]}</Badge>
-                            </div>
-                          </div>
-                        </Button>
-                      );
-                    })}
-                  </div>
-                )}
+              <div className="min-w-0 flex-1">
+                <SheetTitle className="text-lg">Mis incidencias</SheetTitle>
+                <SheetDescription className="text-xs">
+                  {selectedTicket ? 'Conversación con el equipo' : 'Consulta el estado de tus tickets'}
+                </SheetDescription>
               </div>
-            </aside>
-
-            <div className="min-h-0 p-4 lg:p-6">
-              <TicketThread ticket={selectedTicket} />
             </div>
-          </div>
+          </SheetHeader>
         </div>
+
+        {selectedTicket ? (
+          <div className="px-3 md:px-5 pb-6">
+            <TicketThread ticket={selectedTicket} />
+          </div>
+        ) : (
+          <div className="px-3 md:px-5 pb-6 space-y-3 max-w-2xl mx-auto w-full">
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar incidencia"
+                className="pl-9 rounded-full h-10"
+              />
+            </div>
+
+            {isLoading ? (
+              <div className="flex items-center justify-center py-10 text-sm text-muted-foreground">
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Cargando incidencias…
+              </div>
+            ) : !tickets?.length ? (
+              <div className="flex flex-col items-center justify-center gap-3 px-6 py-16 text-center text-sm text-muted-foreground">
+                <Inbox className="h-8 w-8 text-muted-foreground/60" />
+                <p>No has creado incidencias todavía.</p>
+              </div>
+            ) : (
+              <ul className="space-y-2">
+                {tickets.map((ticket) => (
+                  <li key={ticket.id}>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedId(ticket.id)}
+                      className="w-full text-left bg-card rounded-2xl border border-border/40 shadow-[0_1px_4px_rgba(0,0,0,0.03)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)] hover:border-border transition-all duration-200 px-4 py-3"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-foreground">{ticket.title}</p>
+                          <p className="mt-0.5 text-[11px] text-muted-foreground">
+                            {new Date(ticket.updated_at).toLocaleString('es-ES')}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        <Badge className={`text-[10px] px-2 py-0.5 ${statusClassName[ticket.status]}`}>{statusLabels[ticket.status]}</Badge>
+                        <Badge className={`text-[10px] px-2 py-0.5 ${priorityClassName[ticket.priority]}`}>{priorityLabels[ticket.priority]}</Badge>
+                        <Badge variant="outline" className="text-[10px] px-2 py-0.5">{categoryLabels[ticket.category]}</Badge>
+                      </div>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   );
