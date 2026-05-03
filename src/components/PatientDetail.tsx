@@ -67,102 +67,105 @@ export const PatientDetail = ({ patient, onBack, onNewRecipe, onDuplicate }: Pat
   };
 
   return (
-    <div className="space-y-4">
+    <div className="screen-wrapper">
       {/* Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-start gap-3">
-            <Button variant="ghost" size="icon" onClick={onBack} className="mt-0.5">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div className="flex-1">
-              <CardTitle className="text-xl">{patient.name}</CardTitle>
-              <div className="flex flex-wrap gap-3 mt-2 text-sm text-muted-foreground">
-                {patient.phone && (
-                  <span className="flex items-center gap-1"><Phone className="w-3.5 h-3.5" />{patient.phone}</span>
-                )}
-                {patient.email && (
-                  <span className="flex items-center gap-1"><Mail className="w-3.5 h-3.5" />{patient.email}</span>
-                )}
-              </div>
-              {patient.notes && (
-                <p className="text-sm text-muted-foreground mt-2">{patient.notes}</p>
-              )}
-            </div>
-            <Button onClick={() => onNewRecipe(patient)} size="sm">
-              <Plus className="w-4 h-4 mr-2" />
-              Nueva receta
-            </Button>
-          </div>
-        </CardHeader>
-      </Card>
-
-      {/* Recipe list */}
-      <div className="space-y-1">
-        <h3 className="text-sm font-medium text-muted-foreground px-1">
-          Recetas ({recipes.length})
-        </h3>
+      <div className="screen-header">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onBack}
+            className="absolute left-3 md:left-5 rounded-full h-8 px-3 text-xs"
+          >
+            <ArrowLeft className="w-3.5 h-3.5 mr-1" />
+            Volver
+          </Button>
+        </div>
+        <h1 className="screen-title break-words">{patient.name}</h1>
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-2">
+          {patient.phone && (
+            <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{patient.phone}</span>
+          )}
+          {patient.email && (
+            <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{patient.email}</span>
+          )}
+        </div>
+        {patient.notes && (
+          <p className="text-xs text-muted-foreground mt-2 max-w-md mx-auto">{patient.notes}</p>
+        )}
+        <div className="mt-4 flex justify-center">
+          <Button
+            onClick={() => onNewRecipe(patient)}
+            className="rounded-full h-9 text-xs"
+          >
+            <Plus className="w-3.5 h-3.5 mr-1.5" />
+            Nueva receta
+          </Button>
+        </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : recipes.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-            <p className="text-muted-foreground">Aún no hay recetas para este paciente</p>
-            <Button onClick={() => onNewRecipe(patient)} variant="outline" className="mt-4">
-              <Plus className="w-4 h-4 mr-2" />
+      {/* Recipes section */}
+      <div className="screen-body">
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2 px-1">
+          Recetas ({recipes.length})
+        </h3>
+
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        ) : recipes.length === 0 ? (
+          <div className="card-soft py-10 text-center">
+            <FileText className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
+            <p className="text-sm text-muted-foreground">Aún no hay recetas para este paciente</p>
+            <Button onClick={() => onNewRecipe(patient)} variant="outline" className="mt-4 rounded-full h-8 text-xs">
+              <Plus className="w-3.5 h-3.5 mr-1.5" />
               Crear primera receta
             </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-3">
-          {recipes.map((recipe) => (
-            <Card key={recipe.id} className="transition-smooth hover:shadow-medical">
-              <CardContent className="pt-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                  <div className="space-y-3 flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
+          </div>
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {recipes.map((recipe) => (
+              <li key={recipe.id} className="card-soft card-soft-hover p-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-2 flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
                       {getStatusBadge(recipe.sent_via)}
                       {getDispenseBadge(recipe)}
-                      <span className="text-sm text-muted-foreground flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5" />
+                      <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
                         {format(new Date(recipe.created_at), "dd MMM yyyy, HH:mm", { locale: es })}
                       </span>
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1">
                       {recipe.products.slice(0, 3).map((product, index) => (
-                        <Badge key={index} variant="outline">
+                        <Badge key={index} variant="outline" className="text-[10px] px-1.5 py-0">
                           {product.quantity > 1 && `${product.quantity}x `}{product.name}
                         </Badge>
                       ))}
                       {recipe.products.length > 3 && (
-                        <Badge variant="outline">+{recipe.products.length - 3} más</Badge>
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">+{recipe.products.length - 3} más</Badge>
                       )}
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => onDuplicate(recipe)}>
-                      <Copy className="w-4 h-4 mr-2" />
+                  <div className="flex gap-1.5">
+                    <Button variant="outline" size="sm" className="rounded-full h-8 text-xs" onClick={() => onDuplicate(recipe)}>
+                      <Copy className="w-3.5 h-3.5 mr-1.5" />
                       Duplicar
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => handleDownloadPDF(recipe)}>
-                      <Download className="w-4 h-4 mr-2" />
+                    <Button variant="outline" size="sm" className="rounded-full h-8 text-xs" onClick={() => handleDownloadPDF(recipe)}>
+                      <Download className="w-3.5 h-3.5 mr-1.5" />
                       PDF
                     </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 };
