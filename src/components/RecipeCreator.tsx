@@ -808,8 +808,10 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                   }}
                   onFocus={() => setPatientSearchOpen(true)}
                   onBlur={() => {
-                    // Delay close so click on item registers
-                    setTimeout(() => setPatientSearchOpen(false), 150);
+                    // Delay close so click on item registers; keep open if creating inline
+                    setTimeout(() => {
+                      if (!inlineCreateMode) setPatientSearchOpen(false);
+                    }, 150);
                   }}
                   className="pl-11 pr-11 h-14 rounded-2xl border border-border/40 bg-background text-sm font-medium"
                   autoComplete="off"
@@ -823,6 +825,8 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
                       setPatientName("");
                       setPatientPhone("");
                       setPatientEmail("");
+                      setInlineCreateMode(false);
+                      setInlinePhone("");
                     }}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 rounded-md hover:bg-muted transition-colors z-10"
                     aria-label="Limpiar paciente"
