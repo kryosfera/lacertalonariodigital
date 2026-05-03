@@ -229,6 +229,7 @@ export const ProductSelector = ({
           </div>
         </div>
       </div>
+      </>
     );
   }
 
