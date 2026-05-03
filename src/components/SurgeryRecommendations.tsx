@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRecommendations, type Recommendation } from "@/hooks/useRecommendations";
 import { cn } from "@/lib/utils";
-import lacerLogo from "@/assets/lacer-logo-clean.png";
+
 
 interface WhatsAppShareData {
   type: 'pdf' | 'video' | 'link';
