@@ -69,18 +69,16 @@ export const PatientDetail = ({ patient, onBack, onNewRecipe, onDuplicate }: Pat
   return (
     <div className="screen-wrapper">
       {/* Header */}
-      <div className="screen-header">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onBack}
-            className="absolute left-3 md:left-5 rounded-full h-8 px-3 text-xs"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 mr-1" />
-            Volver
-          </Button>
-        </div>
+      <div className="screen-header relative">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onBack}
+          className="absolute left-3 md:left-5 top-4 rounded-full h-8 px-3 text-xs"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 mr-1" />
+          Volver
+        </Button>
         <h1 className="screen-title break-words">{patient.name}</h1>
         <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted-foreground mt-2">
           {patient.phone && (
