@@ -110,6 +110,8 @@ const Admin = () => {
             {activeSection === 'recipes' && <RecipesAdmin />}
             {activeSection === 'recommendations' && <RecommendationsAdmin />}
             {activeSection === 'tickets' && <TicketsAdmin />}
+            {activeSection === 'sessions' && <ActiveSessionsAdmin />}
+            {activeSection === 'audit' && <AuditLogAdmin />}
             {activeSection === 'maintenance' && <MaintenanceAdmin />}
           </main>
         </div>
