@@ -71,6 +71,8 @@ const Admin = () => {
                   {activeSection === 'recipes' && 'Recetas'}
                   {activeSection === 'recommendations' && 'Recomendaciones'}
                   {activeSection === 'tickets' && 'Incidencias'}
+                  {activeSection === 'sessions' && 'Sesiones activas'}
+                  {activeSection === 'audit' && 'Auditoría de accesos'}
                   {activeSection === 'maintenance' && 'Mantenimiento'}
                 </h1>
               </div>
