@@ -522,6 +522,21 @@ export type Database = {
       }
     }
     Functions: {
+      admin_active_sessions: {
+        Args: never
+        Returns: {
+          clinic_name: string
+          created_at: string
+          email: string
+          ip: string
+          not_after: string
+          professional_name: string
+          session_id: string
+          updated_at: string
+          user_agent: string
+          user_id: string
+        }[]
+      }
       admin_activity_heatmap: {
         Args: never
         Returns: {
@@ -547,6 +562,18 @@ export type Database = {
           previous_period_count: number
           today_count: number
           total_recipes: number
+        }[]
+      }
+      admin_login_audit: {
+        Args: { days?: number; lim?: number }
+        Returns: {
+          action: string
+          email: string
+          id: string
+          ip_address: string
+          occurred_at: string
+          user_agent: string
+          user_id: string
         }[]
       }
       admin_province_stats: {
