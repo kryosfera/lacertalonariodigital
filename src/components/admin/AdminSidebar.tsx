@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, FolderTree, Users, FileText, Wrench, ArrowLeft, LogOut, BookOpen, LifeBuoy } from 'lucide-react';
+import { LayoutDashboard, Package, FolderTree, Users, FileText, Wrench, ArrowLeft, LogOut, BookOpen, LifeBuoy, Activity, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
   Sidebar,
