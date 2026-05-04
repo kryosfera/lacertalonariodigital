@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, FolderTree, Users, FileText, Wrench, ArrowLeft, LogOut, BookOpen, LifeBuoy } from 'lucide-react';
+import { LayoutDashboard, Package, FolderTree, Users, FileText, Wrench, ArrowLeft, LogOut, BookOpen, LifeBuoy, Activity, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
   Sidebar,
@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/sidebar';
 import lacerLogo from '@/assets/lacer-logo-clean.png';
 
-export type AdminSection = 'dashboard' | 'products' | 'categories' | 'recommendations' | 'users' | 'recipes' | 'tickets' | 'maintenance';
+export type AdminSection = 'dashboard' | 'products' | 'categories' | 'recommendations' | 'users' | 'recipes' | 'tickets' | 'sessions' | 'audit' | 'maintenance';
 
 const menuItems: { title: string; icon: typeof LayoutDashboard; section: AdminSection }[] = [
   { title: 'Dashboard', icon: LayoutDashboard, section: 'dashboard' },
@@ -26,6 +26,8 @@ const menuItems: { title: string; icon: typeof LayoutDashboard; section: AdminSe
   { title: 'Usuarios', icon: Users, section: 'users' },
   { title: 'Recetas', icon: FileText, section: 'recipes' },
   { title: 'Incidencias', icon: LifeBuoy, section: 'tickets' },
+  { title: 'Sesiones activas', icon: Activity, section: 'sessions' },
+  { title: 'Auditoría', icon: ShieldCheck, section: 'audit' },
   { title: 'Mantenimiento', icon: Wrench, section: 'maintenance' },
 ];
 

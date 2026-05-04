@@ -15,6 +15,8 @@ import { RecipesAdmin } from '@/components/admin/RecipesAdmin';
 import { RecommendationsAdmin } from '@/components/admin/RecommendationsAdmin';
 import { TicketsAdmin } from '@/components/admin/TicketsAdmin';
 import { MaintenanceAdmin } from '@/components/admin/MaintenanceAdmin';
+import { ActiveSessionsAdmin } from '@/components/admin/ActiveSessionsAdmin';
+import { AuditLogAdmin } from '@/components/admin/AuditLogAdmin';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -69,6 +71,8 @@ const Admin = () => {
                   {activeSection === 'recipes' && 'Recetas'}
                   {activeSection === 'recommendations' && 'Recomendaciones'}
                   {activeSection === 'tickets' && 'Incidencias'}
+                  {activeSection === 'sessions' && 'Sesiones activas'}
+                  {activeSection === 'audit' && 'Auditoría de accesos'}
                   {activeSection === 'maintenance' && 'Mantenimiento'}
                 </h1>
               </div>
@@ -106,6 +110,8 @@ const Admin = () => {
             {activeSection === 'recipes' && <RecipesAdmin />}
             {activeSection === 'recommendations' && <RecommendationsAdmin />}
             {activeSection === 'tickets' && <TicketsAdmin />}
+            {activeSection === 'sessions' && <ActiveSessionsAdmin />}
+            {activeSection === 'audit' && <AuditLogAdmin />}
             {activeSection === 'maintenance' && <MaintenanceAdmin />}
           </main>
         </div>

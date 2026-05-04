@@ -1,62 +1,40 @@
-## Problema
+# Panel de Sesiones Activas y Auditoría de Accesos
 
-En el desplegable de búsqueda de paciente del modo Profesional, al pulsar "Crear paciente «...»" se guarda el paciente solo con el nombre. El teléfono no se persiste porque el campo `patientPhone` que aparece más abajo (en la sección de envío) todavía está vacío en ese momento. Resultado: pacientes creados sin teléfono, sin posibilidad de enviarles la receta por WhatsApp después.
+Añadir dos nuevas vistas en el panel de Admin (`/admin`) accesibles solo para usuarios con rol `admin`:
 
-## Solución
+1. **Sesiones Activas** — quién está autenticado ahora mismo.
+2. **Auditoría de Accesos** — historial de logins (cuándo se conectó cada usuario).
 
-Convertir la fila "Crear paciente «X»" en un mini-formulario inline dentro del propio desplegable, que pide **nombre (ya escrito) + teléfono (obligatorio)** antes de guardar. El email queda fuera (lo pediremos solo si el dentista decide enviar por email).
+## 1. Backend: funciones SECURITY DEFINER
 
-## Cambios en `src/components/RecipeCreator.tsx`
+Como `auth.sessions` y `auth.audit_log_entries` están en el schema reservado `auth`, no se pueden consultar desde el cliente. Crearemos dos funciones en `public` protegidas con `has_role(auth.uid(), 'admin')`:
 
-### 1. Nuevo estado local
+- **`admin_active_sessions()`** — lee de `auth.sessions` (filtrando `not_after > now()` o sin expirar) + `auth.users` + `public.profiles`. Devuelve: `user_id`, `email`, `clinic_name`, `professional_name`, `created_at` (inicio sesión), `updated_at` (última actividad), `user_agent`, `ip`.
+- **`admin_login_audit(days int default 30, lim int default 200)`** — lee de `auth.audit_log_entries` filtrando `payload->>'action' IN ('login','logout','token_refreshed','user_signedup')`. Devuelve: `timestamp`, `user_id`, `email`, `action`, `ip_address`, `user_agent`.
 
-- `inlineCreateMode: boolean` — controla si la fila "Crear paciente" se ha expandido a formulario.
-- `inlinePhone: string` — teléfono temporal del nuevo paciente.
+Ambas lanzan `RAISE EXCEPTION 'Not authorized'` si el solicitante no es admin.
 
-Se resetean al cerrar el dropdown, al limpiar el paciente o tras crear.
+## 2. Frontend: dos secciones en el sidebar de Admin
 
-### 2. Render del dropdown (líneas 859‑883)
+En `src/components/admin/AdminSidebar.tsx` añadir dos items: "Sesiones activas" y "Auditoría". Crear:
 
-Cuando `trimmedPatientName.length > 0 && !exactMatchExists`:
+- **`src/components/admin/ActiveSessionsAdmin.tsx`** — tabla con auto-refresh cada 30s. Columnas: clínica/profesional, email, inicio sesión, última actividad, IP, dispositivo (parseo simple de `user_agent`). Badge verde "En línea" si `updated_at` < 5 min.
+- **`src/components/admin/AuditLogAdmin.tsx`** — tabla paginada con filtro por rango de fechas (reutilizando `DashboardRangeFilter`) y por tipo de acción (login/logout/signup). Export a CSV opcional usando el patrón de `dashboardExport.ts`.
 
-- **Estado colapsado** (`!inlineCreateMode`): botón actual "+ Crear paciente «X»". Al pulsarlo, en lugar de llamar a `handleCreatePatientInline` directamente, hace `setInlineCreateMode(true)` y enfoca el input de teléfono.
-- **Estado expandido** (`inlineCreateMode`): se sustituye por un bloque con:
-  - Cabecera: "Nuevo paciente: «X»".
-  - `Input` de teléfono (`type="tel"`, `inputMode="tel"`, autoFocus, placeholder "Teléfono móvil"). `onMouseDown`/`onClick` con `e.stopPropagation()` para que el `onBlur` del input padre no cierre el dropdown.
-  - Dos botones: "Cancelar" (vuelve a colapsado) y "Guardar" (deshabilitado si `inlinePhone.trim().length < 6` o `createPatient.isPending`).
-  - Mensaje sutil "El teléfono es necesario para enviar la receta por WhatsApp."
+Registrar las rutas en `src/pages/Admin.tsx`.
 
-Para evitar que el `onBlur` del input de búsqueda (línea 805) cierre el dropdown mientras el usuario teclea el teléfono, el contenedor del dropdown captura `onMouseDown` con `preventDefault` y, además, se mantiene abierto explícitamente cuando `inlineCreateMode === true` (añadir esa condición al `setTimeout` del onBlur o gate del render).
+## 3. Detalles técnicos
 
-### 3. Handler `handleCreatePatientInline`
-
-Se modifica para recibir/usar `inlinePhone`:
-
-```ts
-const phone = inlinePhone.trim();
-const newPatient = await createPatient.mutateAsync({
-  name: trimmedPatientName,
-  phone: phone || undefined,
-});
-setPatientPhone(phone);     // sincroniza con el campo de envío
-handleSelectPatient(newPatient);
-setInlineCreateMode(false);
-setInlinePhone("");
+```text
+Migration → 2 funciones SECURITY DEFINER en public, search_path=public,auth
+Frontend  → React Query (staleTime 0, refetchInterval 30s para sesiones)
+Estilo    → mismo patrón visual que UsersAdmin / RecipesAdmin (Card + Table shadcn)
+Acceso    → solo usuarios en user_roles con role='admin'
 ```
 
-Validación previa: si `phone.length < 6`, no continuar (botón ya deshabilitado, defensa en profundidad).
+No se modifica nada del flujo de autenticación existente; solo lectura de tablas internas de Supabase Auth a través de funciones seguras.
 
-### 4. Limpieza al deseleccionar
+## Fuera de alcance
 
-En el botón de limpiar (línea 815‑821) y en `handleSelectPatient`, resetear también `inlineCreateMode` e `inlinePhone`.
-
-## Lo que NO cambia
-
-- Esquema de BD (`patients` ya tiene `phone` opcional).
-- Hook `useCreatePatient`.
-- Flujo del modo Quick.
-- Edición posterior de pacientes (sigue en `/patients`).
-
-## Archivo a modificar
-
-- `src/components/RecipeCreator.tsx`
+- No se cierran sesiones de forma remota (requeriría service_role en una edge function — lo añadimos en una siguiente iteración si lo necesitas).
+- No se guardan logs propios duplicados; se aprovecha lo que Supabase ya registra.
