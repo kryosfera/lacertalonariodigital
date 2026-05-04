@@ -15,6 +15,8 @@ import { RecipesAdmin } from '@/components/admin/RecipesAdmin';
 import { RecommendationsAdmin } from '@/components/admin/RecommendationsAdmin';
 import { TicketsAdmin } from '@/components/admin/TicketsAdmin';
 import { MaintenanceAdmin } from '@/components/admin/MaintenanceAdmin';
+import { ActiveSessionsAdmin } from '@/components/admin/ActiveSessionsAdmin';
+import { AuditLogAdmin } from '@/components/admin/AuditLogAdmin';
 
 const Admin = () => {
   const navigate = useNavigate();
