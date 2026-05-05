@@ -99,9 +99,9 @@ export function UsersAdmin() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (userId: string) => {
+    mutationFn: async ({ userId, reason }: { userId: string; reason: string }) => {
       const { data, error } = await supabase.functions.invoke('admin-manage-users', {
-        body: { action: 'delete_user', target_user_id: userId },
+        body: { action: 'delete_user', target_user_id: userId, reason: reason || null },
       });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
@@ -113,10 +113,27 @@ export function UsersAdmin() {
       queryClient.invalidateQueries({ queryKey: ['admin-recipe-counts'] });
       queryClient.invalidateQueries({ queryKey: ['admin-user-emails'] });
       queryClient.invalidateQueries({ queryKey: ['admin-user-ids'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-deletion-audit'] });
     },
     onError: (err: Error) => {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
     },
+  });
+
+  const { data: auditEntries, isLoading: auditLoading } = useQuery({
+    queryKey: ['admin-deletion-audit'],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('admin-manage-users', {
+        body: { action: 'list_deletion_audit' },
+      });
+      if (error) throw error;
+      return ((data as any)?.entries ?? []) as Array<{
+        id: string; deleted_user_id: string; deleted_user_email: string | null;
+        deleted_user_label: string | null; deleted_by: string; deleted_by_email: string | null;
+        reason: string | null; deleted_at: string;
+      }>;
+    },
+    enabled: auditOpen,
   });
 
   const provinces = [...new Set(profiles?.map(p => p.province).filter(Boolean) as string[])].sort();
