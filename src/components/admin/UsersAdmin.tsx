@@ -345,7 +345,7 @@ export function UsersAdmin() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => { if (!o) { setPendingDelete(null); setConfirmText(''); } }}>
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => { if (!o) { setPendingDelete(null); setConfirmText(''); setDeleteReason(''); } }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-destructive">Eliminar usuario definitivamente</AlertDialogTitle>
@@ -364,6 +364,15 @@ export function UsersAdmin() {
                   placeholder={expectedConfirm}
                   autoFocus
                 />
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-muted-foreground">Motivo (opcional, queda en el historial)</label>
+                  <Textarea
+                    value={deleteReason}
+                    onChange={(e) => setDeleteReason(e.target.value.slice(0, 500))}
+                    placeholder="Ej: solicitud RGPD del usuario, cuenta duplicada, prueba interna..."
+                    rows={2}
+                  />
+                </div>
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -377,9 +386,10 @@ export function UsersAdmin() {
                   e.preventDefault();
                   return;
                 }
-                deleteMutation.mutate(pendingDelete.userId);
+                deleteMutation.mutate({ userId: pendingDelete.userId, reason: deleteReason.trim() });
                 setPendingDelete(null);
                 setConfirmText('');
+                setDeleteReason('');
               }}
             >
               {deleteMutation.isPending ? 'Eliminando...' : 'Eliminar definitivamente'}
@@ -387,6 +397,58 @@ export function UsersAdmin() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={auditOpen} onOpenChange={setAuditOpen}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" /> Historial de eliminaciones
+            </DialogTitle>
+            <DialogDescription>
+              Registro de las eliminaciones de usuarios realizadas por administradores.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="overflow-auto -mx-6 px-6">
+            {auditLoading ? (
+              <div className="flex justify-center py-8"><Loader2 className="w-5 h-5 animate-spin" /></div>
+            ) : !auditEntries?.length ? (
+              <p className="text-center text-sm text-muted-foreground py-8">Sin eliminaciones registradas.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Usuario eliminado</TableHead>
+                    <TableHead>Eliminado por</TableHead>
+                    <TableHead>Motivo</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {auditEntries.map((e) => (
+                    <TableRow key={e.id}>
+                      <TableCell className="text-xs whitespace-nowrap">
+                        {new Date(e.deleted_at).toLocaleString('es-ES')}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        <div className="font-medium">{e.deleted_user_label || '—'}</div>
+                        {e.deleted_user_email && (
+                          <div className="text-xs text-muted-foreground font-mono">{e.deleted_user_email}</div>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        <span className="font-mono text-xs">{e.deleted_by_email || e.deleted_by}</span>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-xs">
+                        {e.reason || <span className="italic">—</span>}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <UserDetailSheet
         open={!!selectedProfile}
