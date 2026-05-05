@@ -649,6 +649,16 @@ export type Database = {
       }
     }
     Views: {
+      all_recipes_unified: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          products: Json | null
+          sent_via: string | null
+          source: string | null
+        }
+        Relationships: []
+      }
       patients_with_stats: {
         Row: {
           created_at: string | null
@@ -745,6 +755,16 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_pro_kpis_range: {
+        Args: { end_ts: string; start_ts: string }
+        Returns: {
+          avg_products_pro: number
+          period_pro: number
+          previous_period_pro: number
+          today_pro: number
+          total_pro: number
+        }[]
+      }
       admin_province_stats: {
         Args: never
         Returns: {
@@ -759,6 +779,25 @@ export type Database = {
           professionals: number
           province: string
           total_recipes: number
+        }[]
+      }
+      admin_quick_kpis_range: {
+        Args: { end_ts: string; start_ts: string }
+        Returns: {
+          avg_products_quick: number
+          period_quick: number
+          previous_period_quick: number
+          today_quick: number
+          total_quick: number
+        }[]
+      }
+      admin_quick_top_products_range: {
+        Args: { end_ts: string; lim?: number; start_ts: string }
+        Returns: {
+          product_name: string
+          reference: string
+          thumbnail_url: string
+          times_prescribed: number
         }[]
       }
       admin_recent_signup_attempts: {
