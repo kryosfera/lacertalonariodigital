@@ -24,6 +24,38 @@ import {
 } from '@/components/ui/alert-dialog';
 import { UserDetailSheet } from './UserDetailSheet';
 
+function exportUsersCsv(
+  rows: any[],
+  emails: Record<string, string>,
+  recipeCounts: Record<string, number>,
+  adminIds?: Set<string>,
+) {
+  const header = ['Clinica', 'Profesional', 'Email', 'Provincia', 'Localidad', 'Nº Colegiado', 'Recetas', 'Admin', 'Registro'];
+  const escape = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const lines = [header.join(',')];
+  rows.forEach(p => {
+    lines.push([
+      p.clinic_name ?? '',
+      p.professional_name ?? '',
+      emails[p.user_id] ?? '',
+      p.province ?? '',
+      p.locality ?? '',
+      p.registration_number ?? '',
+      recipeCounts[p.user_id] ?? 0,
+      adminIds?.has(p.user_id) ? 'sí' : 'no',
+      new Date(p.created_at).toISOString(),
+    ].map(escape).join(','));
+  });
+  const csv = '\uFEFF' + lines.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `usuarios-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function UsersAdmin() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
