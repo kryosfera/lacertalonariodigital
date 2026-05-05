@@ -70,10 +70,16 @@ export function AdminDashboard() {
     if (custom) setCustomRange(custom);
   };
 
-  // Global (non-range) counts
+  // Global (non-range) counts — Pro + Quick
   const { data: totalRecipes, isLoading: loadingRecipes } = useQuery({
     queryKey: ['admin-total-recipes'],
-    queryFn: async () => (await supabase.from('recipes').select('*', { count: 'exact', head: true })).count ?? 0,
+    queryFn: async () => {
+      const [pro, quick] = await Promise.all([
+        supabase.from('recipes').select('*', { count: 'exact', head: true }),
+        supabase.from('quick_recipes').select('*', { count: 'exact', head: true }),
+      ]);
+      return (pro.count ?? 0) + (quick.count ?? 0);
+    },
   });
   const { data: totalUsers, isLoading: loadingUsers } = useQuery({
     queryKey: ['admin-total-users'],
@@ -93,6 +99,18 @@ export function AdminDashboard() {
       return (data?.[0] ?? null) as {
         total_recipes: number; today_count: number; period_count: number;
         previous_period_count: number; avg_products_per_recipe: number; dispensed_count: number;
+      } | null;
+    },
+  });
+
+  const { data: quickKpis } = useQuery({
+    queryKey: ['admin-quick-kpis-range', startISO, endISO],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('admin_quick_kpis_range', { start_ts: startISO, end_ts: endISO });
+      if (error) throw error;
+      return (data?.[0] ?? null) as {
+        total_quick: number; period_quick: number; today_quick: number;
+        previous_period_quick: number; avg_products_quick: number;
       } | null;
     },
   });
@@ -256,6 +274,47 @@ export function AdminDashboard() {
           <KpiCard icon={Package} label="Productos" value={totalProducts ?? 0} numericValue={totalProducts ?? 0} delay={0.25} />
           <KpiCard icon={CheckCircle} label="Dispensación" value={`${dispensingRate}%`} delay={0.30} />
         </div>
+
+        {/* Pro vs Quick breakdown */}
+        <motion.div {...fadeUp(0.08)}>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="p-4 pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <FileText className="h-3.5 w-3.5 text-primary" />
+                Desglose Pro vs Rápidas
+                <span className="text-[10px] text-muted-foreground font-normal ml-1">({range.label})</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              {(() => {
+                const proCount = Math.max(0, (kpis?.period_count ?? 0) - (quickKpis?.period_quick ?? 0));
+                const quickCount = quickKpis?.period_quick ?? 0;
+                const total = proCount + quickCount;
+                const proPct = total > 0 ? Math.round((proCount / total) * 100) : 0;
+                const quickPct = total > 0 ? 100 - proPct : 0;
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="rounded-lg border bg-card p-3">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Pro (con perfil)</p>
+                      <p className="text-2xl font-bold text-foreground tabular-nums">{proCount}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{proPct}% del total · hoy: {(kpis?.today_count ?? 0) - (quickKpis?.today_quick ?? 0)}</p>
+                    </div>
+                    <div className="rounded-lg border bg-card p-3">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Rápidas (sin login)</p>
+                      <p className="text-2xl font-bold text-primary tabular-nums">{quickCount}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{quickPct}% del total · hoy: {quickKpis?.today_quick ?? 0}</p>
+                    </div>
+                    <div className="rounded-lg border bg-card p-3">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Prod. / receta rápida</p>
+                      <p className="text-2xl font-bold text-foreground tabular-nums">{Number(quickKpis?.avg_products_quick ?? 0)}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">total histórico: {quickKpis?.total_quick ?? 0}</p>
+                    </div>
+                  </div>
+                );
+              })()}
+            </CardContent>
+          </Card>
+        </motion.div>
 
         {/* Charts Row 1 */}
         <div className="grid lg:grid-cols-3 gap-4">
