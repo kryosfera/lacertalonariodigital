@@ -128,9 +128,9 @@ export function AdminDashboard() {
   });
 
   const { data: timeseries } = useQuery({
-    queryKey: ['admin-timeseries', startISO, endISO, range.bucket],
+    queryKey: ['admin-timeseries', startISO, endISO, range.bucket, source],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('admin_recipes_timeseries', { start_ts: startISO, end_ts: endISO, bucket: range.bucket });
+      const { data, error } = await supabase.rpc('admin_recipes_timeseries_by_source', { start_ts: startISO, end_ts: endISO, bucket: range.bucket, source });
       if (error) throw error;
       return (data ?? []) as { period: string; total: number }[];
     },
