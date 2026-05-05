@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Search, Users, Shield, ShieldOff, Eye, Trash2, Download, History } from 'lucide-react';
+import { Loader2, Search, Users, Shield, ShieldOff, Eye, Trash2, Download, History, UserPlus, Send } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { UserDetailSheet } from './UserDetailSheet';
+import { CreateUserDialog } from './CreateUserDialog';
 
 function exportUsersCsv(
   rows: any[],
@@ -66,6 +67,7 @@ export function UsersAdmin() {
   const [confirmText, setConfirmText] = useState('');
   const [deleteReason, setDeleteReason] = useState('');
   const [auditOpen, setAuditOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
 
   const { data: profiles, isLoading } = useQuery({
@@ -152,6 +154,19 @@ export function UsersAdmin() {
     },
   });
 
+  const resendMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const { data, error } = await supabase.functions.invoke('admin-manage-users', {
+        body: { action: 'resend_confirmation', email },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      return data;
+    },
+    onSuccess: () => toast({ title: 'Email reenviado', description: 'Se ha vuelto a generar el correo de confirmación.' }),
+    onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
+  });
+
   const { data: auditEntries, isLoading: auditLoading } = useQuery({
     queryKey: ['admin-deletion-audit'],
     queryFn: async () => {
@@ -192,6 +207,9 @@ export function UsersAdmin() {
         </h2>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground mr-2">{filtered.length} registrados</span>
+          <Button size="sm" onClick={() => setCreateOpen(true)}>
+            <UserPlus className="h-4 w-4 mr-1" /> Crear usuario
+          </Button>
           <Button size="sm" variant="outline" onClick={() => setAuditOpen(true)}>
             <History className="h-4 w-4 mr-1" /> Historial
           </Button>
@@ -288,6 +306,17 @@ export function UsersAdmin() {
                               <Eye className="h-4 w-4 mr-1" />
                               Detalle
                             </Button>
+                            {email && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                disabled={resendMutation.isPending}
+                                onClick={() => resendMutation.mutate(email)}
+                                title="Reenviar email de confirmación"
+                              >
+                                <Send className="h-4 w-4" />
+                              </Button>
+                            )}
                             {isAdminUser ? (
                               <Button
                                 size="sm"
@@ -488,6 +517,8 @@ export function UsersAdmin() {
         profile={selectedProfile}
         isAdminUser={selectedProfile ? (adminIds?.has(selectedProfile.user_id) ?? false) : false}
       />
+
+      <CreateUserDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   );
 }
