@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, Lock, Loader2, ArrowLeft, Building2, MapPin, KeyRound } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowLeft, Building2, MapPin, KeyRound, MailCheck, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,6 +65,37 @@ const Auth = () => {
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendOpen, setResendOpen] = useState(false);
+  const [resendEmail, setResendEmail] = useState('');
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setInterval(() => setResendCooldown((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(t);
+  }, [resendCooldown]);
+
+  const triggerResend = async (email: string) => {
+    setResendLoading(true);
+    try {
+      await supabase.functions.invoke('resend-confirmation', { body: { email } });
+      toast({
+        title: 'Email reenviado',
+        description: `Si la cuenta existe, recibirás un nuevo enlace en ${email}. Revisa también el spam.`,
+      });
+      setResendCooldown(60);
+    } catch {
+      toast({
+        title: 'Email reenviado',
+        description: 'Si la cuenta existe, recibirás un nuevo enlace en breve.',
+      });
+      setResendCooldown(60);
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -166,10 +197,8 @@ const Auth = () => {
           toast({ title: 'Cuenta creada correctamente' });
           navigate('/');
         } else {
-          toast({
-            title: 'Revisa tu email',
-            description: 'Te hemos enviado un enlace de confirmación para activar tu cuenta.',
-          });
+          setPendingEmail(data.email);
+          setResendCooldown(60);
         }
       }
     } finally {
