@@ -492,7 +492,73 @@ export function AdminDashboard() {
           </motion.div>
         </div>
 
-        {/* Map + Heatmap */}
+        {/* Horario de envío de recetas (por hora del día) */}
+        <motion.div {...fadeUp(0.22)}>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="p-4 pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Clock className="h-3.5 w-3.5 text-primary" />
+                Horario de envío de recetas
+                <span className="text-[10px] text-muted-foreground font-normal ml-1">
+                  ({sourceLabel} · {range.label} · hora local Madrid)
+                </span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              {sendHours && sendHours.some(h => h.total > 0) ? (
+                <>
+                  <div className="h-48">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={(sendHours ?? []).map(h => ({ hour: `${String(h.hour).padStart(2, '0')}h`, total: Number(h.total), raw: h.hour }))}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                        <XAxis dataKey="hour" tick={{ fontSize: 10 }} interval={1} />
+                        <YAxis tick={{ fontSize: 10 }} allowDecimals={false} />
+                        <Tooltip
+                          contentStyle={{ background: 'hsl(var(--popover))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }}
+                          formatter={(v: number) => [v, 'Recetas']}
+                          labelFormatter={(l) => `Franja ${l}`}
+                        />
+                        <Bar dataKey="total" fill="hsl(0, 72%, 51%)" radius={[4, 4, 0, 0]} isAnimationActive animationDuration={800} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  {(() => {
+                    const totalAll = sendHours.reduce((s, h) => s + Number(h.total), 0);
+                    const peak = sendHours.reduce((m, h) => Number(h.total) > Number(m.total) ? h : m, sendHours[0]);
+                    const morning = sendHours.filter(h => h.hour >= 6 && h.hour < 14).reduce((s, h) => s + Number(h.total), 0);
+                    const afternoon = sendHours.filter(h => h.hour >= 14 && h.hour < 21).reduce((s, h) => s + Number(h.total), 0);
+                    const night = totalAll - morning - afternoon;
+                    const pct = (n: number) => totalAll > 0 ? Math.round((n / totalAll) * 100) : 0;
+                    return (
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3 text-xs">
+                        <div className="rounded-lg border bg-card p-2">
+                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Hora pico</p>
+                          <p className="font-bold text-foreground tabular-nums">{String(peak.hour).padStart(2,'0')}:00 · {peak.total}</p>
+                        </div>
+                        <div className="rounded-lg border bg-card p-2">
+                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Mañana 06–14h</p>
+                          <p className="font-bold text-foreground tabular-nums">{morning} <span className="text-muted-foreground font-normal">({pct(morning)}%)</span></p>
+                        </div>
+                        <div className="rounded-lg border bg-card p-2">
+                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Tarde 14–21h</p>
+                          <p className="font-bold text-foreground tabular-nums">{afternoon} <span className="text-muted-foreground font-normal">({pct(afternoon)}%)</span></p>
+                        </div>
+                        <div className="rounded-lg border bg-card p-2">
+                          <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Noche 21–06h</p>
+                          <p className="font-bold text-foreground tabular-nums">{night} <span className="text-muted-foreground font-normal">({pct(night)}%)</span></p>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </>
+              ) : (
+                <p className="text-muted-foreground text-xs text-center py-10">Sin datos en el rango</p>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+
+
         <div className="grid lg:grid-cols-3 gap-4">
           <motion.div {...fadeUp(0.25)} className="lg:col-span-2">
             <Card className="hover:shadow-md transition-shadow h-full">
