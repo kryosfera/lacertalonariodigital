@@ -166,9 +166,9 @@ export function RecipesAdmin() {
                             {r.source === 'pro' ? 'Pro' : 'Rápida'}
                           </span>
                         </TableCell>
-                        <TableCell className="font-mono text-xs">{r.recipe_code || '—'}</TableCell>
                         <TableCell className="font-medium">{r.patient_name}</TableCell>
                         <TableCell className="text-sm">{new Date(r.created_at).toLocaleDateString('es-ES')}</TableCell>
+                        <TableCell className="text-sm tabular-nums">{new Date(r.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</TableCell>
                         <TableCell className="text-sm capitalize">{r.sent_via || '—'}</TableCell>
                         <TableCell className="text-sm max-w-[200px] truncate">
                           {products.map((p: any) => p.name).join(', ') || '—'}
