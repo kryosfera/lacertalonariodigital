@@ -146,7 +146,11 @@ const Auth = () => {
   const handleSignup = async (data: SignupFormData) => {
     setIsLoading(true);
     try {
-      const { error } = await signUp(data.email, data.password);
+      const { error } = await signUp(data.email, data.password, {
+        clinic_name: data.clinic_name,
+        locality: data.locality,
+        province: data.province,
+      });
       if (error) {
         const message = error.message.includes('already registered')
           ? 'Este email ya está registrado'
@@ -158,17 +162,15 @@ const Auth = () => {
         });
       } else {
         const { data: sessionData } = await supabase.auth.getSession();
-        const userId = sessionData.session?.user?.id;
-        if (userId) {
-          await supabase.from('profiles').upsert({
-            user_id: userId,
-            clinic_name: data.clinic_name,
-            locality: data.locality,
-            province: data.province,
-          }, { onConflict: 'user_id' });
+        if (sessionData.session) {
+          toast({ title: 'Cuenta creada correctamente' });
+          navigate('/');
+        } else {
+          toast({
+            title: 'Revisa tu email',
+            description: 'Te hemos enviado un enlace de confirmación para activar tu cuenta.',
+          });
         }
-        toast({ title: 'Cuenta creada correctamente' });
-        navigate('/');
       }
     } finally {
       setIsLoading(false);
