@@ -275,6 +275,47 @@ export function AdminDashboard() {
           <KpiCard icon={CheckCircle} label="Dispensación" value={`${dispensingRate}%`} delay={0.30} />
         </div>
 
+        {/* Pro vs Quick breakdown */}
+        <motion.div {...fadeUp(0.08)}>
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="p-4 pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <FileText className="h-3.5 w-3.5 text-primary" />
+                Desglose Pro vs Rápidas
+                <span className="text-[10px] text-muted-foreground font-normal ml-1">({range.label})</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+              {(() => {
+                const proCount = Math.max(0, (kpis?.period_count ?? 0) - (quickKpis?.period_quick ?? 0));
+                const quickCount = quickKpis?.period_quick ?? 0;
+                const total = proCount + quickCount;
+                const proPct = total > 0 ? Math.round((proCount / total) * 100) : 0;
+                const quickPct = total > 0 ? 100 - proPct : 0;
+                return (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="rounded-lg border bg-card p-3">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Pro (con perfil)</p>
+                      <p className="text-2xl font-bold text-foreground tabular-nums">{proCount}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{proPct}% del total · hoy: {(kpis?.today_count ?? 0) - (quickKpis?.today_quick ?? 0)}</p>
+                    </div>
+                    <div className="rounded-lg border bg-card p-3">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Rápidas (sin login)</p>
+                      <p className="text-2xl font-bold text-primary tabular-nums">{quickCount}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">{quickPct}% del total · hoy: {quickKpis?.today_quick ?? 0}</p>
+                    </div>
+                    <div className="rounded-lg border bg-card p-3">
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Prod. / receta rápida</p>
+                      <p className="text-2xl font-bold text-foreground tabular-nums">{Number(quickKpis?.avg_products_quick ?? 0)}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">total histórico: {quickKpis?.total_quick ?? 0}</p>
+                    </div>
+                  </div>
+                );
+              })()}
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* Charts Row 1 */}
         <div className="grid lg:grid-cols-3 gap-4">
           <motion.div {...fadeUp(0.1)} className="lg:col-span-1">
