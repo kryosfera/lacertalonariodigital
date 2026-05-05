@@ -198,6 +198,35 @@ export function RecipesAdmin() {
         </CardContent>
       </Card>
 
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>
+            {filtered.length === 0
+              ? '0 resultados'
+              : `${(currentPage - 1) * pageSize + 1}–${Math.min(currentPage * pageSize, filtered.length)} de ${filtered.length}`}
+          </span>
+          <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+            <SelectTrigger className="h-8 w-[90px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[10, 25, 50, 100].map(n => (
+                <SelectItem key={n} value={String(n)}>{n} / pág.</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setPage(1)}>«</Button>
+          <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>‹</Button>
+          <span className="text-xs text-muted-foreground tabular-nums px-2">
+            Página {currentPage} de {totalPages}
+          </span>
+          <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>›</Button>
+          <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={() => setPage(totalPages)}>»</Button>
+        </div>
+      </div>
+
       <p className="text-xs text-muted-foreground">Mostrando hasta las últimas 500 de cada tipo (Pro + Rápidas)</p>
     </div>
   );
