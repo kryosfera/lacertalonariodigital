@@ -327,7 +327,74 @@ const Auth = () => {
     );
   }
 
-  return (
+  // Pending email confirmation view
+  if (pendingEmail) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-secondary/5 via-background to-secondary/10 p-4 pt-safe">
+        <Card className="w-full max-w-md border-secondary/20 shadow-xl">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto w-20 h-20 rounded-2xl bg-white shadow-lg flex items-center justify-center mb-4 border border-secondary/10">
+              <MailCheck className="w-10 h-10 text-secondary" />
+            </div>
+            <CardTitle className="text-xl font-bold text-foreground">Revisa tu email</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Hemos enviado un enlace de confirmación a
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-lg bg-muted/50 border border-border p-3 text-center">
+              <p className="font-semibold text-foreground break-all">{pendingEmail}</p>
+            </div>
+            <div className="text-sm text-muted-foreground space-y-2">
+              <p>1. Abre el correo enviado desde <strong className="text-foreground">notify.inginium-ksf.com</strong>.</p>
+              <p>2. Pulsa el botón <strong className="text-foreground">Confirmar email</strong>.</p>
+              <p>3. Vuelve aquí e inicia sesión.</p>
+              <p className="text-xs pt-2">
+                ¿No lo encuentras? Revisa la carpeta de <strong>spam</strong> o promociones.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => triggerResend(pendingEmail)}
+              disabled={resendCooldown > 0 || resendLoading}
+            >
+              {resendLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="mr-2 h-4 w-4" />
+              )}
+              {resendCooldown > 0 ? `Reenviar en ${resendCooldown}s` : 'Reenviar email de confirmación'}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              onClick={() => {
+                setPendingEmail(null);
+                setActiveTab('signup');
+              }}
+            >
+              Usar otro email
+            </Button>
+            <Button
+              type="button"
+              variant="link"
+              className="w-full text-secondary"
+              onClick={() => {
+                setPendingEmail(null);
+                setActiveTab('login');
+              }}
+            >
+              Ya he confirmado, iniciar sesión
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-secondary/5 via-background to-secondary/10 p-4 pt-safe">
       <Card className="w-full max-w-md border-secondary/20 shadow-xl">
         <CardHeader className="text-center pb-2">
