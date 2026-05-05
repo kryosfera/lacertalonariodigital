@@ -154,11 +154,24 @@ export function UsersAdmin() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <Users className="h-6 w-6" /> Usuarios
         </h2>
-        <span className="text-sm text-muted-foreground">{filtered.length} registrados</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground mr-2">{filtered.length} registrados</span>
+          <Button size="sm" variant="outline" onClick={() => setAuditOpen(true)}>
+            <History className="h-4 w-4 mr-1" /> Historial
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => exportUsersCsv(filtered, emails ?? {}, recipeCounts ?? {}, adminIds)}
+            disabled={!profiles?.length}
+          >
+            <Download className="h-4 w-4 mr-1" /> Exportar CSV
+          </Button>
+        </div>
       </div>
 
       <div className="flex gap-3 flex-wrap">
