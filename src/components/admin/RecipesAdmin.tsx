@@ -156,7 +156,7 @@ export function RecipesAdmin() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map(r => {
+                  {paginated.map(r => {
                     const products = Array.isArray(r.products) ? (r.products as any[]) : [];
                     return (
                       <TableRow key={`${r.source}-${r.id}`}>
