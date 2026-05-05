@@ -851,6 +851,13 @@ export type Database = {
           total: number
         }[]
       }
+      admin_send_hours_range: {
+        Args: { end_ts: string; source?: string; start_ts: string }
+        Returns: {
+          hour: number
+          total: number
+        }[]
+      }
       admin_send_methods_range: {
         Args: { end_ts: string; start_ts: string }
         Returns: {
