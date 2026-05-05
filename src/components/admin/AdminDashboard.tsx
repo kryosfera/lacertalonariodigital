@@ -103,6 +103,18 @@ export function AdminDashboard() {
     },
   });
 
+  const { data: quickKpis } = useQuery({
+    queryKey: ['admin-quick-kpis-range', startISO, endISO],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('admin_quick_kpis_range', { start_ts: startISO, end_ts: endISO });
+      if (error) throw error;
+      return (data?.[0] ?? null) as {
+        total_quick: number; period_quick: number; today_quick: number;
+        previous_period_quick: number; avg_products_quick: number;
+      } | null;
+    },
+  });
+
   const { data: timeseries } = useQuery({
     queryKey: ['admin-timeseries', startISO, endISO, range.bucket],
     queryFn: async () => {
