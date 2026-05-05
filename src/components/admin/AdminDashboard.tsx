@@ -291,16 +291,24 @@ export function AdminDashboard() {
         </motion.div>
       </div>
 
-      <div id="admin-dashboard-export-root" className="space-y-4">
+        <motion.div {...fadeUp(0.04)} className="flex items-center justify-between gap-2 flex-wrap">
+          <ToggleGroup type="single" value={source} onValueChange={(v) => v && setSource(v as RecipeSource)} className="bg-muted/50 rounded-lg p-0.5">
+            <ToggleGroupItem value="all" className="text-xs h-7 px-3 data-[state=on]:bg-background data-[state=on]:shadow-sm">Todas</ToggleGroupItem>
+            <ToggleGroupItem value="pro" className="text-xs h-7 px-3 data-[state=on]:bg-background data-[state=on]:shadow-sm">Pro</ToggleGroupItem>
+            <ToggleGroupItem value="quick" className="text-xs h-7 px-3 data-[state=on]:bg-background data-[state=on]:shadow-sm">Rápidas</ToggleGroupItem>
+          </ToggleGroup>
+          <span className="text-[11px] text-muted-foreground">Filtro aplicado a KPIs y gráficas del rango: <span className="font-medium text-foreground">{sourceLabel}</span></span>
+        </motion.div>
+
         {/* KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
-          <KpiCard icon={FileText} label={`Recetas (${range.label})`} value={periodCount} numericValue={periodCount} sparkline={sparkline} delay={0.00} />
-          <KpiCard icon={Calendar} label="Hoy" value={kpis?.today_count ?? 0} numericValue={kpis?.today_count ?? 0} delay={0.05} />
+          <KpiCard icon={FileText} label={`Recetas ${sourceLabel} (${range.label})`} value={periodCount} numericValue={periodCount} sparkline={sparkline} delay={0.00} />
+          <KpiCard icon={Calendar} label="Hoy" value={todayCount} numericValue={todayCount} delay={0.05} />
           <KpiCard icon={TrendingUp} label="vs periodo ant." value={periodCount} numericValue={periodCount} variation={variation} delay={0.10} />
-          <KpiCard icon={ShoppingBag} label="Prod. / receta" value={Number(kpis?.avg_products_per_recipe ?? 0)} delay={0.15} />
+          <KpiCard icon={ShoppingBag} label="Prod. / receta" value={avgProducts} delay={0.15} />
           <KpiCard icon={Users} label="Profesionales" value={totalUsers ?? 0} numericValue={totalUsers ?? 0} delay={0.20} />
           <KpiCard icon={Package} label="Productos" value={totalProducts ?? 0} numericValue={totalProducts ?? 0} delay={0.25} />
-          <KpiCard icon={CheckCircle} label="Dispensación" value={`${dispensingRate}%`} delay={0.30} />
+          <KpiCard icon={CheckCircle} label={source === 'quick' ? 'Dispensación (n/d)' : 'Dispensación'} value={source === 'quick' ? '—' : `${dispensingRate}%`} delay={0.30} />
         </div>
 
         {/* Pro vs Quick breakdown */}
