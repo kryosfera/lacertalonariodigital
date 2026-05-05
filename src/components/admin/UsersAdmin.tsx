@@ -32,6 +32,8 @@ export function UsersAdmin() {
   const [pending, setPending] = useState<{ userId: string; action: 'grant' | 'revoke'; name: string } | null>(null);
   const [pendingDelete, setPendingDelete] = useState<{ userId: string; label: string } | null>(null);
   const [confirmText, setConfirmText] = useState('');
+  const [deleteReason, setDeleteReason] = useState('');
+  const [auditOpen, setAuditOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
 
   const { data: profiles, isLoading } = useQuery({
