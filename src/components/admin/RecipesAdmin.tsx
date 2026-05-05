@@ -23,6 +23,10 @@ export function RecipesAdmin() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('__all__');
   const [sourceFilter, setSourceFilter] = useState('__all__');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+
+  useEffect(() => { setPage(1); }, [search, statusFilter, sourceFilter, pageSize]);
 
   const { data: recipes, isLoading } = useQuery({
     queryKey: ['admin-all-recipes-unified'],
