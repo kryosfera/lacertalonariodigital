@@ -8,19 +8,44 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, Search, FileText, Download } from 'lucide-react';
 
+type UnifiedRecipe = {
+  id: string;
+  source: 'pro' | 'quick';
+  recipe_code: string | null;
+  patient_name: string;
+  created_at: string;
+  sent_via: string | null;
+  dispensed_at: string | null;
+  products: any;
+};
+
 export function RecipesAdmin() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('__all__');
+  const [sourceFilter, setSourceFilter] = useState('__all__');
 
   const { data: recipes, isLoading } = useQuery({
-    queryKey: ['admin-all-recipes'],
+    queryKey: ['admin-all-recipes-unified'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('recipes')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(500);
-      if (error) throw error;
-      return data;
+      const [proRes, quickRes] = await Promise.all([
+        supabase.from('recipes')
+          .select('id, recipe_code, patient_name, created_at, sent_via, dispensed_at, products')
+          .order('created_at', { ascending: false })
+          .limit(500),
+        supabase.from('quick_recipes')
+          .select('id, created_at, sent_via, products')
+          .order('created_at', { ascending: false })
+          .limit(500),
+      ]);
+      if (proRes.error) throw proRes.error;
+      if (quickRes.error) throw quickRes.error;
+      const pro: UnifiedRecipe[] = (proRes.data ?? []).map((r: any) => ({ ...r, source: 'pro' as const }));
+      const quick: UnifiedRecipe[] = (quickRes.data ?? []).map((r: any) => ({
+        id: r.id, source: 'quick' as const, recipe_code: null,
+        patient_name: 'Receta rápida', created_at: r.created_at,
+        sent_via: r.sent_via, dispensed_at: null, products: r.products,
+      }));
+      return [...pro, ...quick].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
     },
   });
 
@@ -30,21 +55,23 @@ export function RecipesAdmin() {
       r.recipe_code?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === '__all__' ||
       (statusFilter === 'dispensed' && r.dispensed_at) ||
-      (statusFilter === 'pending' && !r.dispensed_at);
-    return matchSearch && matchStatus;
+      (statusFilter === 'pending' && !r.dispensed_at && r.source === 'pro');
+    const matchSource = sourceFilter === '__all__' || sourceFilter === r.source;
+    return matchSearch && matchStatus && matchSource;
   }) ?? [];
 
   const handleExportCsv = () => {
     if (!filtered.length) return;
-    const headers = ['Código', 'Paciente', 'Fecha', 'Envío', 'Estado', 'Productos'];
+    const headers = ['Tipo', 'Código', 'Paciente', 'Fecha', 'Envío', 'Estado', 'Productos'];
     const rows = filtered.map(r => {
       const products = Array.isArray(r.products) ? (r.products as any[]).map((p: any) => p.name).join('; ') : '';
       return [
+        r.source === 'pro' ? 'Pro' : 'Rápida',
         r.recipe_code || '',
         r.patient_name,
         new Date(r.created_at).toLocaleDateString('es-ES'),
         r.sent_via || '',
-        r.dispensed_at ? 'Dispensada' : 'Pendiente',
+        r.source === 'quick' ? '—' : (r.dispensed_at ? 'Dispensada' : 'Pendiente'),
         products,
       ];
     });
@@ -75,6 +102,16 @@ export function RecipesAdmin() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Buscar paciente o código..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
+        <Select value={sourceFilter} onValueChange={setSourceFilter}>
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__all__">Todas</SelectItem>
+            <SelectItem value="pro">Pro</SelectItem>
+            <SelectItem value="quick">Rápidas</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Estado" />
@@ -98,6 +135,7 @@ export function RecipesAdmin() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Tipo</TableHead>
                     <TableHead>Código</TableHead>
                     <TableHead>Paciente</TableHead>
                     <TableHead>Fecha</TableHead>
@@ -110,7 +148,12 @@ export function RecipesAdmin() {
                   {filtered.map(r => {
                     const products = Array.isArray(r.products) ? (r.products as any[]) : [];
                     return (
-                      <TableRow key={r.id}>
+                      <TableRow key={`${r.source}-${r.id}`}>
+                        <TableCell>
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${r.source === 'pro' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
+                            {r.source === 'pro' ? 'Pro' : 'Rápida'}
+                          </span>
+                        </TableCell>
                         <TableCell className="font-mono text-xs">{r.recipe_code || '—'}</TableCell>
                         <TableCell className="font-medium">{r.patient_name}</TableCell>
                         <TableCell className="text-sm">{new Date(r.created_at).toLocaleDateString('es-ES')}</TableCell>
@@ -119,16 +162,20 @@ export function RecipesAdmin() {
                           {products.map((p: any) => p.name).join(', ') || '—'}
                         </TableCell>
                         <TableCell>
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${r.dispensed_at ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'}`}>
-                            {r.dispensed_at ? 'Dispensada' : 'Pendiente'}
-                          </span>
+                          {r.source === 'quick' ? (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          ) : (
+                            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${r.dispensed_at ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'}`}>
+                              {r.dispensed_at ? 'Dispensada' : 'Pendiente'}
+                            </span>
+                          )}
                         </TableCell>
                       </TableRow>
                     );
                   })}
                   {filtered.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                         No se encontraron recetas
                       </TableCell>
                     </TableRow>
@@ -140,7 +187,7 @@ export function RecipesAdmin() {
         </CardContent>
       </Card>
 
-      <p className="text-xs text-muted-foreground">Mostrando las últimas 500 recetas</p>
+      <p className="text-xs text-muted-foreground">Mostrando hasta las últimas 500 de cada tipo (Pro + Rápidas)</p>
     </div>
   );
 }
