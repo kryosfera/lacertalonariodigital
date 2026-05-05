@@ -11,6 +11,10 @@ import { SpainProvinceMap } from './SpainProvinceMap';
 import { ActivityHeatmap } from './ActivityHeatmap';
 import { DashboardRangeFilter } from './DashboardRangeFilter';
 import { DashboardExportMenu } from './DashboardExportMenu';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+
+type RecipeSource = 'all' | 'pro' | 'quick';
+const SOURCE_KEY = 'admin_dashboard_source';
 import { getRangeBounds, formatBucketLabel, type RangePreset } from '@/lib/dateRanges';
 import type { DashboardExportData } from '@/lib/dashboardExport';
 
@@ -44,6 +48,14 @@ export function AdminDashboard() {
     } catch {}
     return '30d';
   });
+  const [source, setSource] = useState<RecipeSource>(() => {
+    try {
+      const v = localStorage.getItem(SOURCE_KEY);
+      if (v === 'all' || v === 'pro' || v === 'quick') return v;
+    } catch {}
+    return 'all';
+  });
+  useEffect(() => { try { localStorage.setItem(SOURCE_KEY, source); } catch {} }, [source]);
   const [customRange, setCustomRange] = useState<{ start: Date; end: Date } | undefined>(() => {
     try {
       const v = localStorage.getItem(RANGE_KEY + '_custom');
@@ -116,9 +128,9 @@ export function AdminDashboard() {
   });
 
   const { data: timeseries } = useQuery({
-    queryKey: ['admin-timeseries', startISO, endISO, range.bucket],
+    queryKey: ['admin-timeseries', startISO, endISO, range.bucket, source],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('admin_recipes_timeseries', { start_ts: startISO, end_ts: endISO, bucket: range.bucket });
+      const { data, error } = await supabase.rpc('admin_recipes_timeseries_by_source', { start_ts: startISO, end_ts: endISO, bucket: range.bucket, source });
       if (error) throw error;
       return (data ?? []) as { period: string; total: number }[];
     },
@@ -201,11 +213,27 @@ export function AdminDashboard() {
     staleTime: 30_000,
   });
 
-  const periodCount = kpis?.period_count ?? 0;
-  const dispensingRate = periodCount > 0 && kpis ? Math.round((kpis.dispensed_count / periodCount) * 100) : 0;
-  const variation = kpis && kpis.previous_period_count > 0
-    ? Math.round(((kpis.period_count - kpis.previous_period_count) / kpis.previous_period_count) * 100)
+  // Source-aware KPI derivation
+  const proPeriod = Math.max(0, (kpis?.period_count ?? 0) - (quickKpis?.period_quick ?? 0));
+  const proToday = Math.max(0, (kpis?.today_count ?? 0) - (quickKpis?.today_quick ?? 0));
+  const proPrev = Math.max(0, (kpis?.previous_period_count ?? 0) - (quickKpis?.previous_period_quick ?? 0));
+
+  const periodCount = source === 'all' ? (kpis?.period_count ?? 0)
+    : source === 'pro' ? proPeriod : (quickKpis?.period_quick ?? 0);
+  const todayCount = source === 'all' ? (kpis?.today_count ?? 0)
+    : source === 'pro' ? proToday : (quickKpis?.today_quick ?? 0);
+  const prevCount = source === 'all' ? (kpis?.previous_period_count ?? 0)
+    : source === 'pro' ? proPrev : (quickKpis?.previous_period_quick ?? 0);
+  const avgProducts = source === 'quick'
+    ? Number(quickKpis?.avg_products_quick ?? 0)
+    : Number(kpis?.avg_products_per_recipe ?? 0);
+
+  const dispensingRate = source !== 'quick' && proPeriod > 0 && kpis
+    ? Math.round((kpis.dispensed_count / proPeriod) * 100) : 0;
+  const variation = prevCount > 0
+    ? Math.round(((periodCount - prevCount) / prevCount) * 100)
     : null;
+  const sourceLabel = source === 'all' ? 'Todas' : source === 'pro' ? 'Pro' : 'Rápidas';
 
   const sparkline = useMemo(() => (timeseries ?? []).slice(-12).map((p) => ({ value: Number(p.total) })), [timeseries]);
 
@@ -264,15 +292,24 @@ export function AdminDashboard() {
       </div>
 
       <div id="admin-dashboard-export-root" className="space-y-4">
+        <motion.div {...fadeUp(0.04)} className="flex items-center justify-between gap-2 flex-wrap">
+          <ToggleGroup type="single" value={source} onValueChange={(v) => v && setSource(v as RecipeSource)} className="bg-muted/50 rounded-lg p-0.5">
+            <ToggleGroupItem value="all" className="text-xs h-7 px-3 data-[state=on]:bg-background data-[state=on]:shadow-sm">Todas</ToggleGroupItem>
+            <ToggleGroupItem value="pro" className="text-xs h-7 px-3 data-[state=on]:bg-background data-[state=on]:shadow-sm">Pro</ToggleGroupItem>
+            <ToggleGroupItem value="quick" className="text-xs h-7 px-3 data-[state=on]:bg-background data-[state=on]:shadow-sm">Rápidas</ToggleGroupItem>
+          </ToggleGroup>
+          <span className="text-[11px] text-muted-foreground">Filtro aplicado a KPIs y gráficas del rango: <span className="font-medium text-foreground">{sourceLabel}</span></span>
+        </motion.div>
+
         {/* KPI Cards */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3">
-          <KpiCard icon={FileText} label={`Recetas (${range.label})`} value={periodCount} numericValue={periodCount} sparkline={sparkline} delay={0.00} />
-          <KpiCard icon={Calendar} label="Hoy" value={kpis?.today_count ?? 0} numericValue={kpis?.today_count ?? 0} delay={0.05} />
+          <KpiCard icon={FileText} label={`Recetas ${sourceLabel} (${range.label})`} value={periodCount} numericValue={periodCount} sparkline={sparkline} delay={0.00} />
+          <KpiCard icon={Calendar} label="Hoy" value={todayCount} numericValue={todayCount} delay={0.05} />
           <KpiCard icon={TrendingUp} label="vs periodo ant." value={periodCount} numericValue={periodCount} variation={variation} delay={0.10} />
-          <KpiCard icon={ShoppingBag} label="Prod. / receta" value={Number(kpis?.avg_products_per_recipe ?? 0)} delay={0.15} />
+          <KpiCard icon={ShoppingBag} label="Prod. / receta" value={avgProducts} delay={0.15} />
           <KpiCard icon={Users} label="Profesionales" value={totalUsers ?? 0} numericValue={totalUsers ?? 0} delay={0.20} />
           <KpiCard icon={Package} label="Productos" value={totalProducts ?? 0} numericValue={totalProducts ?? 0} delay={0.25} />
-          <KpiCard icon={CheckCircle} label="Dispensación" value={`${dispensingRate}%`} delay={0.30} />
+          <KpiCard icon={CheckCircle} label={source === 'quick' ? 'Dispensación (n/d)' : 'Dispensación'} value={source === 'quick' ? '—' : `${dispensingRate}%`} delay={0.30} />
         </div>
 
         {/* Pro vs Quick breakdown */}

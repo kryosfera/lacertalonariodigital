@@ -839,6 +839,18 @@ export type Database = {
           total: number
         }[]
       }
+      admin_recipes_timeseries_by_source: {
+        Args: {
+          bucket?: string
+          end_ts: string
+          source?: string
+          start_ts: string
+        }
+        Returns: {
+          period: string
+          total: number
+        }[]
+      }
       admin_send_methods_range: {
         Args: { end_ts: string; start_ts: string }
         Returns: {
