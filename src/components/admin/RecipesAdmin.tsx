@@ -73,14 +73,15 @@ export function RecipesAdmin() {
 
   const handleExportCsv = () => {
     if (!filtered.length) return;
-    const headers = ['Tipo', 'Código', 'Paciente', 'Fecha', 'Envío', 'Estado', 'Productos'];
+    const headers = ['Tipo', 'Paciente', 'Fecha', 'Hora', 'Envío', 'Estado', 'Productos'];
     const rows = filtered.map(r => {
       const products = Array.isArray(r.products) ? (r.products as any[]).map((p: any) => p.name).join('; ') : '';
+      const d = new Date(r.created_at);
       return [
         r.source === 'pro' ? 'Pro' : 'Rápida',
-        r.recipe_code || '',
         r.patient_name,
-        new Date(r.created_at).toLocaleDateString('es-ES'),
+        d.toLocaleDateString('es-ES'),
+        d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
         r.sent_via || '',
         r.source === 'quick' ? '—' : (r.dispensed_at ? 'Dispensada' : 'Pendiente'),
         products,
@@ -147,9 +148,9 @@ export function RecipesAdmin() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Tipo</TableHead>
-                    <TableHead>Código</TableHead>
                     <TableHead>Paciente</TableHead>
                     <TableHead>Fecha</TableHead>
+                    <TableHead>Hora</TableHead>
                     <TableHead>Envío</TableHead>
                     <TableHead>Productos</TableHead>
                     <TableHead>Estado</TableHead>
@@ -165,9 +166,9 @@ export function RecipesAdmin() {
                             {r.source === 'pro' ? 'Pro' : 'Rápida'}
                           </span>
                         </TableCell>
-                        <TableCell className="font-mono text-xs">{r.recipe_code || '—'}</TableCell>
                         <TableCell className="font-medium">{r.patient_name}</TableCell>
                         <TableCell className="text-sm">{new Date(r.created_at).toLocaleDateString('es-ES')}</TableCell>
+                        <TableCell className="text-sm tabular-nums">{new Date(r.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</TableCell>
                         <TableCell className="text-sm capitalize">{r.sent_via || '—'}</TableCell>
                         <TableCell className="text-sm max-w-[200px] truncate">
                           {products.map((p: any) => p.name).join(', ') || '—'}
