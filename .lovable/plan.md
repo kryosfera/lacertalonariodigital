@@ -1,57 +1,43 @@
-## Problema detectado
+## Objetivo
 
-El formulario de registro pide email, contraseña, **clínica, localidad y provincia**, pero estos 3 últimos campos se pierden silenciosamente cuando el usuario se registra.
+1. Mostrar el **email** de cada usuario en la tabla de Admin → Usuarios (para identificar los registros con clínica/profesional vacíos).
+2. Permitir a un admin **eliminar un usuario** completamente (cuenta auth + perfil + recetas + pacientes asociados) con confirmación.
 
-**Causa técnica:** tras `signUp()`, el código intenta guardar el perfil con `auth.getSession()`. Pero como la confirmación por email está activada, no hay sesión hasta que el usuario hace click en el enlace del correo. Resultado: `userId` es `undefined`, el `upsert` no se ejecuta y el usuario queda en `auth.users` sin fila en `profiles`. Por eso `mdental.santcugat@gmail.com` aparece sin datos de clínica.
+El email de auth no está accesible vía RLS desde el cliente: se necesita un Edge Function con `service_role`.
 
-## Solución
+---
 
-Mover la creación del perfil al **backend**, usando los metadatos que el usuario envía en el registro. Así no depende de que exista sesión.
+## Cambios
 
-### Cambios
+### 1. Edge Function nueva: `admin-manage-users`
+Function única con dos acciones (validando que el llamante sea admin):
 
-1. **`src/pages/Auth.tsx` — `handleSignup`**
-   - Pasar `clinic_name`, `locality`, `province` dentro de `options.data` en `supabase.auth.signUp()` (van a `raw_user_meta_data`).
-   - Eliminar el bloque `getSession() + upsert profiles` (ya no hace falta, lo hace el trigger).
-   - Adaptar el mensaje al usuario: si no hay sesión tras `signUp`, mostrar "Revisa tu email para confirmar la cuenta" en vez de redirigir.
+- `action: "list_emails"` → devuelve `{ user_id, email, last_sign_in_at }[]` desde `auth.admin.listUsers()`. Se pagina internamente hasta cubrir todos los usuarios.
+- `action: "delete_user", target_user_id` → 
+  - Bloquea autoeliminación (`target_user_id === caller`).
+  - Bloquea eliminación de otros admins (para evitar lock-out accidental).
+  - Llama `auth.admin.deleteUser(target_user_id)`.
+  - Las tablas con `user_id` (profiles, patients, recipes, recipe_templates, tickets, ticket_messages, user_roles) **no tienen FK a auth.users**, así que se borran explícitamente con service_role tras eliminar la cuenta auth.
 
-2. **`src/hooks/useAuth.tsx` — `signUp`**
-   - Aceptar un parámetro opcional `metadata` y pasarlo como `options.data` al `signUp` de Supabase.
+Patrón idéntico al `manage-admin-role` existente (validación de Authorization + comprobación de `user_roles`).
 
-3. **Migración de BD — actualizar trigger `handle_new_user`**
-   - El trigger ya existe (creado en el mensaje anterior, inserta una fila vacía en `profiles`).
-   - Modificarlo para leer `NEW.raw_user_meta_data` y rellenar `clinic_name`, `locality` y `province` cuando vengan informados.
+### 2. `src/components/admin/UsersAdmin.tsx`
+- Nueva query `admin-user-emails` que invoca `admin-manage-users` con `list_emails` (sólo si el usuario es admin). Resultado: `Map<user_id, email>`.
+- Nueva columna **Email** en la tabla, entre "Clínica/Profesional" y "Provincia". Si la clínica/profesional está vacío, el email es la pista principal de quién es.
+- Búsqueda actualizada para incluir email.
+- Nuevo botón **Eliminar** (icono `Trash2`, variant `ghost` rojo) en la columna Acciones, deshabilitado si:
+  - es uno mismo, o
+  - el usuario destino es admin.
+- `AlertDialog` de confirmación con texto explícito advirtiendo que se borrarán **todos** los datos asociados (perfil, pacientes, recetas, plantillas, tickets) y es **irreversible**. Requiere escribir el nombre de la clínica (o el email si no hay clínica) para activar el botón "Eliminar definitivamente".
+- Tras éxito: invalida `admin-profiles`, `admin-recipe-counts`, `admin-user-emails`.
 
-4. **Backfill del usuario existente**
-   - `mdental.santcugat@gmail.com` perdió los datos del formulario y no hay forma de recuperarlos. Quedará con perfil vacío hasta que entre y los rellene desde su pantalla de "Mi clínica". No requiere acción.
+### 3. `src/components/admin/UserDetailSheet.tsx` (menor)
+- Mostrar el email bajo el nombre de la clínica en la cabecera (junto a localidad/colegiado), si está disponible (pasado por prop opcional).
 
-### Detalles técnicos del trigger
+---
 
-```sql
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
-BEGIN
-  INSERT INTO public.profiles (user_id, clinic_name, locality, province)
-  VALUES (
-    NEW.id,
-    NULLIF(NEW.raw_user_meta_data->>'clinic_name', ''),
-    NULLIF(NEW.raw_user_meta_data->>'locality', ''),
-    NULLIF(NEW.raw_user_meta_data->>'province', '')
-  )
-  ON CONFLICT (user_id) DO UPDATE
-    SET clinic_name = COALESCE(EXCLUDED.clinic_name, profiles.clinic_name),
-        locality    = COALESCE(EXCLUDED.locality,    profiles.locality),
-        province    = COALESCE(EXCLUDED.province,    profiles.province);
-  RETURN NEW;
-END;
-$$;
-```
-
-Nota: requiere índice/constraint UNIQUE en `profiles.user_id` (verificar y añadir si no existe).
-
-## Resultado esperado
-
-A partir de la aplicación:
-- Cualquier nuevo registro guardará automáticamente clínica/localidad/provincia, incluso antes de confirmar el email.
-- El admin verá al usuario con sus datos completos desde el primer momento.
-- No se vuelve a depender de que el cliente cree la fila en `profiles`.
+## Notas técnicas
+- `supabase/config.toml`: añadir bloque para `admin-manage-users` con `verify_jwt = true` (default).
+- Se reutilizan los patrones de validación de admin del `manage-admin-role`.
+- No se tocan tablas ni RLS — todo se hace vía service_role en el edge function.
+- No se borra storage (firma/logo) explícitamente; quedan huérfanos en el bucket. Si quieres también limpieza de storage, dímelo y lo añado.
