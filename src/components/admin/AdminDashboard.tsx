@@ -11,6 +11,10 @@ import { SpainProvinceMap } from './SpainProvinceMap';
 import { ActivityHeatmap } from './ActivityHeatmap';
 import { DashboardRangeFilter } from './DashboardRangeFilter';
 import { DashboardExportMenu } from './DashboardExportMenu';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+
+type RecipeSource = 'all' | 'pro' | 'quick';
+const SOURCE_KEY = 'admin_dashboard_source';
 import { getRangeBounds, formatBucketLabel, type RangePreset } from '@/lib/dateRanges';
 import type { DashboardExportData } from '@/lib/dashboardExport';
 
