@@ -637,6 +637,49 @@ const Auth = () => {
           </Form>
         </DialogContent>
       </Dialog>
+
+      {/* Resend confirmation dialog */}
+      <Dialog open={resendOpen} onOpenChange={setResendOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-2">
+              <MailCheck className="w-5 h-5 text-secondary" />
+            </div>
+            <DialogTitle className="text-center">Reenviar email de confirmación</DialogTitle>
+            <DialogDescription className="text-center">
+              Introduce el email con el que te registraste. Si la cuenta existe y aún no está confirmada, te reenviaremos el enlace.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="email"
+                placeholder="tu@email.com"
+                className="pl-9"
+                value={resendEmail}
+                onChange={(e) => setResendEmail(e.target.value)}
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button type="button" variant="outline" onClick={() => setResendOpen(false)}>Cerrar</Button>
+            <Button
+              type="button"
+              className="btn-gradient-red"
+              disabled={resendLoading || resendCooldown > 0 || !resendEmail}
+              onClick={async () => {
+                await triggerResend(resendEmail);
+                setResendOpen(false);
+              }}
+            >
+              {resendLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {resendCooldown > 0 ? `Espera ${resendCooldown}s` : 'Reenviar email'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
