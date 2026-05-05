@@ -697,6 +697,31 @@ export type Database = {
           weekday: number
         }[]
       }
+      admin_email_queue_stats: {
+        Args: never
+        Returns: {
+          dlq_auth: number
+          dlq_transactional: number
+          failed_24h: number
+          queued_auth: number
+          queued_transactional: number
+          retry_after_until: string
+          sent_24h: number
+          suppressed_total: number
+        }[]
+      }
+      admin_email_recent_logs: {
+        Args: { lim?: number }
+        Returns: {
+          created_at: string
+          error_message: string
+          id: string
+          message_id: string
+          recipient_email: string
+          status: string
+          template_name: string
+        }[]
+      }
       admin_kpis_range: {
         Args: { end_ts: string; start_ts: string }
         Returns: {
@@ -734,6 +759,15 @@ export type Database = {
           professionals: number
           province: string
           total_recipes: number
+        }[]
+      }
+      admin_recent_signup_attempts: {
+        Args: { lim?: number }
+        Returns: {
+          action: string
+          email: string
+          ip_address: string
+          occurred_at: string
         }[]
       }
       admin_recipes_comparison: {
