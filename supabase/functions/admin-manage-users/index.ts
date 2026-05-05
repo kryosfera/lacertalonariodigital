@@ -134,6 +134,54 @@ Deno.serve(async (req) => {
       return json({ success: true });
     }
 
+    if (action === "create_user") {
+      const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
+      const password = typeof body?.password === "string" ? body.password : "";
+      const clinicName = typeof body?.clinic_name === "string" ? body.clinic_name.trim() : null;
+      const professionalName = typeof body?.professional_name === "string" ? body.professional_name.trim() : null;
+      const province = typeof body?.province === "string" ? body.province.trim() : null;
+      const locality = typeof body?.locality === "string" ? body.locality.trim() : null;
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return json({ error: "Email no válido" }, 400);
+      }
+      if (!password || password.length < 8) {
+        return json({ error: "Contraseña mínimo 8 caracteres" }, 400);
+      }
+      const { data: created, error: createErr } = await admin.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          clinic_name: clinicName,
+          professional_name: professionalName,
+          province,
+          locality,
+        },
+      });
+      if (createErr) {
+        return json({ error: createErr.message }, 400);
+      }
+      return json({ success: true, user_id: created.user?.id, email: created.user?.email });
+    }
+
+    if (action === "resend_confirmation") {
+      const targetEmail = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
+      if (!targetEmail) return json({ error: "email requerido" }, 400);
+      const { error: linkErr } = await admin.auth.admin.generateLink({
+        type: "signup",
+        email: targetEmail,
+      } as any);
+      if (linkErr) {
+        // Try magiclink as fallback for already-existing users
+        const { error: magicErr } = await admin.auth.admin.generateLink({
+          type: "magiclink",
+          email: targetEmail,
+        } as any);
+        if (magicErr) return json({ error: magicErr.message }, 400);
+      }
+      return json({ success: true });
+    }
+
     if (action === "list_deletion_audit") {
       const { data, error } = await admin
         .from("user_deletion_audit")
