@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Search, Users, Shield, ShieldOff, Eye } from 'lucide-react';
+import { Loader2, Search, Users, Shield, ShieldOff, Eye, Trash2 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from '@/hooks/use-toast';
 import {
@@ -28,6 +28,8 @@ export function UsersAdmin() {
   const [search, setSearch] = useState('');
   const [provinceFilter, setProvinceFilter] = useState('__all__');
   const [pending, setPending] = useState<{ userId: string; action: 'grant' | 'revoke'; name: string } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ userId: string; label: string } | null>(null);
+  const [confirmText, setConfirmText] = useState('');
   const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
 
   const { data: profiles, isLoading } = useQuery({
@@ -50,17 +52,24 @@ export function UsersAdmin() {
     },
   });
 
+  const { data: emails } = useQuery({
+    queryKey: ['admin-user-emails'],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('admin-manage-users', {
+        body: { action: 'list_emails' },
+      });
+      if (error) throw error;
+      const map: Record<string, string> = {};
+      ((data as any)?.users ?? []).forEach((u: any) => { if (u.email) map[u.user_id] = u.email; });
+      return map;
+    },
+  });
+
   const { data: adminIds } = useQuery({
     queryKey: ['admin-user-ids'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('admin_top_professionals', { lim: 1 });
-      // Fallback: query user_roles via edge — instead use direct select (own row only would fail).
-      // We rely on the manage-admin-role function returning state, so here we just try direct read which will be empty for non-self rows.
-      if (error) console.warn(error);
-      // Direct attempt:
       const { data: rolesData } = await supabase.from('user_roles').select('user_id').eq('role', 'admin');
-      const set = new Set<string>((rolesData ?? []).map((r: any) => r.user_id));
-      return set;
+      return new Set<string>((rolesData ?? []).map((r: any) => r.user_id));
     },
   });
 
@@ -85,16 +94,42 @@ export function UsersAdmin() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data, error } = await supabase.functions.invoke('admin-manage-users', {
+        body: { action: 'delete_user', target_user_id: userId },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      return data;
+    },
+    onSuccess: () => {
+      toast({ title: 'Usuario eliminado', description: 'La cuenta y todos sus datos han sido eliminados.' });
+      queryClient.invalidateQueries({ queryKey: ['admin-profiles'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-recipe-counts'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-user-emails'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-user-ids'] });
+    },
+    onError: (err: Error) => {
+      toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    },
+  });
+
   const provinces = [...new Set(profiles?.map(p => p.province).filter(Boolean) as string[])].sort();
 
   const filtered = profiles?.filter(p => {
+    const email = emails?.[p.user_id] ?? '';
     const matchSearch = !search ||
       p.clinic_name?.toLowerCase().includes(search.toLowerCase()) ||
       p.professional_name?.toLowerCase().includes(search.toLowerCase()) ||
-      p.locality?.toLowerCase().includes(search.toLowerCase());
+      p.locality?.toLowerCase().includes(search.toLowerCase()) ||
+      email.toLowerCase().includes(search.toLowerCase());
     const matchProvince = provinceFilter === '__all__' || p.province === provinceFilter;
     return matchSearch && matchProvince;
   }) ?? [];
+
+  const expectedConfirm = pendingDelete?.label ?? '';
+  const canDelete = !!pendingDelete && confirmText.trim() === expectedConfirm;
 
   return (
     <div className="space-y-6">
@@ -108,7 +143,7 @@ export function UsersAdmin() {
       <div className="flex gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar clínica, profesional..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Buscar clínica, profesional, email..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
         <Select value={provinceFilter} onValueChange={setProvinceFilter}>
           <SelectTrigger className="w-[200px]">
@@ -135,6 +170,7 @@ export function UsersAdmin() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Clínica / Profesional</TableHead>
+                    <TableHead>Email</TableHead>
                     <TableHead>Provincia</TableHead>
                     <TableHead>Localidad</TableHead>
                     <TableHead>Nº Colegiado</TableHead>
@@ -147,19 +183,27 @@ export function UsersAdmin() {
                   {filtered.map(p => {
                     const isAdminUser = adminIds?.has(p.user_id) ?? false;
                     const isSelf = user?.id === p.user_id;
+                    const email = emails?.[p.user_id];
                     return (
                       <TableRow
                         key={p.id}
                         className="cursor-pointer"
-                        onClick={() => setSelectedProfile(p)}
+                        onClick={() => setSelectedProfile({ ...p, email })}
                       >
                         <TableCell>
                           <div className="font-medium flex items-center gap-2">
-                            {p.clinic_name || '—'}
+                            {p.clinic_name || <span className="text-muted-foreground">—</span>}
                             {isAdminUser && <Badge variant="secondary" className="text-[10px]">Admin</Badge>}
                           </div>
                           {p.professional_name && (
                             <div className="text-xs text-muted-foreground">{p.professional_name}</div>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {email ? (
+                            <span className="font-mono text-xs">{email}</span>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
                           )}
                         </TableCell>
                         <TableCell>{p.province || '—'}</TableCell>
@@ -172,7 +216,7 @@ export function UsersAdmin() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => setSelectedProfile(p)}
+                              onClick={() => setSelectedProfile({ ...p, email })}
                               title="Ver detalle"
                             >
                               <Eye className="h-4 w-4 mr-1" />
@@ -200,6 +244,26 @@ export function UsersAdmin() {
                                 Hacer admin
                               </Button>
                             )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                              disabled={isSelf || isAdminUser || deleteMutation.isPending}
+                              onClick={() => {
+                                setConfirmText('');
+                                setPendingDelete({
+                                  userId: p.user_id,
+                                  label: p.clinic_name || p.professional_name || email || 'usuario',
+                                });
+                              }}
+                              title={
+                                isSelf ? 'No puedes eliminarte a ti mismo'
+                                : isAdminUser ? 'Quita primero el rol de admin'
+                                : 'Eliminar usuario'
+                              }
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -207,7 +271,7 @@ export function UsersAdmin() {
                   })}
                   {filtered.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         No se encontraron usuarios
                       </TableCell>
                     </TableRow>
@@ -242,6 +306,49 @@ export function UsersAdmin() {
               }}
             >
               Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!pendingDelete} onOpenChange={(o) => { if (!o) { setPendingDelete(null); setConfirmText(''); } }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">Eliminar usuario definitivamente</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-3">
+                <p>
+                  Vas a eliminar la cuenta de <strong>{pendingDelete?.label}</strong> y <strong>todos sus datos</strong>:
+                  perfil, pacientes, recetas, plantillas y tickets. Esta acción es <strong>irreversible</strong>.
+                </p>
+                <p className="text-sm">
+                  Para confirmar, escribe exactamente: <code className="bg-muted px-1.5 py-0.5 rounded">{expectedConfirm}</code>
+                </p>
+                <Input
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  placeholder={expectedConfirm}
+                  autoFocus
+                />
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!canDelete || deleteMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={(e) => {
+                if (!canDelete || !pendingDelete) {
+                  e.preventDefault();
+                  return;
+                }
+                deleteMutation.mutate(pendingDelete.userId);
+                setPendingDelete(null);
+                setConfirmText('');
+              }}
+            >
+              {deleteMutation.isPending ? 'Eliminando...' : 'Eliminar definitivamente'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
