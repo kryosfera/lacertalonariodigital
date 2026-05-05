@@ -70,6 +70,7 @@ Deno.serve(async (req) => {
 
     if (action === "delete_user") {
       const targetUserId = body?.target_user_id;
+      const reason = typeof body?.reason === "string" ? body.reason.trim().slice(0, 500) : null;
       if (!targetUserId || typeof targetUserId !== "string") {
         return json({ error: "target_user_id requerido" }, 400);
       }
@@ -88,6 +89,25 @@ Deno.serve(async (req) => {
         return json({ error: "No se puede eliminar a otro administrador. Quita primero su rol." }, 400);
       }
 
+      // Capture identifying info BEFORE deletion (for audit log)
+      const { data: targetProfile } = await admin
+        .from("profiles")
+        .select("clinic_name, professional_name")
+        .eq("user_id", targetUserId)
+        .maybeSingle();
+
+      let targetEmail: string | null = null;
+      try {
+        const { data: tu } = await admin.auth.admin.getUserById(targetUserId);
+        targetEmail = tu?.user?.email ?? null;
+      } catch (_e) { /* ignore */ }
+
+      const targetLabel =
+        targetProfile?.clinic_name ||
+        targetProfile?.professional_name ||
+        targetEmail ||
+        targetUserId;
+
       // Delete app data first (no FKs to auth.users)
       await admin.from("user_roles").delete().eq("user_id", targetUserId);
       await admin.from("ticket_messages").delete().eq("user_id", targetUserId);
@@ -100,7 +120,28 @@ Deno.serve(async (req) => {
       const { error: delErr } = await admin.auth.admin.deleteUser(targetUserId);
       if (delErr) throw delErr;
 
+      // Record audit entry (best-effort, do not fail the request if logging fails)
+      const { error: auditErr } = await admin.from("user_deletion_audit").insert({
+        deleted_user_id: targetUserId,
+        deleted_user_email: targetEmail,
+        deleted_user_label: targetLabel,
+        deleted_by: userData.user.id,
+        deleted_by_email: userData.user.email ?? null,
+        reason,
+      });
+      if (auditErr) console.error("audit insert failed", auditErr);
+
       return json({ success: true });
+    }
+
+    if (action === "list_deletion_audit") {
+      const { data, error } = await admin
+        .from("user_deletion_audit")
+        .select("*")
+        .order("deleted_at", { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return json({ entries: data ?? [] });
     }
 
     return json({ error: "Acción no soportada" }, 400);
