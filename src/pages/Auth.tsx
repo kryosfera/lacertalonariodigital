@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, Lock, Loader2, ArrowLeft, Building2, MapPin, KeyRound } from 'lucide-react';
+import { Mail, Lock, Loader2, ArrowLeft, Building2, MapPin, KeyRound, MailCheck, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -65,6 +65,37 @@ const Auth = () => {
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendOpen, setResendOpen] = useState(false);
+  const [resendEmail, setResendEmail] = useState('');
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setInterval(() => setResendCooldown((s) => Math.max(0, s - 1)), 1000);
+    return () => clearInterval(t);
+  }, [resendCooldown]);
+
+  const triggerResend = async (email: string) => {
+    setResendLoading(true);
+    try {
+      await supabase.functions.invoke('resend-confirmation', { body: { email } });
+      toast({
+        title: 'Email reenviado',
+        description: `Si la cuenta existe, recibirás un nuevo enlace en ${email}. Revisa también el spam.`,
+      });
+      setResendCooldown(60);
+    } catch {
+      toast({
+        title: 'Email reenviado',
+        description: 'Si la cuenta existe, recibirás un nuevo enlace en breve.',
+      });
+      setResendCooldown(60);
+    } finally {
+      setResendLoading(false);
+    }
+  };
 
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -166,10 +197,8 @@ const Auth = () => {
           toast({ title: 'Cuenta creada correctamente' });
           navigate('/');
         } else {
-          toast({
-            title: 'Revisa tu email',
-            description: 'Te hemos enviado un enlace de confirmación para activar tu cuenta.',
-          });
+          setPendingEmail(data.email);
+          setResendCooldown(60);
         }
       }
     } finally {
@@ -298,6 +327,74 @@ const Auth = () => {
     );
   }
 
+  // Pending email confirmation view
+  if (pendingEmail) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-secondary/5 via-background to-secondary/10 p-4 pt-safe">
+        <Card className="w-full max-w-md border-secondary/20 shadow-xl">
+          <CardHeader className="text-center pb-2">
+            <div className="mx-auto w-20 h-20 rounded-2xl bg-white shadow-lg flex items-center justify-center mb-4 border border-secondary/10">
+              <MailCheck className="w-10 h-10 text-secondary" />
+            </div>
+            <CardTitle className="text-xl font-bold text-foreground">Revisa tu email</CardTitle>
+            <CardDescription className="text-muted-foreground">
+              Hemos enviado un enlace de confirmación a
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-lg bg-muted/50 border border-border p-3 text-center">
+              <p className="font-semibold text-foreground break-all">{pendingEmail}</p>
+            </div>
+            <div className="text-sm text-muted-foreground space-y-2">
+              <p>1. Abre el correo enviado desde <strong className="text-foreground">notify.inginium-ksf.com</strong>.</p>
+              <p>2. Pulsa el botón <strong className="text-foreground">Confirmar email</strong>.</p>
+              <p>3. Vuelve aquí e inicia sesión.</p>
+              <p className="text-xs pt-2">
+                ¿No lo encuentras? Revisa la carpeta de <strong>spam</strong> o promociones.
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full"
+              onClick={() => triggerResend(pendingEmail)}
+              disabled={resendCooldown > 0 || resendLoading}
+            >
+              {resendLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCw className="mr-2 h-4 w-4" />
+              )}
+              {resendCooldown > 0 ? `Reenviar en ${resendCooldown}s` : 'Reenviar email de confirmación'}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              onClick={() => {
+                setPendingEmail(null);
+                setActiveTab('signup');
+              }}
+            >
+              Usar otro email
+            </Button>
+            <Button
+              type="button"
+              variant="link"
+              className="w-full text-secondary"
+              onClick={() => {
+                setPendingEmail(null);
+                setActiveTab('login');
+              }}
+            >
+              Ya he confirmado, iniciar sesión
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-secondary/5 via-background to-secondary/10 p-4 pt-safe">
       <Card className="w-full max-w-md border-secondary/20 shadow-xl">
@@ -368,6 +465,16 @@ const Auth = () => {
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Iniciar sesión
                   </Button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResendEmail(loginForm.getValues('email') || '');
+                      setResendOpen(true);
+                    }}
+                    className="text-xs text-muted-foreground hover:text-secondary transition-colors w-full text-center underline-offset-2 hover:underline"
+                  >
+                    ¿No recibiste el email de confirmación?
+                  </button>
                 </form>
               </Form>
             </TabsContent>
@@ -528,6 +635,49 @@ const Auth = () => {
               </DialogFooter>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Resend confirmation dialog */}
+      <Dialog open={resendOpen} onOpenChange={setResendOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center mb-2">
+              <MailCheck className="w-5 h-5 text-secondary" />
+            </div>
+            <DialogTitle className="text-center">Reenviar email de confirmación</DialogTitle>
+            <DialogDescription className="text-center">
+              Introduce el email con el que te registraste. Si la cuenta existe y aún no está confirmada, te reenviaremos el enlace.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="email"
+                placeholder="tu@email.com"
+                className="pl-9"
+                value={resendEmail}
+                onChange={(e) => setResendEmail(e.target.value)}
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button type="button" variant="outline" onClick={() => setResendOpen(false)}>Cerrar</Button>
+            <Button
+              type="button"
+              className="btn-gradient-red"
+              disabled={resendLoading || resendCooldown > 0 || !resendEmail}
+              onClick={async () => {
+                await triggerResend(resendEmail);
+                setResendOpen(false);
+              }}
+            >
+              {resendLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {resendCooldown > 0 ? `Espera ${resendCooldown}s` : 'Reenviar email'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

@@ -1,43 +1,39 @@
-## Objetivo
+# Plan: Reparar emails de confirmación y mejorar UX de registro
 
-1. Mostrar el **email** de cada usuario en la tabla de Admin → Usuarios (para identificar los registros con clínica/profesional vacíos).
-2. Permitir a un admin **eliminar un usuario** completamente (cuenta auth + perfil + recetas + pacientes asociados) con confirmación.
-
-El email de auth no está accesible vía RLS desde el cliente: se necesita un Edge Function con `service_role`.
-
----
+## Problema
+- `email_send_log` está vacío → el `auth-email-hook` no está activo, Supabase usa SMTP por defecto y golpea el rate-limit 429.
+- Hay usuarios sin confirmar (ej. `info@salvadodental.com`) que nunca recibieron el correo.
+- En `Auth.tsx` el usuario solo ve un toast tras registrarse → no sabe el siguiente paso ni puede reenviar.
 
 ## Cambios
 
-### 1. Edge Function nueva: `admin-manage-users`
-Function única con dos acciones (validando que el llamante sea admin):
+### 1. Reactivar el hook de emails de autenticación
+- Re-scaffold de las plantillas auth (overwrite) con dominio existente `notify.inginium-ksf.com`.
+- Re-aplicar branding Lacer (rojo #E31937, fondo blanco) a las 6 plantillas.
+- Redeploy de `auth-email-hook` para forzar a Supabase a enrutar por nuestra cola pgmq.
 
-- `action: "list_emails"` → devuelve `{ user_id, email, last_sign_in_at }[]` desde `auth.admin.listUsers()`. Se pagina internamente hasta cubrir todos los usuarios.
-- `action: "delete_user", target_user_id` → 
-  - Bloquea autoeliminación (`target_user_id === caller`).
-  - Bloquea eliminación de otros admins (para evitar lock-out accidental).
-  - Llama `auth.admin.deleteUser(target_user_id)`.
-  - Las tablas con `user_id` (profiles, patients, recipes, recipe_templates, tickets, ticket_messages, user_roles) **no tienen FK a auth.users**, así que se borran explícitamente con service_role tras eliminar la cuenta auth.
+### 2. Edge function `resend-confirmation`
+- Pública (`verify_jwt = false`), valida email con Zod.
+- Usa `auth.admin.generateLink({ type: 'signup' })` y dispara el hook → cae en cola.
+- Devuelve siempre 200 genérico (anti-enumeration).
 
-Patrón idéntico al `manage-admin-role` existente (validación de Authorization + comprobación de `user_roles`).
+### 3. Recuperar usuarios bloqueados
+- Para cada usuario con `email_confirmed_at IS NULL` reciente, invocar `resend-confirmation`.
 
-### 2. `src/components/admin/UsersAdmin.tsx`
-- Nueva query `admin-user-emails` que invoca `admin-manage-users` con `list_emails` (sólo si el usuario es admin). Resultado: `Map<user_id, email>`.
-- Nueva columna **Email** en la tabla, entre "Clínica/Profesional" y "Provincia". Si la clínica/profesional está vacío, el email es la pista principal de quién es.
-- Búsqueda actualizada para incluir email.
-- Nuevo botón **Eliminar** (icono `Trash2`, variant `ghost` rojo) en la columna Acciones, deshabilitado si:
-  - es uno mismo, o
-  - el usuario destino es admin.
-- `AlertDialog` de confirmación con texto explícito advirtiendo que se borrarán **todos** los datos asociados (perfil, pacientes, recetas, plantillas, tickets) y es **irreversible**. Requiere escribir el nombre de la clínica (o el email si no hay clínica) para activar el botón "Eliminar definitivamente".
-- Tras éxito: invalida `admin-profiles`, `admin-recipe-counts`, `admin-user-emails`.
+### 4. UX en `src/pages/Auth.tsx`
+- Tras signup OK: mostrar pantalla "Revisa tu email" con:
+  - Email destino, instrucciones (revisar spam, dominio `notify.inginium-ksf.com`).
+  - Botón "Reenviar correo" con cooldown 60s.
+  - Botón "Cambiar email" (vuelve al form).
+- En tab Login: link "¿No recibiste el email de confirmación?" que abre modal con input + reenvío.
 
-### 3. `src/components/admin/UserDetailSheet.tsx` (menor)
-- Mostrar el email bajo el nombre de la clínica en la cabecera (junto a localidad/colegiado), si está disponible (pasado por prop opcional).
+### 5. Verificación
+- Consultar `email_send_log` y confirmar transición `pending → sent`.
+- Probar registro nuevo end-to-end.
 
----
-
-## Notas técnicas
-- `supabase/config.toml`: añadir bloque para `admin-manage-users` con `verify_jwt = true` (default).
-- Se reutilizan los patrones de validación de admin del `manage-admin-role`.
-- No se tocan tablas ni RLS — todo se hace vía service_role en el edge function.
-- No se borra storage (firma/logo) explícitamente; quedan huérfanos en el bucket. Si quieres también limpieza de storage, dímelo y lo añado.
+## Archivos
+- `supabase/functions/_shared/email-templates/*.tsx` (rebrand)
+- `supabase/functions/auth-email-hook/index.ts` (regenerado)
+- `supabase/functions/resend-confirmation/index.ts` (nuevo)
+- `supabase/config.toml` (entry de la nueva función)
+- `src/pages/Auth.tsx` (nuevo flujo UX)
