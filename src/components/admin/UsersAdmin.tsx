@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Search, Users, Shield, ShieldOff, Eye, Trash2, Download, History } from 'lucide-react';
+import { Loader2, Search, Users, Shield, ShieldOff, Eye, Trash2, Download, History, UserPlus, Send } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useAuth } from '@/hooks/useAuth';
@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { UserDetailSheet } from './UserDetailSheet';
+import { CreateUserDialog } from './CreateUserDialog';
 
 function exportUsersCsv(
   rows: any[],
@@ -66,6 +67,7 @@ export function UsersAdmin() {
   const [confirmText, setConfirmText] = useState('');
   const [deleteReason, setDeleteReason] = useState('');
   const [auditOpen, setAuditOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<any | null>(null);
 
   const { data: profiles, isLoading } = useQuery({
@@ -150,6 +152,19 @@ export function UsersAdmin() {
     onError: (err: Error) => {
       toast({ title: 'Error', description: err.message, variant: 'destructive' });
     },
+  });
+
+  const resendMutation = useMutation({
+    mutationFn: async (email: string) => {
+      const { data, error } = await supabase.functions.invoke('admin-manage-users', {
+        body: { action: 'resend_confirmation', email },
+      });
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
+      return data;
+    },
+    onSuccess: () => toast({ title: 'Email reenviado', description: 'Se ha vuelto a generar el correo de confirmación.' }),
+    onError: (e: Error) => toast({ title: 'Error', description: e.message, variant: 'destructive' }),
   });
 
   const { data: auditEntries, isLoading: auditLoading } = useQuery({
