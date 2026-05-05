@@ -291,6 +291,7 @@ export function AdminDashboard() {
         </motion.div>
       </div>
 
+      <div id="admin-dashboard-export-root" className="space-y-4">
         <motion.div {...fadeUp(0.04)} className="flex items-center justify-between gap-2 flex-wrap">
           <ToggleGroup type="single" value={source} onValueChange={(v) => v && setSource(v as RecipeSource)} className="bg-muted/50 rounded-lg p-0.5">
             <ToggleGroupItem value="all" className="text-xs h-7 px-3 data-[state=on]:bg-background data-[state=on]:shadow-sm">Todas</ToggleGroupItem>
