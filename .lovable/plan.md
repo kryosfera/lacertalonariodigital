@@ -1,49 +1,57 @@
-## Buscador y filtros en Sesiones activas
+## Problema detectado
 
-Añadir controles de búsqueda y filtrado client-side al panel de Sesiones Activas (`src/components/admin/ActiveSessionsAdmin.tsx`). Los datos siguen viniendo del RPC `admin_active_sessions` con auto-refresh cada 30s; el filtrado se aplica en memoria sobre el array ya cargado.
+El formulario de registro pide email, contraseña, **clínica, localidad y provincia**, pero estos 3 últimos campos se pierden silenciosamente cuando el usuario se registra.
 
-### Controles a añadir (encima de la tabla)
+**Causa técnica:** tras `signUp()`, el código intenta guardar el perfil con `auth.getSession()`. Pero como la confirmación por email está activada, no hay sesión hasta que el usuario hace click en el enlace del correo. Resultado: `userId` es `undefined`, el `upsert` no se ejecuta y el usuario queda en `auth.users` sin fila en `profiles`. Por eso `mdental.santcugat@gmail.com` aparece sin datos de clínica.
 
-1. **Buscador de texto libre** (`Input` con icono `Search`)
-   - Coincide (case-insensitive) contra: `email`, `clinic_name`, `professional_name`, `ip`.
-   - Placeholder: "Buscar por email, profesional, clínica o IP…"
-   - Botón "X" para limpiar cuando hay texto.
+## Solución
 
-2. **Filtro por dispositivo** (`Select`)
-   - Opciones: Todos · iOS · Android · macOS · Windows · Linux · Otro.
-   - Usa la misma función `parseUserAgent` ya existente para clasificar cada fila.
+Mover la creación del perfil al **backend**, usando los metadatos que el usuario envía en el registro. Así no depende de que exista sesión.
 
-3. **Filtro por estado** (`Select`)
-   - Opciones: Todos · En línea (últimos 5 min) · Inactivas.
-   - Reutiliza el umbral `onlineThreshold` que ya existe.
+### Cambios
 
-### Comportamiento
+1. **`src/pages/Auth.tsx` — `handleSignup`**
+   - Pasar `clinic_name`, `locality`, `province` dentro de `options.data` en `supabase.auth.signUp()` (van a `raw_user_meta_data`).
+   - Eliminar el bloque `getSession() + upsert profiles` (ya no hace falta, lo hace el trigger).
+   - Adaptar el mensaje al usuario: si no hay sesión tras `signUp`, mostrar "Revisa tu email para confirmar la cuenta" en vez de redirigir.
 
-- Los tres filtros se combinan con AND.
-- El contador del header pasa a mostrar: `X de Y sesiones · Z en línea` (X = resultados filtrados, Y = total, Z = en línea dentro del filtrado).
-- Si los filtros no devuelven resultados pero sí hay datos cargados, mostrar mensaje "No hay sesiones que coincidan con los filtros aplicados." con un botón "Limpiar filtros".
-- Estado local con `useState` para los tres filtros; cálculo derivado con `useMemo` para no recomputar en cada render.
+2. **`src/hooks/useAuth.tsx` — `signUp`**
+   - Aceptar un parámetro opcional `metadata` y pasarlo como `options.data` al `signUp` de Supabase.
 
-### Layout
+3. **Migración de BD — actualizar trigger `handle_new_user`**
+   - El trigger ya existe (creado en el mensaje anterior, inserta una fila vacía en `profiles`).
+   - Modificarlo para leer `NEW.raw_user_meta_data` y rellenar `clinic_name`, `locality` y `province` cuando vengan informados.
 
-```text
-┌─ Sesiones activas ──────────────── [Actualizar] ┐
-│ 12 de 45 sesiones · 8 en línea ahora            │
-├─────────────────────────────────────────────────┤
-│ [🔍 Buscar...]  [Dispositivo ▾] [Estado ▾]      │
-├─────────────────────────────────────────────────┤
-│ Tabla (sin cambios estructurales)               │
-└─────────────────────────────────────────────────┘
+4. **Backfill del usuario existente**
+   - `mdental.santcugat@gmail.com` perdió los datos del formulario y no hay forma de recuperarlos. Quedará con perfil vacío hasta que entre y los rellene desde su pantalla de "Mi clínica". No requiere acción.
+
+### Detalles técnicos del trigger
+
+```sql
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  INSERT INTO public.profiles (user_id, clinic_name, locality, province)
+  VALUES (
+    NEW.id,
+    NULLIF(NEW.raw_user_meta_data->>'clinic_name', ''),
+    NULLIF(NEW.raw_user_meta_data->>'locality', ''),
+    NULLIF(NEW.raw_user_meta_data->>'province', '')
+  )
+  ON CONFLICT (user_id) DO UPDATE
+    SET clinic_name = COALESCE(EXCLUDED.clinic_name, profiles.clinic_name),
+        locality    = COALESCE(EXCLUDED.locality,    profiles.locality),
+        province    = COALESCE(EXCLUDED.province,    profiles.province);
+  RETURN NEW;
+END;
+$$;
 ```
 
-En viewport ≥ md los tres controles se alinean en fila (`flex gap-2`); en móvil se apilan (`flex-col`).
+Nota: requiere índice/constraint UNIQUE en `profiles.user_id` (verificar y añadir si no existe).
 
-### Archivos modificados
+## Resultado esperado
 
-- `src/components/admin/ActiveSessionsAdmin.tsx` — único archivo. No hace falta tocar backend, RPC, ni tipos: todos los campos ya vienen en la respuesta actual.
-
-### Fuera de alcance
-
-- Persistir filtros entre recargas (no se guardan en URL ni localStorage).
-- Filtrado server-side (innecesario: el volumen de sesiones activas concurrentes es bajo).
-- Filtros equivalentes en Auditoría de Accesos — se pueden añadir aparte si lo necesitas.
+A partir de la aplicación:
+- Cualquier nuevo registro guardará automáticamente clínica/localidad/provincia, incluso antes de confirmar el email.
+- El admin verá al usuario con sus datos completos desde el primer momento.
+- No se vuelve a depender de que el cliente cree la fila en `profiles`.
