@@ -207,6 +207,9 @@ export function UsersAdmin() {
         </h2>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground mr-2">{filtered.length} registrados</span>
+          <Button size="sm" onClick={() => setCreateOpen(true)}>
+            <UserPlus className="h-4 w-4 mr-1" /> Crear usuario
+          </Button>
           <Button size="sm" variant="outline" onClick={() => setAuditOpen(true)}>
             <History className="h-4 w-4 mr-1" /> Historial
           </Button>
