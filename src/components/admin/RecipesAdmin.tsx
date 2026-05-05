@@ -64,6 +64,13 @@ export function RecipesAdmin() {
     return matchSearch && matchStatus && matchSource;
   }) ?? [];
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paginated = useMemo(
+    () => filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filtered, currentPage, pageSize]
+  );
+
   const handleExportCsv = () => {
     if (!filtered.length) return;
     const headers = ['Tipo', 'Código', 'Paciente', 'Fecha', 'Envío', 'Estado', 'Productos'];
