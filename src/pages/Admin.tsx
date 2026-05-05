@@ -17,6 +17,7 @@ import { TicketsAdmin } from '@/components/admin/TicketsAdmin';
 import { MaintenanceAdmin } from '@/components/admin/MaintenanceAdmin';
 import { ActiveSessionsAdmin } from '@/components/admin/ActiveSessionsAdmin';
 import { AuditLogAdmin } from '@/components/admin/AuditLogAdmin';
+import { EmailQueueAdmin } from '@/components/admin/EmailQueueAdmin';
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -73,6 +74,7 @@ const Admin = () => {
                   {activeSection === 'tickets' && 'Incidencias'}
                   {activeSection === 'sessions' && 'Sesiones activas'}
                   {activeSection === 'audit' && 'Auditoría de accesos'}
+                  {activeSection === 'emails' && 'Cola de emails'}
                   {activeSection === 'maintenance' && 'Mantenimiento'}
                 </h1>
               </div>
@@ -112,6 +114,7 @@ const Admin = () => {
             {activeSection === 'tickets' && <TicketsAdmin />}
             {activeSection === 'sessions' && <ActiveSessionsAdmin />}
             {activeSection === 'audit' && <AuditLogAdmin />}
+            {activeSection === 'emails' && <EmailQueueAdmin />}
             {activeSection === 'maintenance' && <MaintenanceAdmin />}
           </main>
         </div>
