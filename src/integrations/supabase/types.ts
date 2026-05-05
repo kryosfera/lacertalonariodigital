@@ -482,6 +482,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_deletion_audit: {
+        Row: {
+          deleted_at: string
+          deleted_by: string
+          deleted_by_email: string | null
+          deleted_user_email: string | null
+          deleted_user_id: string
+          deleted_user_label: string | null
+          id: string
+          reason: string | null
+        }
+        Insert: {
+          deleted_at?: string
+          deleted_by: string
+          deleted_by_email?: string | null
+          deleted_user_email?: string | null
+          deleted_user_id: string
+          deleted_user_label?: string | null
+          id?: string
+          reason?: string | null
+        }
+        Update: {
+          deleted_at?: string
+          deleted_by?: string
+          deleted_by_email?: string | null
+          deleted_user_email?: string | null
+          deleted_user_id?: string
+          deleted_user_label?: string | null
+          id?: string
+          reason?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
