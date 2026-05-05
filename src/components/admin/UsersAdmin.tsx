@@ -517,6 +517,8 @@ export function UsersAdmin() {
         profile={selectedProfile}
         isAdminUser={selectedProfile ? (adminIds?.has(selectedProfile.user_id) ?? false) : false}
       />
+
+      <CreateUserDialog open={createOpen} onOpenChange={setCreateOpen} />
     </div>
   );
 }
