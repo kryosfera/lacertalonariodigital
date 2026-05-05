@@ -48,6 +48,14 @@ export function AdminDashboard() {
     } catch {}
     return '30d';
   });
+  const [source, setSource] = useState<RecipeSource>(() => {
+    try {
+      const v = localStorage.getItem(SOURCE_KEY);
+      if (v === 'all' || v === 'pro' || v === 'quick') return v;
+    } catch {}
+    return 'all';
+  });
+  useEffect(() => { try { localStorage.setItem(SOURCE_KEY, source); } catch {} }, [source]);
   const [customRange, setCustomRange] = useState<{ start: Date; end: Date } | undefined>(() => {
     try {
       const v = localStorage.getItem(RANGE_KEY + '_custom');
