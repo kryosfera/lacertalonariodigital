@@ -213,11 +213,27 @@ export function AdminDashboard() {
     staleTime: 30_000,
   });
 
-  const periodCount = kpis?.period_count ?? 0;
-  const dispensingRate = periodCount > 0 && kpis ? Math.round((kpis.dispensed_count / periodCount) * 100) : 0;
-  const variation = kpis && kpis.previous_period_count > 0
-    ? Math.round(((kpis.period_count - kpis.previous_period_count) / kpis.previous_period_count) * 100)
+  // Source-aware KPI derivation
+  const proPeriod = Math.max(0, (kpis?.period_count ?? 0) - (quickKpis?.period_quick ?? 0));
+  const proToday = Math.max(0, (kpis?.today_count ?? 0) - (quickKpis?.today_quick ?? 0));
+  const proPrev = Math.max(0, (kpis?.previous_period_count ?? 0) - (quickKpis?.previous_period_quick ?? 0));
+
+  const periodCount = source === 'all' ? (kpis?.period_count ?? 0)
+    : source === 'pro' ? proPeriod : (quickKpis?.period_quick ?? 0);
+  const todayCount = source === 'all' ? (kpis?.today_count ?? 0)
+    : source === 'pro' ? proToday : (quickKpis?.today_quick ?? 0);
+  const prevCount = source === 'all' ? (kpis?.previous_period_count ?? 0)
+    : source === 'pro' ? proPrev : (quickKpis?.previous_period_quick ?? 0);
+  const avgProducts = source === 'quick'
+    ? Number(quickKpis?.avg_products_quick ?? 0)
+    : Number(kpis?.avg_products_per_recipe ?? 0);
+
+  const dispensingRate = source !== 'quick' && proPeriod > 0 && kpis
+    ? Math.round((kpis.dispensed_count / proPeriod) * 100) : 0;
+  const variation = prevCount > 0
+    ? Math.round(((periodCount - prevCount) / prevCount) * 100)
     : null;
+  const sourceLabel = source === 'all' ? 'Todas' : source === 'pro' ? 'Pro' : 'Rápidas';
 
   const sparkline = useMemo(() => (timeseries ?? []).slice(-12).map((p) => ({ value: Number(p.total) })), [timeseries]);
 
