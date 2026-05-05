@@ -9,8 +9,9 @@ import {
   Head,
   Heading,
   Html,
-  Link,
+  Img,
   Preview,
+  Section,
   Text,
 } from 'npm:@react-email/components@0.0.22'
 
@@ -21,38 +22,49 @@ interface SignupEmailProps {
   confirmationUrl: string
 }
 
+const LOGO_URL = 'https://wvqqoigrslatxnbykcji.supabase.co/storage/v1/object/public/recomendaciones/email-assets/lacer-logo-bocas_sanas.jpg'
+
 export const SignupEmail = ({
   siteName,
-  siteUrl,
   recipient,
   confirmationUrl,
 }: SignupEmailProps) => (
-  <Html lang="en" dir="ltr">
+  <Html lang="es" dir="ltr">
     <Head />
-    <Preview>Confirm your email for {siteName}</Preview>
+    <Preview>Confirma tu email para acceder al Talonario Digital Lacer</Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>Confirm your email</Heading>
-        <Text style={text}>
-          Thanks for signing up for{' '}
-          <Link href={siteUrl} style={link}>
-            <strong>{siteName}</strong>
-          </Link>
-          !
-        </Text>
-        <Text style={text}>
-          Please confirm your email address (
-          <Link href={`mailto:${recipient}`} style={link}>
-            {recipient}
-          </Link>
-          ) by clicking the button below:
-        </Text>
-        <Button style={button} href={confirmationUrl}>
-          Verify Email
-        </Button>
-        <Text style={footer}>
-          If you didn't create an account, you can safely ignore this email.
-        </Text>
+        <Section style={header}>
+          <Img src={LOGO_URL} alt="Lacer - Bocas Sanas" width="200" style={logo} />
+        </Section>
+        <Section style={hero}>
+          <Heading style={h1}>Confirma tu email</Heading>
+          <Text style={heroText}>Bienvenido al Talonario Digital Lacer</Text>
+        </Section>
+        <Section style={body}>
+          <Text style={text}>Hola,</Text>
+          <Text style={text}>
+            Gracias por registrarte en el <strong>Talonario Digital Lacer</strong>.
+            Para activar tu cuenta ({recipient}) y empezar a generar recetas
+            digitales, confirma tu dirección de email haciendo clic en el botón:
+          </Text>
+          <Section style={{ textAlign: 'center', margin: '32px 0' }}>
+            <Button style={button} href={confirmationUrl}>
+              Confirmar mi email
+            </Button>
+          </Section>
+          <Text style={textSmall}>
+            Si no has creado ninguna cuenta en {siteName}, puedes ignorar este mensaje.
+          </Text>
+        </Section>
+        <Section style={footer}>
+          <Text style={footerText}>
+            Talonario Digital Lacer — Recetas inteligentes para profesionales de la salud bucodental
+          </Text>
+          <Text style={footerSmall}>
+            © {new Date().getFullYear()} Lacer. Todos los derechos reservados.
+          </Text>
+        </Section>
       </Container>
     </Body>
   </Html>
@@ -60,27 +72,17 @@ export const SignupEmail = ({
 
 export default SignupEmail
 
-const main = { backgroundColor: '#ffffff', fontFamily: 'Arial, sans-serif' }
-const container = { padding: '20px 25px' }
-const h1 = {
-  fontSize: '22px',
-  fontWeight: 'bold' as const,
-  color: '#000000',
-  margin: '0 0 20px',
-}
-const text = {
-  fontSize: '14px',
-  color: '#55575d',
-  lineHeight: '1.5',
-  margin: '0 0 25px',
-}
-const link = { color: 'inherit', textDecoration: 'underline' }
-const button = {
-  backgroundColor: '#000000',
-  color: '#ffffff',
-  fontSize: '14px',
-  borderRadius: '8px',
-  padding: '12px 20px',
-  textDecoration: 'none',
-}
-const footer = { fontSize: '12px', color: '#999999', margin: '30px 0 0' }
+const main = { backgroundColor: '#f4f4f5', fontFamily: 'Segoe UI, Arial, Helvetica, sans-serif', margin: 0, padding: '32px 16px' }
+const container = { backgroundColor: '#ffffff', borderRadius: '12px', overflow: 'hidden', maxWidth: '600px', margin: '0 auto', boxShadow: '0 4px 24px rgba(0,0,0,0.08)' }
+const header = { backgroundColor: '#ffffff', padding: '28px 40px 16px', borderBottom: '4px solid #E31937' }
+const logo = { display: 'block', maxWidth: '200px', height: 'auto' }
+const hero = { background: 'linear-gradient(135deg,#E31937 0%,#b91c30 100%)', padding: '36px 40px', textAlign: 'center' as const }
+const h1 = { color: '#ffffff', fontSize: '26px', margin: '0 0 8px', fontWeight: 700 as const, letterSpacing: '-0.5px' }
+const heroText = { color: 'rgba(255,255,255,0.9)', fontSize: '15px', margin: 0 }
+const body = { padding: '32px 40px' }
+const text = { fontSize: '15px', color: '#444', lineHeight: '1.6', margin: '0 0 16px' }
+const textSmall = { fontSize: '13px', color: '#888', lineHeight: '1.5', margin: '24px 0 0', textAlign: 'center' as const }
+const button = { backgroundColor: '#E31937', color: '#ffffff', fontSize: '16px', fontWeight: 700 as const, borderRadius: '8px', padding: '16px 36px', textDecoration: 'none', display: 'inline-block', boxShadow: '0 4px 14px rgba(227,25,55,0.35)' }
+const footer = { backgroundColor: '#1a1a1a', padding: '24px 40px', textAlign: 'center' as const }
+const footerText = { fontSize: '12px', color: '#bbb', margin: '0 0 4px' }
+const footerSmall = { fontSize: '11px', color: '#777', margin: 0 }
