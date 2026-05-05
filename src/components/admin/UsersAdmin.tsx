@@ -306,6 +306,17 @@ export function UsersAdmin() {
                               <Eye className="h-4 w-4 mr-1" />
                               Detalle
                             </Button>
+                            {email && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                disabled={resendMutation.isPending}
+                                onClick={() => resendMutation.mutate(email)}
+                                title="Reenviar email de confirmación"
+                              >
+                                <Send className="h-4 w-4" />
+                              </Button>
+                            )}
                             {isAdminUser ? (
                               <Button
                                 size="sm"
