@@ -465,6 +465,16 @@ const Auth = () => {
                     {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Iniciar sesión
                   </Button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResendEmail(loginForm.getValues('email') || '');
+                      setResendOpen(true);
+                    }}
+                    className="text-xs text-muted-foreground hover:text-secondary transition-colors w-full text-center underline-offset-2 hover:underline"
+                  >
+                    ¿No recibiste el email de confirmación?
+                  </button>
                 </form>
               </Form>
             </TabsContent>
