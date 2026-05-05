@@ -7,3 +7,5 @@ project_id = "wvqqoigrslatxnbykcji"
     verify_jwt = false
   [functions.send-onboarding-email]
     verify_jwt = false
+  [functions.process-email-queue]
+    verify_jwt = true
