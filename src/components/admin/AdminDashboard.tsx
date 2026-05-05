@@ -70,10 +70,16 @@ export function AdminDashboard() {
     if (custom) setCustomRange(custom);
   };
 
-  // Global (non-range) counts
+  // Global (non-range) counts — Pro + Quick
   const { data: totalRecipes, isLoading: loadingRecipes } = useQuery({
     queryKey: ['admin-total-recipes'],
-    queryFn: async () => (await supabase.from('recipes').select('*', { count: 'exact', head: true })).count ?? 0,
+    queryFn: async () => {
+      const [pro, quick] = await Promise.all([
+        supabase.from('recipes').select('*', { count: 'exact', head: true }),
+        supabase.from('quick_recipes').select('*', { count: 'exact', head: true }),
+      ]);
+      return (pro.count ?? 0) + (quick.count ?? 0);
+    },
   });
   const { data: totalUsers, isLoading: loadingUsers } = useQuery({
     queryKey: ['admin-total-users'],
