@@ -173,6 +173,12 @@ export function UserDetailSheet({ open, onOpenChange, profile, isAdminUser }: Pr
                 <p className="text-sm text-muted-foreground mt-0.5">{profile.professional_name}</p>
               )}
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-xs text-muted-foreground">
+                {profile?.email && (
+                  <span className="flex items-center gap-1 font-mono">
+                    <Mail className="w-3 h-3" />
+                    {profile.email}
+                  </span>
+                )}
                 {(profile?.locality || profile?.province) && (
                   <span className="flex items-center gap-1">
                     <MapPin className="w-3 h-3" />
