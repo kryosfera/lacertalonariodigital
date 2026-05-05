@@ -182,6 +182,15 @@ export function AdminDashboard() {
     },
   });
 
+  const { data: sendHours } = useQuery({
+    queryKey: ['admin-send-hours-range', startISO, endISO, source],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('admin_send_hours_range', { start_ts: startISO, end_ts: endISO, source });
+      if (error) throw error;
+      return (data ?? []) as { hour: number; total: number }[];
+    },
+  });
+
   const { data: recentRecipes } = useQuery({
     queryKey: ['admin-recent-recipes'],
     queryFn: async () => {
