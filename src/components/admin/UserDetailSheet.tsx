@@ -37,6 +37,7 @@ interface Profile {
   signature_url: string | null;
   logo_url: string | null;
   created_at: string;
+  email?: string | null;
 }
 
 interface Props {
