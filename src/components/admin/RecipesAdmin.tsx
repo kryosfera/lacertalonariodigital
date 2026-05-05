@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,6 +23,10 @@ export function RecipesAdmin() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('__all__');
   const [sourceFilter, setSourceFilter] = useState('__all__');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+
+  useEffect(() => { setPage(1); }, [search, statusFilter, sourceFilter, pageSize]);
 
   const { data: recipes, isLoading } = useQuery({
     queryKey: ['admin-all-recipes-unified'],
@@ -59,6 +63,13 @@ export function RecipesAdmin() {
     const matchSource = sourceFilter === '__all__' || sourceFilter === r.source;
     return matchSearch && matchStatus && matchSource;
   }) ?? [];
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paginated = useMemo(
+    () => filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize),
+    [filtered, currentPage, pageSize]
+  );
 
   const handleExportCsv = () => {
     if (!filtered.length) return;
@@ -145,7 +156,7 @@ export function RecipesAdmin() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filtered.map(r => {
+                  {paginated.map(r => {
                     const products = Array.isArray(r.products) ? (r.products as any[]) : [];
                     return (
                       <TableRow key={`${r.source}-${r.id}`}>
@@ -186,6 +197,35 @@ export function RecipesAdmin() {
           )}
         </CardContent>
       </Card>
+
+      <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span>
+            {filtered.length === 0
+              ? '0 resultados'
+              : `${(currentPage - 1) * pageSize + 1}–${Math.min(currentPage * pageSize, filtered.length)} de ${filtered.length}`}
+          </span>
+          <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+            <SelectTrigger className="h-8 w-[90px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[10, 25, 50, 100].map(n => (
+                <SelectItem key={n} value={String(n)}>{n} / pág.</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setPage(1)}>«</Button>
+          <Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>‹</Button>
+          <span className="text-xs text-muted-foreground tabular-nums px-2">
+            Página {currentPage} de {totalPages}
+          </span>
+          <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>›</Button>
+          <Button variant="outline" size="sm" disabled={currentPage >= totalPages} onClick={() => setPage(totalPages)}>»</Button>
+        </div>
+      </div>
 
       <p className="text-xs text-muted-foreground">Mostrando hasta las últimas 500 de cada tipo (Pro + Rápidas)</p>
     </div>
