@@ -148,9 +148,9 @@ export function RecipesAdmin() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Tipo</TableHead>
-                    <TableHead>Código</TableHead>
                     <TableHead>Paciente</TableHead>
                     <TableHead>Fecha</TableHead>
+                    <TableHead>Hora</TableHead>
                     <TableHead>Envío</TableHead>
                     <TableHead>Productos</TableHead>
                     <TableHead>Estado</TableHead>
