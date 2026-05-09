@@ -514,7 +514,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     let recipeUrl: string | undefined;
     
     try {
-      recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'email');
+      recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'email', email);
       
       sendViaEmail(recipeData, email, recipeUrl);
       showSuccess("Email");
