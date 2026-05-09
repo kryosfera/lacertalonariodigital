@@ -34,7 +34,7 @@ export function RecipesAdmin() {
     queryFn: async () => {
       const [proRes, quickRes] = await Promise.all([
         supabase.from('recipes')
-          .select('id, recipe_code, patient_name, created_at, sent_via, dispensed_at, products')
+          .select('id, recipe_code, patient_id, patient_name, created_at, sent_via, dispensed_at, products')
           .order('created_at', { ascending: false })
           .limit(500),
         supabase.from('quick_recipes')
@@ -44,11 +44,35 @@ export function RecipesAdmin() {
       ]);
       if (proRes.error) throw proRes.error;
       if (quickRes.error) throw quickRes.error;
-      const pro: UnifiedRecipe[] = (proRes.data ?? []).map((r: any) => ({ ...r, source: 'pro' as const }));
+
+      const proRows = proRes.data ?? [];
+      const patientIds = [...new Set((proRows as any[]).map((r: any) => r.patient_id).filter(Boolean))];
+      let patientsMap: Record<string, { email?: string; phone?: string }> = {};
+      if (patientIds.length > 0) {
+        const { data: patientsData, error: patientsErr } = await supabase
+          .from('patients')
+          .select('id, email, phone')
+          .in('id', patientIds);
+        if (!patientsErr && patientsData) {
+          patientsMap = Object.fromEntries(
+            patientsData.map((p: any) => [p.id, { email: p.email, phone: p.phone }])
+          );
+        }
+      }
+
+      const pro: UnifiedRecipe[] = proRows.map((r: any) => {
+        const p = patientsMap[r.patient_id];
+        return {
+          ...r,
+          source: 'pro' as const,
+          contact: p?.email || p?.phone || null,
+        };
+      });
       const quick: UnifiedRecipe[] = (quickRes.data ?? []).map((r: any) => ({
         id: r.id, source: 'quick' as const, recipe_code: null,
         patient_name: 'Receta rápida', created_at: r.created_at,
         sent_via: r.sent_via, dispensed_at: null, products: r.products,
+        contact: null,
       }));
       return [...pro, ...quick].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
     },
