@@ -474,7 +474,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     let recipeUrl: string | undefined;
     
     try {
-      recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'whatsapp');
+      recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'whatsapp', phone);
       
       sendViaWhatsApp(recipeData, phone, recipeUrl, preOpenedWindow);
       
