@@ -72,7 +72,7 @@ export function RecipesAdmin() {
         id: r.id, source: 'quick' as const, recipe_code: null,
         patient_name: 'Receta rápida', created_at: r.created_at,
         sent_via: r.sent_via, dispensed_at: null, products: r.products,
-        contact: null,
+        contact: r.recipient || null,
       }));
       return [...pro, ...quick].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
     },
