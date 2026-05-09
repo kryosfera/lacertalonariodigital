@@ -17,6 +17,7 @@ type UnifiedRecipe = {
   sent_via: string | null;
   dispensed_at: string | null;
   products: any;
+  contact?: string | null;
 };
 
 export function RecipesAdmin() {
