@@ -17,6 +17,7 @@ type UnifiedRecipe = {
   sent_via: string | null;
   dispensed_at: string | null;
   products: any;
+  contact?: string | null;
 };
 
 export function RecipesAdmin() {
@@ -33,7 +34,7 @@ export function RecipesAdmin() {
     queryFn: async () => {
       const [proRes, quickRes] = await Promise.all([
         supabase.from('recipes')
-          .select('id, recipe_code, patient_name, created_at, sent_via, dispensed_at, products')
+          .select('id, recipe_code, patient_id, patient_name, created_at, sent_via, dispensed_at, products')
           .order('created_at', { ascending: false })
           .limit(500),
         supabase.from('quick_recipes')
@@ -43,11 +44,35 @@ export function RecipesAdmin() {
       ]);
       if (proRes.error) throw proRes.error;
       if (quickRes.error) throw quickRes.error;
-      const pro: UnifiedRecipe[] = (proRes.data ?? []).map((r: any) => ({ ...r, source: 'pro' as const }));
+
+      const proRows = proRes.data ?? [];
+      const patientIds = [...new Set((proRows as any[]).map((r: any) => r.patient_id).filter(Boolean))];
+      let patientsMap: Record<string, { email?: string; phone?: string }> = {};
+      if (patientIds.length > 0) {
+        const { data: patientsData, error: patientsErr } = await supabase
+          .from('patients')
+          .select('id, email, phone')
+          .in('id', patientIds);
+        if (!patientsErr && patientsData) {
+          patientsMap = Object.fromEntries(
+            patientsData.map((p: any) => [p.id, { email: p.email, phone: p.phone }])
+          );
+        }
+      }
+
+      const pro: UnifiedRecipe[] = proRows.map((r: any) => {
+        const p = patientsMap[r.patient_id];
+        return {
+          ...r,
+          source: 'pro' as const,
+          contact: p?.email || p?.phone || null,
+        };
+      });
       const quick: UnifiedRecipe[] = (quickRes.data ?? []).map((r: any) => ({
         id: r.id, source: 'quick' as const, recipe_code: null,
         patient_name: 'Receta rápida', created_at: r.created_at,
         sent_via: r.sent_via, dispensed_at: null, products: r.products,
+        contact: null,
       }));
       return [...pro, ...quick].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at));
     },
@@ -56,7 +81,8 @@ export function RecipesAdmin() {
   const filtered = recipes?.filter(r => {
     const matchSearch = !search ||
       r.patient_name.toLowerCase().includes(search.toLowerCase()) ||
-      r.recipe_code?.toLowerCase().includes(search.toLowerCase());
+      r.recipe_code?.toLowerCase().includes(search.toLowerCase()) ||
+      r.contact?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === '__all__' ||
       (statusFilter === 'dispensed' && r.dispensed_at) ||
       (statusFilter === 'pending' && !r.dispensed_at && r.source === 'pro');
@@ -73,13 +99,14 @@ export function RecipesAdmin() {
 
   const handleExportCsv = () => {
     if (!filtered.length) return;
-    const headers = ['Tipo', 'Paciente', 'Fecha', 'Hora', 'Envío', 'Estado', 'Productos'];
+    const headers = ['Tipo', 'Paciente', 'Contacto', 'Fecha', 'Hora', 'Envío', 'Estado', 'Productos'];
     const rows = filtered.map(r => {
       const products = Array.isArray(r.products) ? (r.products as any[]).map((p: any) => p.name).join('; ') : '';
       const d = new Date(r.created_at);
       return [
         r.source === 'pro' ? 'Pro' : 'Rápida',
         r.patient_name,
+        r.contact || '',
         d.toLocaleDateString('es-ES'),
         d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
         r.sent_via || '',
@@ -112,7 +139,7 @@ export function RecipesAdmin() {
       <div className="flex gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar paciente o código..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Buscar paciente, contacto o código..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
         <Select value={sourceFilter} onValueChange={setSourceFilter}>
           <SelectTrigger className="w-[160px]">
@@ -149,6 +176,7 @@ export function RecipesAdmin() {
                   <TableRow>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Paciente</TableHead>
+                    <TableHead>Contacto</TableHead>
                     <TableHead>Fecha</TableHead>
                     <TableHead>Hora</TableHead>
                     <TableHead>Envío</TableHead>
@@ -167,6 +195,9 @@ export function RecipesAdmin() {
                           </span>
                         </TableCell>
                         <TableCell className="font-medium">{r.patient_name}</TableCell>
+                        <TableCell className="text-sm max-w-[140px] truncate" title={r.contact || undefined}>
+                          {r.contact || '—'}
+                        </TableCell>
                         <TableCell className="text-sm">{new Date(r.created_at).toLocaleDateString('es-ES')}</TableCell>
                         <TableCell className="text-sm tabular-nums">{new Date(r.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</TableCell>
                         <TableCell className="text-sm capitalize">{r.sent_via || '—'}</TableCell>
@@ -187,7 +218,7 @@ export function RecipesAdmin() {
                   })}
                   {filtered.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         No se encontraron recetas
                       </TableCell>
                     </TableRow>
