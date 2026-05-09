@@ -81,7 +81,8 @@ export function RecipesAdmin() {
   const filtered = recipes?.filter(r => {
     const matchSearch = !search ||
       r.patient_name.toLowerCase().includes(search.toLowerCase()) ||
-      r.recipe_code?.toLowerCase().includes(search.toLowerCase());
+      r.recipe_code?.toLowerCase().includes(search.toLowerCase()) ||
+      r.contact?.toLowerCase().includes(search.toLowerCase());
     const matchStatus = statusFilter === '__all__' ||
       (statusFilter === 'dispensed' && r.dispensed_at) ||
       (statusFilter === 'pending' && !r.dispensed_at && r.source === 'pro');
