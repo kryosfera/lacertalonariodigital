@@ -1,0 +1,1 @@
+ALTER TABLE public.quick_recipes ADD COLUMN IF NOT EXISTS recipient TEXT;

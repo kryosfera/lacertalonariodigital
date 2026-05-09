@@ -309,6 +309,7 @@ export type Database = {
           id: string
           notes: string | null
           products: Json
+          recipient: string | null
           sent_via: string | null
         }
         Insert: {
@@ -316,6 +317,7 @@ export type Database = {
           id?: string
           notes?: string | null
           products?: Json
+          recipient?: string | null
           sent_via?: string | null
         }
         Update: {
@@ -323,6 +325,7 @@ export type Database = {
           id?: string
           notes?: string | null
           products?: Json
+          recipient?: string | null
           sent_via?: string | null
         }
         Relationships: []
