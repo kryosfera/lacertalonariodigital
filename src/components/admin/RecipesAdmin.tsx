@@ -176,6 +176,7 @@ export function RecipesAdmin() {
                   <TableRow>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Paciente</TableHead>
+                    <TableHead>Contacto</TableHead>
                     <TableHead>Fecha</TableHead>
                     <TableHead>Hora</TableHead>
                     <TableHead>Envío</TableHead>
