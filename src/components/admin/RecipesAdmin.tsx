@@ -99,13 +99,14 @@ export function RecipesAdmin() {
 
   const handleExportCsv = () => {
     if (!filtered.length) return;
-    const headers = ['Tipo', 'Paciente', 'Fecha', 'Hora', 'Envío', 'Estado', 'Productos'];
+    const headers = ['Tipo', 'Paciente', 'Contacto', 'Fecha', 'Hora', 'Envío', 'Estado', 'Productos'];
     const rows = filtered.map(r => {
       const products = Array.isArray(r.products) ? (r.products as any[]).map((p: any) => p.name).join('; ') : '';
       const d = new Date(r.created_at);
       return [
         r.source === 'pro' ? 'Pro' : 'Rápida',
         r.patient_name,
+        r.contact || '',
         d.toLocaleDateString('es-ES'),
         d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
         r.sent_via || '',
