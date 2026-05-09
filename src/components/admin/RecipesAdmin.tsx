@@ -195,6 +195,9 @@ export function RecipesAdmin() {
                           </span>
                         </TableCell>
                         <TableCell className="font-medium">{r.patient_name}</TableCell>
+                        <TableCell className="text-sm max-w-[140px] truncate" title={r.contact || undefined}>
+                          {r.contact || '—'}
+                        </TableCell>
                         <TableCell className="text-sm">{new Date(r.created_at).toLocaleDateString('es-ES')}</TableCell>
                         <TableCell className="text-sm tabular-nums">{new Date(r.created_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</TableCell>
                         <TableCell className="text-sm capitalize">{r.sent_via || '—'}</TableCell>
@@ -215,7 +218,7 @@ export function RecipesAdmin() {
                   })}
                   {filtered.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                         No se encontraron recetas
                       </TableCell>
                     </TableRow>
