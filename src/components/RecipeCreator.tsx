@@ -276,7 +276,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
 
 
   // Anonymous analytics insert for Quick Mode (fire-and-forget)
-  const logQuickRecipe = async (sentVia: 'whatsapp' | 'email' | 'pdf' | 'print') => {
+  const logQuickRecipe = async (sentVia: 'whatsapp' | 'email' | 'pdf' | 'print', recipient?: string) => {
     try {
       const products = selectedProductsData.map(p => ({
         id: p.id,
@@ -289,6 +289,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
         products: JSON.parse(JSON.stringify(products)),
         notes: notes || null,
         sent_via: sentVia,
+        recipient: recipient || null,
       });
     } catch (err) {
       console.error('Error logging quick recipe:', err);
@@ -296,7 +297,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
   };
 
   // Unified URL generation: DB recipe → short URL → base64 fallback
-  const generateRecipeUrlWithFallback = async (recipeData: ReturnType<typeof getRecipeData>, sentVia: 'whatsapp' | 'email' | 'pdf' | 'print'): Promise<string | undefined> => {
+  const generateRecipeUrlWithFallback = async (recipeData: ReturnType<typeof getRecipeData>, sentVia: 'whatsapp' | 'email' | 'pdf' | 'print', recipient?: string): Promise<string | undefined> => {
     // 1. Professional: try saving to DB for shortest URL
     if (isProfessional) {
       const recipeCode = await saveRecipeToDb(sentVia);
@@ -305,7 +306,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       }
     } else {
       // Quick Mode: log anonymously for analytics
-      logQuickRecipe(sentVia);
+      logQuickRecipe(sentVia, recipient);
     }
     // 2. Try short URL service (authenticated users)
     const shortCode = await createShortUrl(recipeData);
