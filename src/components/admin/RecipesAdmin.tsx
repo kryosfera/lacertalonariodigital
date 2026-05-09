@@ -38,7 +38,7 @@ export function RecipesAdmin() {
           .order('created_at', { ascending: false })
           .limit(500),
         supabase.from('quick_recipes')
-          .select('id, created_at, sent_via, products')
+          .select('id, created_at, sent_via, products, recipient')
           .order('created_at', { ascending: false })
           .limit(500),
       ]);
