@@ -139,7 +139,7 @@ export function RecipesAdmin() {
       <div className="flex gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar paciente o código..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+          <Input placeholder="Buscar paciente, contacto o código..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
         <Select value={sourceFilter} onValueChange={setSourceFilter}>
           <SelectTrigger className="w-[160px]">
