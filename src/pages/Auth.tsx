@@ -64,7 +64,18 @@ const Auth = () => {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotLoading, setForgotLoading] = useState(false);
-  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  // Detect recovery mode synchronously from URL so the redirect effect doesn't
+  // navigate away before Supabase fires PASSWORD_RECOVERY.
+  const detectRecoveryFromUrl = () => {
+    if (typeof window === 'undefined') return false;
+    if (searchParams.get('mode') === 'reset') return true;
+    const hash = window.location.hash.startsWith('#')
+      ? window.location.hash.slice(1)
+      : window.location.hash;
+    const hashParams = new URLSearchParams(hash);
+    return hashParams.get('type') === 'recovery';
+  };
+  const [isRecoveryMode, setIsRecoveryMode] = useState<boolean>(detectRecoveryFromUrl);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendLoading, setResendLoading] = useState(false);
