@@ -11,5 +11,3 @@ project_id = "wvqqoigrslatxnbykcji"
     verify_jwt = true
   [functions.resend-confirmation]
     verify_jwt = false
-  [functions.temp-reset-pwd]
-    verify_jwt = false
