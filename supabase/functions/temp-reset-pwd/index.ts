@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
     const targetEmail = "enrique.losada@lacer.es";
-    const newPassword = "Lacer";
+    const newPassword = "Lacer2026";
 
     // find user by email via list (admin API lacks getByEmail in v2)
     let userId: string | null = null;
