@@ -254,6 +254,8 @@ const Auth = () => {
       } else {
         toast({ title: 'Contraseña actualizada correctamente' });
         setIsRecoveryMode(false);
+        // Limpia hash/query para evitar reentrar en modo recovery al refrescar
+        window.history.replaceState({}, '', '/');
         navigate('/');
       }
     } finally {
