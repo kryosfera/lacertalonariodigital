@@ -134,7 +134,7 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
         is_visible: fullProduct.is_visible ?? true,
       });
       setVideoUrls(fullProduct.video_urls || []);
-      setPendingThumbnailUrl(fullProduct.thumbnail_url || null);
+      setPendingThumbnailUrl(fullProduct.thumbnail_url || fullProduct.share_image_url || fullProduct.main_image_url || null);
     } else if (!product) {
       form.reset({
         name: '',
@@ -219,6 +219,8 @@ export function ProductDialog({ open, onOpenChange, product }: ProductDialogProp
         is_visible: data.is_visible,
         video_urls: videoUrls.length > 0 ? videoUrls : null,
         thumbnail_url: pendingThumbnailUrl,
+        share_image_url: pendingThumbnailUrl,
+        main_image_url: pendingThumbnailUrl,
       };
 
       if (product?.id) {

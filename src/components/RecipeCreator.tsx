@@ -31,6 +31,8 @@ interface Product {
   reference: string;
   ean: string | null;
   thumbnail_url: string | null;
+  share_image_url?: string | null;
+  main_image_url?: string | null;
   category_id: string | null;
   video_urls: string[] | null;
 }
@@ -145,14 +147,17 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("id, name, reference, ean, thumbnail_url, category_id, video_urls")
+        .select("id, name, reference, ean, thumbnail_url, share_image_url, main_image_url, category_id, video_urls")
         .eq("is_active", true)
         .eq("is_visible", true)
         .order("sort_order", { ascending: true })
         .order("name", { ascending: true });
 
       if (error) throw error;
-      return data as Product[];
+      return (data as Product[]).map((product) => ({
+        ...product,
+        thumbnail_url: product.thumbnail_url || product.share_image_url || product.main_image_url || null,
+      }));
     },
     staleTime: 5 * 60 * 1000, // 5 minutes — products change rarely
   });
@@ -276,14 +281,16 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
 
 
   // Anonymous analytics insert for Quick Mode (fire-and-forget)
-  const logQuickRecipe = async (sentVia: 'whatsapp' | 'email' | 'pdf' | 'print', recipient?: string) => {
+  const logQuickRecipe = async (sentVia: 'whatsapp' | 'email' | 'pdf' | 'print', recipient?: string, productsToLog = selectedProductsData) => {
     try {
-      const products = selectedProductsData.map(p => ({
+      const products = productsToLog.map(p => ({
         id: p.id,
         name: p.name,
         reference: p.reference,
         ean: p.ean,
         quantity: p.quantity,
+        thumbnail_url: p.thumbnail_url,
+        video_urls: p.video_urls || undefined,
       }));
       await supabase.from('quick_recipes').insert({
         products: JSON.parse(JSON.stringify(products)),
@@ -297,16 +304,16 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
   };
 
   // Unified URL generation: DB recipe → short URL → base64 fallback
-  const generateRecipeUrlWithFallback = async (recipeData: ReturnType<typeof getRecipeData>, sentVia: 'whatsapp' | 'email' | 'pdf' | 'print', recipient?: string): Promise<string | undefined> => {
+  const generateRecipeUrlWithFallback = async (recipeData: ReturnType<typeof getRecipeData>, sentVia: 'whatsapp' | 'email' | 'pdf' | 'print', recipient?: string, productsForSnapshot = selectedProductsData): Promise<string | undefined> => {
     // 1. Professional: try saving to DB for shortest URL
     if (isProfessional) {
-      const recipeCode = await saveRecipeToDb(sentVia);
+      const recipeCode = await saveRecipeToDb(sentVia, productsForSnapshot);
       if (recipeCode) {
         return generateRecipeUrl(recipeCode);
       }
     } else {
       // Quick Mode: log anonymously for analytics
-      logQuickRecipe(sentVia, recipient);
+      logQuickRecipe(sentVia, recipient, productsForSnapshot);
     }
     // 2. Try short URL service (authenticated users)
     const shortCode = await createShortUrl(recipeData);
@@ -318,10 +325,10 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     return generateTemporaryRecipeUrl(recipeData);
   };
 
-  const getRecipeData = () => ({
+  const getRecipeData = (productsForSnapshot = selectedProductsData) => ({
     patientName,
     date: new Date().toLocaleDateString("es-ES"),
-    products: selectedProductsData,
+    products: productsForSnapshot,
     notes,
     profile: isProfessional && profileData ? {
       logo_url: profileData.logo_url,
@@ -393,10 +400,38 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     }
   };
 
-  const saveRecipeToDb = async (sentVia: 'whatsapp' | 'email' | 'both' | 'pdf' | 'print'): Promise<string | null> => {
+  const getFreshSelectedProductsData = async (): Promise<ProductWithQuantity[]> => {
+    if (selectedProducts.size === 0) return [];
+
+    const selectedIds = Array.from(selectedProducts.keys());
+    const { data, error } = await supabase
+      .from("products")
+      .select("id, name, reference, ean, thumbnail_url, share_image_url, main_image_url, category_id, video_urls")
+      .in("id", selectedIds);
+
+    if (error || !data) {
+      console.error("Error refreshing selected product images:", error);
+      return selectedProductsData;
+    }
+
+    const freshById = new Map(
+      (data as Product[]).map((product) => [
+        product.id,
+        {
+          ...product,
+          thumbnail_url: product.thumbnail_url || product.share_image_url || product.main_image_url || null,
+          quantity: selectedProducts.get(product.id) || 1,
+        },
+      ])
+    );
+
+    return selectedProductsData.map((product) => freshById.get(product.id) || product);
+  };
+
+  const saveRecipeToDb = async (sentVia: 'whatsapp' | 'email' | 'both' | 'pdf' | 'print', productsForSnapshot = selectedProductsData): Promise<string | null> => {
     if (!isProfessional) return null;
     
-    const recipeProducts: RecipeProduct[] = selectedProductsData.map(p => ({
+    const recipeProducts: RecipeProduct[] = productsForSnapshot.map(p => ({
       id: p.id,
       name: p.name,
       reference: p.reference,
@@ -464,7 +499,8 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
 
     setIsSending(true);
 
-    const recipeData = getRecipeData();
+    const freshProducts = await getFreshSelectedProductsData();
+    const recipeData = getRecipeData(freshProducts);
 
     const preOpenedWindow = window.open("about:blank", "_blank");
     
@@ -474,7 +510,7 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     let recipeUrl: string | undefined;
     
     try {
-      recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'whatsapp', phone);
+      recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'whatsapp', phone, freshProducts);
       
       sendViaWhatsApp(recipeData, phone, recipeUrl, preOpenedWindow);
       
@@ -510,11 +546,12 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
     }
 
     setIsSending(true);
-    const recipeData = getRecipeData();
+    const freshProducts = await getFreshSelectedProductsData();
+    const recipeData = getRecipeData(freshProducts);
     let recipeUrl: string | undefined;
     
     try {
-      recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'email', email);
+      recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'email', email, freshProducts);
       
       sendViaEmail(recipeData, email, recipeUrl);
       showSuccess("Email");
@@ -531,10 +568,11 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       return;
     }
     setIsSending(true);
-    const recipeData = getRecipeData();
+    const freshProducts = await getFreshSelectedProductsData();
+    const recipeData = getRecipeData(freshProducts);
     
     try {
-      const recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'pdf');
+      const recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'pdf', undefined, freshProducts);
       
       await downloadPDF(recipeData, recipeUrl);
       showSuccess("PDF");
@@ -551,10 +589,11 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
       return;
     }
     setIsSending(true);
-    const recipeData = getRecipeData();
+    const freshProducts = await getFreshSelectedProductsData();
+    const recipeData = getRecipeData(freshProducts);
     
     try {
-      const recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'print');
+      const recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'print', undefined, freshProducts);
       
       const { generateRecipePDF } = await import("@/lib/recipeUtils");
       const blob = await generateRecipePDF(recipeData, recipeUrl);
