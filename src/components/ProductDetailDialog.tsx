@@ -26,7 +26,7 @@ export const ProductDetailDialog = ({
       const { data, error } = await supabase
         .from("products")
         .select(
-          "id, name, reference, ean, description_html, main_image_url, thumbnail_url, gallery_urls, video_urls, categories(name)"
+          "id, name, reference, ean, description_html, main_image_url, share_image_url, thumbnail_url, gallery_urls, video_urls, categories(name)"
         )
         .eq("id", productId!)
         .maybeSingle();
@@ -36,7 +36,7 @@ export const ProductDetailDialog = ({
   });
 
   const open = !!productId;
-  const image = product?.main_image_url || product?.thumbnail_url;
+  const image = product?.thumbnail_url || product?.share_image_url || product?.main_image_url;
   const formattedCN = product?.reference?.replace(".", "") || "";
 
   return (
