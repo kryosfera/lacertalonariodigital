@@ -499,35 +499,35 @@ export const RecipeCreator = ({ startWithCategories = false, onCategoriesShown, 
 
     setIsSending(true);
 
-    const freshProducts = await getFreshSelectedProductsData();
-    const recipeData = getRecipeData(freshProducts);
-
-    const preOpenedWindow = window.open("about:blank", "_blank");
-    
-    // Track for auto-close on return
+    // Open a blank tab synchronously on the click gesture so iOS Safari
+    // does not block the later navigation to wa.me. May return null on
+    // installed PWAs — sendViaWhatsApp falls back to an anchor click.
+    let preOpenedWindow: Window | null = null;
+    try {
+      preOpenedWindow = window.open("about:blank", "_blank");
+    } catch {
+      preOpenedWindow = null;
+    }
     if (preOpenedWindow) setPreOpenedWindowRef(preOpenedWindow);
 
     let recipeUrl: string | undefined;
-    
+
     try {
+      const freshProducts = await getFreshSelectedProductsData();
+      const recipeData = getRecipeData(freshProducts);
+
       recipeUrl = await generateRecipeUrlWithFallback(recipeData, 'whatsapp', phone, freshProducts);
-      
+
       sendViaWhatsApp(recipeData, phone, recipeUrl, preOpenedWindow);
-      
-      // Auto-cerrar la ventana pre-abierta tras un breve retraso
-      // (suficiente para que el navegador procese la redirección a wa.me)
-      if (preOpenedWindow) {
-        setTimeout(() => {
-          try { preOpenedWindow.close(); } catch {}
-          setPreOpenedWindowRef(null);
-        }, 1500);
-      }
-      
+
       showSuccess("WhatsApp");
     } catch (error) {
-      if (preOpenedWindow) preOpenedWindow.close();
+      console.error('WhatsApp send error:', error);
+      if (preOpenedWindow && !preOpenedWindow.closed) {
+        try { preOpenedWindow.close(); } catch {}
+      }
       setPreOpenedWindowRef(null);
-      toast.error("Error al generar el enlace");
+      toast.error("Error al generar el enlace de WhatsApp");
     } finally {
       setIsSending(false);
     }
