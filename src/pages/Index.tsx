@@ -26,6 +26,7 @@ import { LegalFooter } from "@/components/LegalFooter";
 import { Recipe } from "@/hooks/useRecipes";
 import { Patient } from "@/hooks/usePatients";
 import lacerLogo from "@/assets/lacer-logo-clean.png";
+import { SEO } from "@/components/SEO";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
