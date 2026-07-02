@@ -415,11 +415,9 @@ const Auth = () => {
           <div className="mx-auto w-20 h-20 rounded-2xl bg-white shadow-lg flex items-center justify-center mb-4 border border-secondary/10">
             <img src={lacerLogo} alt="Lacer" className="w-14 h-14 object-contain" />
           </div>
-          <CardTitle asChild>
-            <h1 className="text-xl font-bold text-foreground">
-              Acceso profesional a Talonario Digital Lacer
-            </h1>
-          </CardTitle>
+          <h1 className="text-xl font-bold text-foreground">
+            Acceso profesional a Talonario Digital Lacer
+          </h1>
           <CardDescription className="text-muted-foreground">
             Inicia sesión o crea una cuenta para gestionar recetas digitales.
           </CardDescription>
