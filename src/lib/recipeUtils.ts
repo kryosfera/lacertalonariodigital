@@ -473,20 +473,40 @@ export const sendViaWhatsApp = (
 ): void => {
   const message = generateWhatsAppMessage(data, recipeUrl);
   const encodedMessage = encodeURIComponent(message);
-  
+
   let url = `https://wa.me/`;
   if (phoneNumber) {
     const cleanPhone = phoneNumber.replace(/\D/g, "");
     url += cleanPhone;
   }
   url += `?text=${encodedMessage}`;
-  
-  if (targetWindow) {
-    // Redirigir la ventana ya abierta (funciona en iOS Safari sin activar el popup blocker)
-    targetWindow.location.href = url;
-  } else {
-    window.open(url, "_blank");
+
+  // 1) Preferred: reuse the window pre-opened synchronously on the click gesture
+  if (targetWindow && !targetWindow.closed) {
+    try {
+      targetWindow.location.href = url;
+      return;
+    } catch {
+      // fallthrough
+    }
   }
+
+  // 2) Fallback: anchor click (works on iOS Safari & most PWAs)
+  try {
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    return;
+  } catch {
+    // fallthrough
+  }
+
+  // 3) Last resort: navigate current tab (guarantees WhatsApp opens)
+  window.location.href = url;
 };
 
 // Abre cliente de email
