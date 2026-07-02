@@ -2,16 +2,22 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, Scale } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LegalFooter } from "@/components/LegalFooter";
+import { SEO } from "@/components/SEO";
 
 const LegalNotice = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO
+        title="Aviso legal | Talonario Digital Lacer"
+        description="Titularidad, condiciones de uso y régimen de responsabilidad de la plataforma Talonario Digital Lacer."
+        path="/aviso-legal"
+      />
       {/* Header */}
       <header className="bg-card border-b border-border sticky top-0 z-50 pt-safe">
         <div className="container mx-auto px-4 py-3 flex items-center gap-3">
-          <Link to="/">
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <ArrowLeft className="w-5 h-5" />
+          <Link to="/" aria-label="Volver al inicio">
+            <Button variant="ghost" size="icon" className="rounded-full" aria-label="Volver al inicio">
+              <ArrowLeft className="w-5 h-5" aria-hidden="true" />
             </Button>
           </Link>
           <div className="flex items-center gap-2">

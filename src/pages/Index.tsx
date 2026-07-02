@@ -26,6 +26,7 @@ import { LegalFooter } from "@/components/LegalFooter";
 import { Recipe } from "@/hooks/useRecipes";
 import { Patient } from "@/hooks/usePatients";
 import lacerLogo from "@/assets/lacer-logo-clean.png";
+import { SEO } from "@/components/SEO";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState("home");
@@ -202,6 +203,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen pt-safe bg-background">
+      <SEO
+        title="Talonario Digital Lacer — Recetas digitales para odontólogos"
+        description="Crea, envía y gestiona recetas y recomendaciones odontológicas por WhatsApp o email con Talonario Digital Lacer. Rápido, seguro y sin papel."
+        path="/"
+      />
       {/* Header - Desktop/Tablet only */}
       {!isMobile && (
         <header className="bg-card/80 backdrop-blur-lg border-b border-border/50 sticky top-0 z-50">
