@@ -145,6 +145,9 @@ export const HomeScreenBento = ({
                 variants={itemVariants}
               >
                 Talonario Digital
+                <span className="block text-sm md:text-base font-medium text-white/85 mt-1">
+                  Gestión de recetas para odontólogos
+                </span>
               </motion.h1>
 
               <motion.p

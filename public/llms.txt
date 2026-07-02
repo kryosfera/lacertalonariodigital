@@ -1,0 +1,13 @@
+# Talonario Digital Lacer
+
+> Plataforma profesional de Lacer para que odontólogos creen, envíen y gestionen recetas y recomendaciones de higiene bucodental de forma electrónica, por WhatsApp o email.
+
+Talonario Digital sustituye al talonario en papel: permite generar recetas digitales con firma y sello del profesional, compartirlas al instante con el paciente mediante enlaces cortos, y trazar la dispensación en farmacia con códigos EAN-13 y QR.
+
+## Pages
+
+- [Inicio](/): Presentación de la app y acceso rápido al modo básico o profesional.
+- [Acceso profesional](/auth): Inicio de sesión y registro para odontólogos y clínicas.
+- [Política de cookies](/politica-cookies): Uso de cookies técnicas y preferencias.
+- [Política de privacidad](/politica-privacidad): Tratamiento de datos personales conforme al RGPD.
+- [Aviso legal](/aviso-legal): Titularidad, condiciones de uso y responsabilidad.

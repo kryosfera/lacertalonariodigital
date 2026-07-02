@@ -415,11 +415,13 @@ const Auth = () => {
           <div className="mx-auto w-20 h-20 rounded-2xl bg-white shadow-lg flex items-center justify-center mb-4 border border-secondary/10">
             <img src={lacerLogo} alt="Lacer" className="w-14 h-14 object-contain" />
           </div>
-          <CardTitle className="text-xl font-bold text-foreground">
-            Acceso Profesional
+          <CardTitle asChild>
+            <h1 className="text-xl font-bold text-foreground">
+              Acceso profesional a Talonario Digital Lacer
+            </h1>
           </CardTitle>
           <CardDescription className="text-muted-foreground">
-            Inicia sesión o crea una cuenta
+            Inicia sesión o crea una cuenta para gestionar recetas digitales.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -592,13 +594,14 @@ const Auth = () => {
       <Button
         variant="ghost"
         size="sm"
+        aria-label="Volver al inicio"
         className="mt-4 text-muted-foreground hover:text-foreground"
         onClick={() => {
           localStorage.removeItem('lacer_user_mode');
           navigate('/');
         }}
       >
-        <ArrowLeft className="mr-1 h-4 w-4" />
+        <ArrowLeft className="mr-1 h-4 w-4" aria-hidden="true" />
         Volver al inicio
       </Button>
 
